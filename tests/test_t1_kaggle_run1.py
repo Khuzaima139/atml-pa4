@@ -1,7 +1,9 @@
 """Run-1 job lists, and an end-to-end CPU run of both run-1 queues through common.kaggle_queue with a tiny model.
 
 The e2e run uses the real job lists of task1.kaggle_run1 with outputs redirected to a temporary directory and the
-test options (--model-path, --device cpu, --limit-calib, --limit-dev) appended; then summary, check and zip.
+test options (--model-path, --device cpu, --limit-calib, --limit-dev) appended; then wait-all, summary, check, zip
+and final, as in cells 6-10 of the run-1 notebook. A second run with stand-in jobs (one failing) checks that the
+other queue still finishes, that summary, check and zip still complete, and that final reports the failure.
 """
 import json
 import os
@@ -106,12 +108,14 @@ def queue_run(tiny_compress4_dir, tmp_path_factory):
              str(jd / f"run1_gpu{gpu}.json"), "--logs", str(logs), "--status", str(st), "--poll", "0.5"],
             cwd=REPO_ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT))
     meta = K.load_meta(jd, "run1")
-    w = subprocess.run([sys.executable, "-m", "common.kaggle_queue", "--wait", str(st), "--names",
+    w = subprocess.run([sys.executable, "-m", "common.kaggle_queue", "--wait-all", str(st), "--names",
                         *[j["name"] for j in meta], "--logs", str(logs), "--poll", "1", "--report", "60",
-                        "--timeout", "3000"], cwd=REPO_ROOT, capture_output=True, text=True, timeout=3100)
+                        "--timeout", "3000", "--out", str(logs / "wait_run1.json")],
+                       cwd=REPO_ROOT, capture_output=True, text=True, timeout=3100)
     for p in procs:
         p.wait(timeout=600)
     assert w.returncode == 0, w.stdout[-4000:]
+    assert f"{len(meta)} of {len(meta)} jobs ok" in w.stdout
     assert [p.returncode for p in procs] == [0, 0]
     return {"base": b, "results": res, "artifacts": art, "status": st, "logs": logs, "jobs": jd, "meta": meta}
 
@@ -171,3 +175,95 @@ def test_queue_zip(queue_run, tmp_path):
     assert any(n.endswith("calib_stats/awq_scales.safetensors") for n in names)
     with pytest.raises(FileExistsError):
         K.make_zip(out, queue_run["meta"], [], queue_run["results"])
+
+
+def test_final_after_complete_run(queue_run, tmp_path):
+    jd, st = str(queue_run["jobs"]), str(queue_run["status"])
+    report = tmp_path / "check_run1.json"
+    assert K.main(["check", "--jobs-dir", jd, "--status", st, "--out", str(report)]) == 0
+    assert json.loads(report.read_text())["problems"] == []
+    out = tmp_path / "t1_run1_results.zip"
+    assert K.main(["zip", "--out", str(out), "--jobs-dir", jd, "--status", st, "--results",
+                   str(queue_run["results"]), "--include", str(queue_run["logs"]), st, jd]) == 0
+    with zipfile.ZipFile(out) as zf:
+        assert any(n.endswith("/wait_run1.json") for n in zf.namelist())
+    assert K.final(queue_run["meta"], st, report, out) == []
+    assert K.main(["final", "--jobs-dir", jd, "--status", st, "--check-report", str(report), "--zip", str(out)]) == 0
+
+
+def _cli(*args):
+    return subprocess.run([sys.executable, "-m", *args], cwd=REPO_ROOT, capture_output=True, text=True, timeout=300)
+
+
+def test_failed_job_still_yields_summary_check_zip_and_final_fails(tmp_path):
+    res, art, st, logs, jd = (tmp_path / "results" / "task1", tmp_path / "artifacts", tmp_path / "status",
+                              tmp_path / "logs", tmp_path / "jobs")
+    fp16_out, fp16_art = res / "run1" / "fp16", art / "fp16"
+    write_fp16 = (f"import json, os, time; time.sleep(3); os.makedirs({str(fp16_out)!r}); "
+                  f"os.makedirs({str(fp16_art)!r}); "
+                  f"json.dump({{'status': 'ok'}}, open(os.path.join({str(fp16_out)!r}, 'run.json'), 'w')); "
+                  f"json.dump({{'condition': 'fp16'}}, open(os.path.join({str(fp16_art)!r}, 'manifest.json'), 'w'))")
+
+    def job(name, gpu, kind, cond, cmd):
+        out = res / "run1" / cond if kind == "compress" else res / name
+        return {"name": name, "gpu": gpu, "kind": kind, "condition": cond, "entry": "stand-in", "out": str(out),
+                "artifacts": str(art / cond) if cond else None, "cmd": cmd, "wait_for": []}
+
+    jobs = [job("compress_q1_b4", "0", "compress", "q1_b4",
+                [sys.executable, "-c", "import sys; print('boom'); sys.exit(3)"]),
+            job("probe_quant", "0", "probe", None, [sys.executable, "-c", "print('probe stand-in')"]),
+            job("compress_fp16", "1", "compress", "fp16", [sys.executable, "-c", write_fp16])]
+    K.write_jobs("run1", jd, jobs)
+    names = [j["name"] for j in jobs]
+    procs = [subprocess.Popen([sys.executable, "-m", "common.kaggle_queue", "--name", f"gpu{g}", "--gpu", g, "--jobs",
+                               str(jd / f"run1_gpu{g}.json"), "--logs", str(logs), "--status", str(st), "--poll",
+                               "0.1"], cwd=REPO_ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+             for g in ("0", "1")]
+
+    # Cell 6: wait-all does not stop at the failure; the GPU 1 queue still finishes.
+    w = _cli("common.kaggle_queue", "--wait-all", str(st), "--names", *names, "--logs", str(logs), "--poll", "0.1",
+             "--report", "1", "--timeout", "120", "--out", str(logs / "wait_run1.json"))
+    assert [p.wait(timeout=60) for p in procs] == [1, 0]
+    assert w.returncode == 1, w.stdout + w.stderr
+    assert KQ.read_int(st / "compress_fp16.exit") == 0 and (fp16_out / "run.json").is_file()
+    assert "--- compress_q1_b4: failed, exit 3" in w.stdout and "boom" in w.stdout
+
+    # Cell 7: summary completes and lists the conditions without a complete run record.
+    sm = _cli("task1.kaggle_run1", "summary", "--jobs-dir", str(jd), "--status", str(st))
+    assert sm.returncode == 0, sm.stdout + sm.stderr
+    assert "not in the condition table: q1_b4: run status None" in sm.stdout
+    assert "not in the condition table: fp16: run.json lacks 'steps'" in sm.stdout
+
+    # Cell 8: check reports instead of raising, and writes its report.
+    report = logs / "check_run1.json"
+    ck = _cli("task1.kaggle_run1", "check", "--jobs-dir", str(jd), "--status", str(st), "--out", str(report))
+    assert ck.returncode == 1 and "Traceback" not in ck.stderr, ck.stdout + ck.stderr
+    probs = json.loads(report.read_text())["problems"]
+    assert "compress_q1_b4: exit 3, done False" in probs
+    assert f"probe_quant: missing {res / 'probe_quant' / 'run.json'}" in probs
+    assert "compress_fp16: run.json lacks steps.artifact.manifest_sha256" in probs
+    assert f"compress_fp16: artifact files missing in {fp16_art}" in probs
+
+    # Cell 9: the zip is written; the manifest of the failed compress job is listed as missing.
+    zp = tmp_path / "t1_run1_results.zip"
+    z = _cli("task1.kaggle_run1", "zip", "--out", str(zp), "--jobs-dir", str(jd), "--status", str(st), "--results",
+             str(res), "--include", str(logs), str(st), str(jd))
+    assert z.returncode == 0, z.stdout + z.stderr
+    assert f"not in the zip (missing): {art / 'q1_b4' / 'manifest.json'}" in z.stdout
+    with zipfile.ZipFile(zp) as zf:
+        zn = set(zf.namelist())
+    for n in ("compress_q1_b4.log", "compress_fp16.log", "wait_run1.json", "check_run1.json",
+              "compress_q1_b4.exit", "run1_meta.json"):
+        assert any(x.endswith("/" + n) for x in zn), n
+    assert (fp16_out / K.RUN1_MANIFEST_COPY).as_posix().lstrip("/") in zn
+
+    # Cell 10: final reports every reason and exits nonzero (the cell raises on it).
+    f = _cli("task1.kaggle_run1", "final", "--jobs-dir", str(jd), "--status", str(st), "--check-report", str(report),
+             "--zip", str(zp))
+    assert f.returncode == 1
+    assert "NOT OK: job compress_q1_b4: exit 3, done False" in f.stdout
+    assert f"NOT OK: check found {len(probs)} problems" in f.stdout
+    assert "zip missing" not in f.stdout
+    reasons = K.final(K.load_meta(jd, "run1"), st, tmp_path / "absent.json", tmp_path / "absent.zip")
+    assert f"zip missing: {tmp_path / 'absent.zip'}" in reasons
+    assert f"check report missing or unreadable: {tmp_path / 'absent.json'}" in reasons

@@ -3,6 +3,8 @@
 Run a queue:  python -m common.kaggle_queue --name NAME --gpu N --jobs FILE [--logs DIR] [--status DIR] [--poll S]
 Wait:         python -m common.kaggle_queue --wait DIR --names A B ... [--logs DIR] [--poll S] [--report S]
               [--timeout S]
+Wait for all: python -m common.kaggle_queue --wait-all DIR --names A B ... [--logs DIR] [--poll S] [--report S]
+              [--timeout S] [--out FILE]
 
 FILE is a JSON list of jobs {"name": str, "cmd": [args] or str, "wait_for": [paths]}; a str cmd runs under
 bash -c with pipefail. Jobs run one after another with CUDA_VISIBLE_DEVICES=N and PYTHONUNBUFFERED=1; output
@@ -15,9 +17,15 @@ exit code 0), <job>.exit (exit code, written last). The queue itself writes <NAM
 <NAME>.queue.exit. Exit codes set by the queue: 90 dependency failed, 91 log or status file exists,
 92 command could not be started; a child killed by signal k has exit code -k.
 
-The wait helper returns 1 at once (with the last 30 log lines) if any named job has a nonzero .exit, has a .pid
-of an ended process and no .exit, or is not finished while no queue process is alive; 0 when every .done exists;
-2 on --timeout.
+The fail-fast wait helper (--wait) returns 1 at once (with the last 30 log lines) if any named job has a nonzero
+.exit, has a .pid of an ended process and no .exit, or is not finished while no queue process is alive; 0 when
+every .done exists; 2 on --timeout.
+
+The wait-all helper (--wait-all) does not stop on failures: it waits until every named job is final, then prints
+one table of every job (state, exit code) and the last 30 log lines of every job that is not ok. A job is final
+when it has an .exit file ('ok' with exit 0 and .done, else 'failed'), when its .pid names an ended process and no
+.exit appears ('lost'), or when no queue process has been alive for EXIT_GRACE_S ('not run' without a .pid, else
+'lost'). Returns 0 when every job is ok, 1 otherwise, 2 on --timeout; --out writes the table as JSON (new file).
 """
 import argparse
 import datetime as _dt
@@ -278,22 +286,111 @@ def wait(status, names, logs=DEFAULT_LOGS, poll: float = 30.0, report: float = 6
         time.sleep(poll)
 
 
+FINAL_STATES = ("ok", "failed", "lost")
+
+
+def job_state(status: Path, name: str) -> tuple:
+    """(state, exit code) of one job: 'ok', 'failed', 'lost', 'running' or 'pending'."""
+    code = read_int(status / f"{name}.exit")
+    if code is not None:
+        return ("ok" if code == 0 and (status / f"{name}.done").exists() else "failed"), code
+    if read_int(status / f"{name}.pid") is None:
+        return "pending", None
+    if ended_without_exit(status / name):
+        return "lost", None
+    code = read_int(status / f"{name}.exit")
+    if code is not None:
+        return ("ok" if code == 0 and (status / f"{name}.done").exists() else "failed"), code
+    return "running", None
+
+
+def print_table(rows: list, logs: Path):
+    print(f"{'job':<28}{'state':>9}{'exit':>7}", flush=True)
+    for r in rows:
+        print(f"{r['name']:<28}{r['state']:>9}{str(r['exit']):>7}", flush=True)
+    for r in rows:
+        if r["state"] != "ok":
+            print(f"--- {r['name']}: {r['state']}, exit {r['exit']}; last {TAIL_LINES} lines of {r['name']}.log ---")
+            print(tail(logs / f"{r['name']}.log"), end="", flush=True)
+            print(f"--- end of {r['name']}.log ---", flush=True)
+    bad = [r["name"] for r in rows if r["state"] != "ok"]
+    print(f"{len(rows) - len(bad)} of {len(rows)} jobs ok; not ok: {bad or 'none'}", flush=True)
+
+
+def wait_all(status, names, logs=DEFAULT_LOGS, poll: float = 30.0, report: float = 600.0, timeout=None,
+             out=None) -> int:
+    """Wait until every named job is final (failures do not stop the waiting); print the table of every job."""
+    status, logs = Path(status), Path(logs)
+    t0 = time.monotonic()
+    last, dead_since, timed_out = None, None, False
+    final = {}
+    while True:
+        for n in names:
+            if n not in final:
+                state, code = job_state(status, n)
+                if state in FINAL_STATES:
+                    final[n] = (state, code)
+        open_ = [n for n in names if n not in final]
+        if not open_:
+            break
+        now = time.monotonic()
+        if _queues_alive(status):
+            dead_since = None
+        elif dead_since is None:
+            dead_since = now
+        elif now - dead_since >= EXIT_GRACE_S:
+            for n in open_:
+                state, code = job_state(status, n)
+                final[n] = (state, code) if state in FINAL_STATES else \
+                    ("not run" if state == "pending" else "lost", None)
+            print(f"[wait-all {_now()}] no queue process alive; unfinished jobs: {open_}", flush=True)
+            break
+        if last is None or now - last >= report:
+            fail = [n for n, (s, _) in final.items() if s != "ok"]
+            print(f"[wait-all {_now()}] final {len(final)}/{len(names)}, not ok so far: {fail or '-'} "
+                  f"({(now - t0) / 60:.1f} min)", flush=True)
+            last = now
+        if timeout is not None and now - t0 > timeout:
+            print(f"[wait-all {_now()}] TIMEOUT after {timeout} s", flush=True)
+            timed_out = True
+            break
+        time.sleep(poll)
+    rows = []
+    for n in names:
+        state, code = final.get(n) or job_state(status, n)
+        rows.append({"name": n, "state": state, "exit": code})
+    print_table(rows, logs)
+    if out is not None:
+        with open(out, "x", encoding="utf-8") as fh:
+            json.dump({"jobs": rows, "timed_out": timed_out, "end": _now()}, fh, indent=2)
+            fh.write("\n")
+    if timed_out:
+        return 2
+    return 0 if all(r["state"] == "ok" for r in rows) else 1
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--name")
     ap.add_argument("--gpu")
     ap.add_argument("--jobs")
     ap.add_argument("--wait", metavar="STATUS_DIR")
+    ap.add_argument("--wait-all", metavar="STATUS_DIR")
     ap.add_argument("--names", nargs="+")
     ap.add_argument("--logs", default=str(DEFAULT_LOGS))
     ap.add_argument("--status", default=str(DEFAULT_STATUS))
     ap.add_argument("--poll", type=float, default=30.0)
     ap.add_argument("--report", type=float, default=600.0)
     ap.add_argument("--timeout", type=float, default=None)
+    ap.add_argument("--out", default=None, help="--wait-all: write the job table as JSON here (new file)")
     a = ap.parse_args(argv)
-    if a.wait:
+    if a.wait and a.wait_all:
+        ap.error("--wait and --wait-all exclude each other")
+    if a.wait or a.wait_all:
         if not a.names or a.name or a.jobs:
-            ap.error("--wait needs --names and takes no --name/--jobs")
+            ap.error("--wait/--wait-all need --names and take no --name/--jobs")
+        if a.wait_all:
+            return wait_all(a.wait_all, a.names, a.logs, a.poll, a.report, a.timeout, a.out)
         return wait(a.wait, a.names, a.logs, a.poll, a.report, a.timeout)
     if not (a.name and a.gpu is not None and a.jobs):
         ap.error("a queue needs --name, --gpu and --jobs")

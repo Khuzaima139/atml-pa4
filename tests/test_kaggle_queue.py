@@ -164,3 +164,79 @@ def test_exit_written_within_grace_is_not_lost(tmp_path):
     assert KQ.ended_without_exit(tmp_path / "j") is False
     (tmp_path / "k.pid").write_text(f"{dead.pid}\n")
     assert KQ.ended_without_exit(tmp_path / "k") is True
+
+
+def _wait_all(tmp, names, out=None, timeout=60):
+    cmd = [PY, "-m", "common.kaggle_queue", "--wait-all", str(tmp / "status"), "--names", *names, "--logs",
+           str(tmp / "logs"), "--poll", "0.1", "--report", "1", "--timeout", str(timeout)]
+    if out is not None:
+        cmd += ["--out", str(out)]
+    return subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True, timeout=timeout + 30)
+
+
+def _rows(path):
+    return {r["name"]: (r["state"], r["exit"]) for r in json.loads(path.read_text())["jobs"]}
+
+
+def test_wait_all_success(tmp_path):
+    q0 = _queue(tmp_path, "q0", 0, [{"name": "a", "cmd": _py("print('a ran')")}], background=True)
+    q1 = _queue(tmp_path, "q1", 1, [{"name": "b", "cmd": _py("import time; time.sleep(1); print('b ran')")}],
+                background=True)
+    w = _wait_all(tmp_path, ["a", "b"], out=tmp_path / "wait.json")
+    q0.communicate(timeout=60)
+    q1.communicate(timeout=60)
+    assert w.returncode == 0, w.stdout + w.stderr
+    assert "2 of 2 jobs ok; not ok: none" in w.stdout and "last 30 lines" not in w.stdout
+    assert _rows(tmp_path / "wait.json") == {"a": ("ok", 0), "b": ("ok", 0)}
+    assert json.loads((tmp_path / "wait.json").read_text())["timed_out"] is False
+    with pytest.raises(FileExistsError):
+        KQ.wait_all(tmp_path / "status", ["a"], tmp_path / "logs", poll=0.1, out=tmp_path / "wait.json")
+
+
+def test_wait_all_continues_past_a_failure(tmp_path):
+    q0 = _queue(tmp_path, "q0", 0, [
+        {"name": "bad", "cmd": _py("import sys; print('line-one'); print('boom'); sys.exit(3)")},
+        {"name": "after_bad", "cmd": _py("print('after ran')")},
+    ], background=True)
+    q1 = _queue(tmp_path, "q1", 1, [
+        {"name": "slow", "cmd": _py("import time; time.sleep(3); print('slow ran')")},
+    ], background=True)
+    w = _wait_all(tmp_path, ["bad", "after_bad", "slow"], out=tmp_path / "wait.json")
+    # The other queue still finished before the wait returned.
+    assert KQ.read_int(_st(tmp_path, "slow", "exit")) == 0 and _st(tmp_path, "slow", "done").exists()
+    q0.communicate(timeout=60)
+    q1.communicate(timeout=60)
+    assert w.returncode == 1
+    assert _rows(tmp_path / "wait.json") == {"bad": ("failed", 3), "after_bad": ("ok", 0), "slow": ("ok", 0)}
+    assert "--- bad: failed, exit 3; last 30 lines of bad.log ---" in w.stdout
+    assert "boom" in w.stdout and "line-one" in w.stdout
+    assert "2 of 3 jobs ok; not ok: ['bad']" in w.stdout
+    assert "last 30 lines of slow.log" not in w.stdout
+
+
+def test_wait_all_ends_when_no_queue_is_alive(tmp_path):
+    st = tmp_path / "status"
+    st.mkdir()
+    dead = subprocess.Popen(_py("pass"))
+    dead.wait()
+    (st / "ghost.pid").write_text(f"{dead.pid}\n")
+    (st / "q9.queue.pid").write_text(f"{dead.pid}\n")
+    (st / "fine.exit").write_text("0\n")
+    (st / "fine.done").write_text("x\n")
+    t0 = time.monotonic()
+    w = _wait_all(tmp_path, ["fine", "ghost", "never_started"], out=tmp_path / "wait.json")
+    assert w.returncode == 1 and time.monotonic() - t0 < 40
+    assert _rows(tmp_path / "wait.json") == {"fine": ("ok", 0), "ghost": ("lost", None),
+                                             "never_started": ("not run", None)}
+    assert "(no log at" in w.stdout
+
+
+def test_wait_all_timeout(tmp_path):
+    q = _queue(tmp_path, "q0", 0, [{"name": "long", "cmd": _py("import time; time.sleep(30)")}], background=True)
+    try:
+        w = _wait_all(tmp_path, ["long"], out=tmp_path / "wait.json", timeout=2)
+        assert w.returncode == 2 and "TIMEOUT" in w.stdout
+        assert json.loads((tmp_path / "wait.json").read_text())["timed_out"] is True
+    finally:
+        os.kill(KQ.read_int(_st(tmp_path, "long", "pid")), signal.SIGKILL)
+        q.communicate(timeout=60)

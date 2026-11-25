@@ -4,8 +4,13 @@ python -m task1.kaggle_run1 jobs --stage preflight|run1 --jobs-dir DIR [--result
        [--status DIR] [--model-path PATH --device DEV --limit-calib N --limit-dev N]
 python -m task1.kaggle_run1 plan --smoke RUN_JSON --working-bytes N [--budget-h 10.5] [--disk-gb 18]
 python -m task1.kaggle_run1 summary --jobs-dir DIR [--stage run1] [--status DIR]
-python -m task1.kaggle_run1 check --jobs-dir DIR [--stage run1] [--status DIR]
+python -m task1.kaggle_run1 check --jobs-dir DIR [--stage run1] [--status DIR] [--out FILE]
 python -m task1.kaggle_run1 zip --out FILE --jobs-dir DIR [--stage run1] [--include DIR ...]
+python -m task1.kaggle_run1 final --jobs-dir DIR --check-report FILE --zip FILE [--stage run1] [--status DIR]
+
+summary, check and zip report incomplete jobs and missing files instead of stopping, so that all three run after a
+failed job; final returns 1 if any job is not ok, the check report is missing or lists problems, or the zip is
+missing.
 
 Queues (run1): GPU 0 runs calib_stats, probe quant, the two Q3 selections and the Q1/Q2/Q3 compress jobs; GPU 1
 runs compress for fp16, P1, P2 and 2:4, then (after calib_stats is done) probe prune, the two P3 selections and
@@ -277,34 +282,46 @@ def _status(status_dir: Path, name: str) -> dict:
     code = None
     p = status_dir / f"{name}.exit"
     if p.is_file():
-        code = int(p.read_text().strip())
+        try:
+            code = int(p.read_text().strip())
+        except ValueError:
+            code = None
     rec = _load_json(status_dir / f"{name}.json") or {}
     return {"exit": code, "done": (status_dir / f"{name}.done").exists(), "wall_s": rec.get("wall_s")}
 
 
 def summary(meta: list, status_dir) -> dict:
     status_dir = Path(status_dir)
-    jobs, conds = [], []
+    jobs, conds, incomplete = [], [], []
     for j in meta:
         st = _status(status_dir, j["name"])
         run = _load_json(Path(j["out"]) / "run.json") or {}
         peaks = run.get("peak_vram_allocated_bytes") or {}
+        try:
+            peak = max(peaks.values()) if peaks else None
+        except (AttributeError, TypeError, ValueError):
+            peak = None
         jobs.append({"name": j["name"], "gpu": j["gpu"], "exit": st["exit"], "done": st["done"],
-                     "run_status": run.get("status"), "wall_s": st["wall_s"],
-                     "peak_vram_allocated_bytes": max(peaks.values()) if peaks else None})
-        if j["kind"] != "compress" or run.get("status") != "ok":
+                     "run_status": run.get("status"), "wall_s": st["wall_s"], "peak_vram_allocated_bytes": peak})
+        if j["kind"] != "compress":
             continue
-        s = run["steps"]
-        fam = C.CONDITIONS[j["condition"]]["family"]
-        conds.append({"condition": j["condition"], "family": fam,
-                      "zero_fraction": 1 - s["build"]["nonzeros"]["nonzero_fraction"],
-                      "nominal_bits": s["storage"]["nominal_bits_per_eligible_weight"],
-                      "logical_eligible_bytes": s["artifact"]["logical_bytes"]["eligible"],
-                      "logical_whole_model_bytes": s["artifact"]["logical_bytes"]["whole_model"],
-                      "file_bytes": s["artifact"]["file"]["bytes"],
-                      "calib_mean_nll": s["calib_nll"]["c4_calibration"]["mean_nll"],
-                      "dev_mean_nll": s["calib_nll"]["c4_development"]["mean_nll"]})
-    return {"jobs": jobs, "conditions": conds}
+        if run.get("status") != "ok":
+            incomplete.append(f"{j['condition']}: run status {run.get('status')}")
+            continue
+        try:
+            s = run["steps"]
+            fam = C.CONDITIONS[j["condition"]]["family"]
+            conds.append({"condition": j["condition"], "family": fam,
+                          "zero_fraction": 1 - s["build"]["nonzeros"]["nonzero_fraction"],
+                          "nominal_bits": s["storage"]["nominal_bits_per_eligible_weight"],
+                          "logical_eligible_bytes": s["artifact"]["logical_bytes"]["eligible"],
+                          "logical_whole_model_bytes": s["artifact"]["logical_bytes"]["whole_model"],
+                          "file_bytes": s["artifact"]["file"]["bytes"],
+                          "calib_mean_nll": s["calib_nll"]["c4_calibration"]["mean_nll"],
+                          "dev_mean_nll": s["calib_nll"]["c4_development"]["mean_nll"]})
+        except (KeyError, TypeError) as exc:
+            incomplete.append(f"{j['condition']}: run.json lacks {exc}")
+    return {"jobs": jobs, "conditions": conds, "incomplete": incomplete}
 
 
 def print_summary(sm: dict):
@@ -320,6 +337,8 @@ def print_summary(sm: dict):
         print(f"{c['condition']:<12}{c['zero_fraction']:>8.4f}{c['nominal_bits']:>7.2f}"
               f"{c['logical_eligible_bytes'] / 1e6:>12.1f}{c['logical_whole_model_bytes'] / 1e6:>10.1f}"
               f"{c['file_bytes'] / 1e6:>9.1f}{c['calib_mean_nll']:>11.4f}{c['dev_mean_nll']:>9.4f}")
+    for x in sm.get("incomplete", []):
+        print("not in the condition table:", x)
 
 
 # Files and keys that later steps read (task1.select, task1.compress, task1.evaluate_condition, the import).
@@ -355,75 +374,90 @@ def check(meta: list, status_dir, hash_artifacts: bool = True) -> list:
     status_dir = Path(status_dir)
     problems = []
     for j in meta:
-        st = _status(status_dir, j["name"])
-        if st["exit"] != 0 or not st["done"]:
-            problems.append(f"{j['name']}: exit {st['exit']}, done {st['done']}")
-            continue
-        out = Path(j["out"])
-        req = REQUIRED[j["kind"]]
-        for f in req["files"]:
-            if not (out / f).is_file():
-                problems.append(f"{j['name']}: missing {out / f}")
-        run = _load_json(out / "run.json")
-        if run is None:
-            continue
-        for k in req["keys"]:
-            try:
-                _get(run, k)
-            except KeyError:
-                problems.append(f"{j['name']}: run.json lacks {k}")
-        if run.get("status") != "ok":
-            problems.append(f"{j['name']}: run status {run.get('status')}")
-        if j["kind"] == "probe":
-            if (out / "sensitivity.json").is_file() and sha256_file(out / "sensitivity.json") != \
-                    run.get("steps", {}).get("sensitivity", {}).get("sha256"):
-                problems.append(f"{j['name']}: sensitivity.json sha256 differs from run.json")
-        if j["kind"] == "select":
-            sel = _load_json(out / "selected_allocation.json") or {}
-            for k in SELECTED_KEYS:
-                try:
-                    _get(sel, k)
-                except KeyError:
-                    problems.append(f"{j['name']}: selected_allocation.json lacks {k}")
-            if sel.get("condition") != j["condition"]:
-                problems.append(f"{j['name']}: selected allocation is for {sel.get('condition')}")
-        if j["kind"] == "compress":
-            if run.get("steps", {}).get("held_out_guard", {}).get("attempts"):
-                problems.append(f"{j['name']}: held-out file access attempts recorded")
-            art = Path(j["artifacts"])
-            man_path, st_path = art / "manifest.json", art / "artifact.safetensors"
-            if not man_path.is_file() or not st_path.is_file():
-                problems.append(f"{j['name']}: artifact files missing in {art}")
-                continue
-            man = _load_json(man_path) or {}
-            for k in MANIFEST_KEYS:
-                try:
-                    _get(man, k)
-                except KeyError:
-                    problems.append(f"{j['name']}: manifest lacks {k}")
-            if sha256_file(man_path) != run.get("steps", {}).get("artifact", {}).get("manifest_sha256"):
-                problems.append(f"{j['name']}: manifest sha256 differs from run.json")
-            if man.get("condition") != j["condition"]:
-                problems.append(f"{j['name']}: manifest is for {man.get('condition')}")
-            if st_path.stat().st_size != man.get("file", {}).get("bytes"):
-                problems.append(f"{j['name']}: artifact size differs from the manifest")
-            if hash_artifacts and sha256_file(st_path) != man.get("file", {}).get("sha256"):
-                problems.append(f"{j['name']}: artifact sha256 differs from the manifest")
-            if C.CONDITIONS[j["condition"]]["family"] in ("P3", "Q3"):
-                alloc = next((a for a in j["cmd"] if str(a).endswith("selected_allocation.json")), None)
-                if alloc is None or man.get("allocation", {}).get("sha256") != sha256_file(alloc):
-                    problems.append(f"{j['name']}: manifest allocation sha256 differs from the selected allocation")
+        try:
+            _check_job(j, status_dir, hash_artifacts, problems, sha256_file)
+        except Exception as exc:  # a malformed output is reported, the other jobs are still checked
+            problems.append(f"{j['name']}: check error {exc!r}")
     return problems
 
 
+def _check_job(j: dict, status_dir: Path, hash_artifacts: bool, problems: list, sha256_file):
+    st = _status(status_dir, j["name"])
+    if st["exit"] != 0 or not st["done"]:
+        problems.append(f"{j['name']}: exit {st['exit']}, done {st['done']}")
+        return
+    out = Path(j["out"])
+    req = REQUIRED[j["kind"]]
+    for f in req["files"]:
+        if not (out / f).is_file():
+            problems.append(f"{j['name']}: missing {out / f}")
+    run = _load_json(out / "run.json")
+    if run is None:
+        return
+    for k in req["keys"]:
+        try:
+            _get(run, k)
+        except KeyError:
+            problems.append(f"{j['name']}: run.json lacks {k}")
+    if run.get("status") != "ok":
+        problems.append(f"{j['name']}: run status {run.get('status')}")
+    if j["kind"] == "probe":
+        if (out / "sensitivity.json").is_file() and sha256_file(out / "sensitivity.json") != \
+                run.get("steps", {}).get("sensitivity", {}).get("sha256"):
+            problems.append(f"{j['name']}: sensitivity.json sha256 differs from run.json")
+    if j["kind"] == "select":
+        sel = _load_json(out / "selected_allocation.json") or {}
+        for k in SELECTED_KEYS:
+            try:
+                _get(sel, k)
+            except KeyError:
+                problems.append(f"{j['name']}: selected_allocation.json lacks {k}")
+        if sel.get("condition") != j["condition"]:
+            problems.append(f"{j['name']}: selected allocation is for {sel.get('condition')}")
+    if j["kind"] == "compress":
+        if run.get("steps", {}).get("held_out_guard", {}).get("attempts"):
+            problems.append(f"{j['name']}: held-out file access attempts recorded")
+        art = Path(j["artifacts"])
+        man_path, st_path = art / "manifest.json", art / "artifact.safetensors"
+        if not man_path.is_file() or not st_path.is_file():
+            problems.append(f"{j['name']}: artifact files missing in {art}")
+            return
+        man = _load_json(man_path) or {}
+        for k in MANIFEST_KEYS:
+            try:
+                _get(man, k)
+            except KeyError:
+                problems.append(f"{j['name']}: manifest lacks {k}")
+        if sha256_file(man_path) != run.get("steps", {}).get("artifact", {}).get("manifest_sha256"):
+            problems.append(f"{j['name']}: manifest sha256 differs from run.json")
+        if man.get("condition") != j["condition"]:
+            problems.append(f"{j['name']}: manifest is for {man.get('condition')}")
+        if st_path.stat().st_size != man.get("file", {}).get("bytes"):
+            problems.append(f"{j['name']}: artifact size differs from the manifest")
+        if hash_artifacts and sha256_file(st_path) != man.get("file", {}).get("sha256"):
+            problems.append(f"{j['name']}: artifact sha256 differs from the manifest")
+        if C.CONDITIONS[j["condition"]]["family"] in ("P3", "Q3"):
+            alloc = next((a for a in j["cmd"] if str(a).endswith("selected_allocation.json")), None)
+            if alloc is None or not Path(alloc).is_file():
+                problems.append(f"{j['name']}: selected allocation file missing: {alloc}")
+            elif man.get("allocation", {}).get("sha256") != sha256_file(alloc):
+                problems.append(f"{j['name']}: manifest allocation sha256 differs from the selected allocation")
+
+
 def make_zip(out, meta: list, include=(), results_root=None) -> dict:
-    """Zip the results root, the include directories and every artifact manifest (as run-1 copies)."""
+    """Zip the results root, the include directories and every artifact manifest (as run-1 copies).
+
+    Missing roots and missing manifests (of failed jobs) are skipped and listed under "missing".
+    """
     out = Path(out)
     roots = [Path(results_root)] if results_root else []
     roots += [Path(d) for d in include]
-    names = []
+    names, missing = [], []
     with zipfile.ZipFile(out, "x", zipfile.ZIP_DEFLATED) as zf:
         for root in roots:
+            if not root.is_dir():
+                missing.append(str(root))
+                continue
             for p in sorted(root.rglob("*")):
                 if p.is_file() and "smoke" not in p.relative_to(root).as_posix():
                     zf.write(p, p.as_posix())
@@ -433,14 +467,36 @@ def make_zip(out, meta: list, include=(), results_root=None) -> dict:
                 continue
             arc = (Path(j["out"]) / RUN1_MANIFEST_COPY).as_posix()
             assert arc not in names, arc
-            zf.write(Path(j["artifacts"]) / "manifest.json", arc)
+            man = Path(j["artifacts"]) / "manifest.json"
+            if not man.is_file():
+                missing.append(str(man))
+                continue
+            zf.write(man, arc)
             names.append(arc)
     h = hashlib.sha256()
     with open(out, "rb") as fh:
         for block in iter(lambda: fh.read(1 << 20), b""):
             h.update(block)
     return {"path": str(out), "bytes": out.stat().st_size, "sha256": h.hexdigest(), "n_files": len(names),
-            "names": names}
+            "names": names, "missing": missing}
+
+
+def final(meta: list, status_dir, check_report, zip_path) -> list:
+    """Reasons the run is not complete (empty when every job is ok, the check found nothing and the zip exists)."""
+    status_dir = Path(status_dir)
+    reasons = []
+    if not Path(zip_path).is_file():
+        reasons.append(f"zip missing: {zip_path}")
+    for j in meta:
+        st = _status(status_dir, j["name"])
+        if st["exit"] != 0 or not st["done"]:
+            reasons.append(f"job {j['name']}: exit {st['exit']}, done {st['done']}")
+    rep = _load_json(check_report)
+    if not isinstance(rep, dict) or not isinstance(rep.get("problems"), list):
+        reasons.append(f"check report missing or unreadable: {check_report}")
+    elif rep["problems"]:
+        reasons.append(f"check found {len(rep['problems'])} problems")
+    return reasons
 
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -461,7 +517,7 @@ def main(argv=None):
     p.add_argument("--budget-h", type=float, default=10.5)
     p.add_argument("--disk-gb", type=float, default=18.0)
     p.add_argument("--out", default=None, help="write the projection JSON here (new file)")
-    for name in ("summary", "check", "zip"):
+    for name in ("summary", "check", "zip", "final"):
         s = sub.add_parser(name)
         s.add_argument("--jobs-dir", required=True)
         s.add_argument("--stage", choices=STAGES, default="run1")
@@ -472,6 +528,10 @@ def main(argv=None):
             s.add_argument("--include", nargs="*", default=[])
         if name == "check":
             s.add_argument("--no-artifact-hash", action="store_true")
+            s.add_argument("--out", default=None, help="write the problems as JSON here (new file)")
+        if name == "final":
+            s.add_argument("--check-report", required=True)
+            s.add_argument("--zip", required=True)
     a = ap.parse_args(argv)
 
     if a.cmd == "jobs":
@@ -503,8 +563,22 @@ def main(argv=None):
         for x in problems:
             print("PROBLEM:", x)
         print(f"check: {len(meta)} jobs, {len(problems)} problems")
+        if a.out:
+            with open(a.out, "x", encoding="utf-8") as fh:
+                json.dump({"n_jobs": len(meta), "hash_artifacts": not a.no_artifact_hash, "problems": problems}, fh,
+                          indent=2)
+                fh.write("\n")
         return 1 if problems else 0
+    if a.cmd == "final":
+        reasons = final(meta, status, a.check_report, a.zip)
+        for x in reasons:
+            print("NOT OK:", x)
+        print("run complete: every job ok, check clean, zip written" if not reasons else
+              f"run not complete: {len(reasons)} reasons")
+        return 1 if reasons else 0
     res = make_zip(a.out, meta, a.include, a.results or DEFAULTS[a.stage]["results"])
+    for x in res["missing"]:
+        print("not in the zip (missing):", x)
     print(f"{res['path']}: {res['n_files']} files, {res['bytes']} bytes, sha256 {res['sha256']}")
     return 0
 
