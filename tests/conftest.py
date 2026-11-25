@@ -54,14 +54,12 @@ COMPRESS_CONFIG = dict(
 )
 
 
-@pytest.fixture(scope="session")
-def tiny_compress_dir(tmp_path_factory, real_tokenizer):
-    """Tiny random Qwen2 (head_dim 64, 2 query heads per KV head) with random norm weights and biases (FP32)."""
+def _save_compress_model(d, tokenizer, n_layers: int):
     import torch
     from transformers import Qwen2Config, Qwen2ForCausalLM
 
     torch.manual_seed(6305)
-    model = Qwen2ForCausalLM(Qwen2Config(**COMPRESS_CONFIG)).to(torch.float32)
+    model = Qwen2ForCausalLM(Qwen2Config(**{**COMPRESS_CONFIG, "num_hidden_layers": n_layers})).to(torch.float32)
     g = torch.Generator().manual_seed(6306)
     with torch.no_grad():
         for name, p in model.named_parameters():
@@ -69,10 +67,21 @@ def tiny_compress_dir(tmp_path_factory, real_tokenizer):
                 p.copy_(0.5 + torch.rand(p.shape, generator=g))
             elif name.endswith(".bias"):
                 p.copy_(0.1 * torch.randn(p.shape, generator=g))
-    d = tmp_path_factory.mktemp("tiny_qwen2_compress")
     model.save_pretrained(d)
-    real_tokenizer.save_pretrained(d)
+    tokenizer.save_pretrained(d)
     return d
+
+
+@pytest.fixture(scope="session")
+def tiny_compress_dir(tmp_path_factory, real_tokenizer):
+    """Tiny random Qwen2 (head_dim 64, 2 query heads per KV head) with random norm weights and biases (FP32)."""
+    return _save_compress_model(tmp_path_factory.mktemp("tiny_qwen2_compress"), real_tokenizer, 2)
+
+
+@pytest.fixture(scope="session")
+def tiny_compress4_dir(tmp_path_factory, real_tokenizer):
+    """The same recipe with 4 blocks, for block-allocation tests."""
+    return _save_compress_model(tmp_path_factory.mktemp("tiny_qwen2_compress4"), real_tokenizer, 4)
 
 
 @pytest.fixture()
@@ -80,4 +89,12 @@ def compress_fp32(tiny_compress_dir):
     from task1.model import load_model
 
     model, _ = load_model("cpu", tiny_compress_dir, dtype="float32")
+    return model
+
+
+@pytest.fixture()
+def compress4_fp32(tiny_compress4_dir):
+    from task1.model import load_model
+
+    model, _ = load_model("cpu", tiny_compress4_dir, dtype="float32")
     return model

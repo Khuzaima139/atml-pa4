@@ -5,12 +5,13 @@ Usage: python -m task1.calib_stats --out DIR [--device cuda:0]
 Reads only the 128-sequence C4 calibration file.
 """
 import argparse
+import json
 import sys
 import time
 import traceback
 from pathlib import Path
 
-from common.io import write_json_new
+from common.io import sha256_file, write_json_new
 from common.runmeta import RunRecorder
 from common.seeding import seed_everything
 
@@ -29,6 +30,43 @@ OUTPUT_FILES = {
 
 def scale_name(layer: int, group: str, bits: int) -> str:
     return f"layer{layer}.{group}.b{bits}"
+
+
+def load_run(calib_dir, args) -> dict:
+    """run.json of a finished calib_stats run made with the same model source and calibration limit."""
+    crun = json.loads((Path(calib_dir) / OUTPUT_FILES["run"]).read_text(encoding="utf-8"))
+    if crun.get("status") != "ok":
+        raise SystemExit(f"calib_stats run is not finished ok: {crun.get('status')}")
+    if crun["config"]["model_path"] != args.model_path or crun["config"]["limits"]["calib"] != args.limit_calib:
+        raise SystemExit("calib_stats run used a different model source or calibration limit")
+    return crun
+
+
+def provenance(calib_dir) -> dict:
+    """sha256 of the calib_stats outputs that later steps read, checked against the run record."""
+    d = Path(calib_dir)
+    crun = json.loads((d / OUTPUT_FILES["run"]).read_text(encoding="utf-8"))
+    out = {"dir": str(d), "run_sha256": sha256_file(d / OUTPUT_FILES["run"]),
+           "calib_git_commit": crun["meta"]["git_commit"]}
+    for k in ("dense_stats", "awq_scales"):
+        got = sha256_file(d / OUTPUT_FILES[k])
+        if got != crun["steps"]["files"][k]["sha256"]:
+            raise SystemExit(f"calib_stats {k} sha256 differs from its run record")
+        out[f"{k}_sha256"] = got
+    out["awq_search_sha256"] = sha256_file(d / OUTPUT_FILES["awq_search"])
+    return out
+
+
+def load_dense_l2(calib_dir, args, device) -> tuple:
+    """Dense per-channel input norms {qualname: x_l2} of every eligible projection, with provenance."""
+    from .tensorfile import load_tensors
+
+    load_run(calib_dir, args)
+    d = Path(calib_dir)
+    tensors, man = load_tensors(d / OUTPUT_FILES["dense_stats"], d / OUTPUT_FILES["dense_stats_manifest"], device=device)
+    prov = provenance(d)
+    assert man["file"]["sha256"] == prov["dense_stats_sha256"]
+    return {k[:-len(".x_l2")]: v for k, v in tensors.items() if k.endswith(".x_l2")}, prov
 
 
 def parse_args(argv=None):

@@ -1,5 +1,8 @@
 """Readers for the locked Task 1 files and the HellaSwag prompt format of lm_eval 0.4.13."""
 import json
+import os
+import sys
+from contextlib import contextmanager
 
 from lm_eval.tasks.hellaswag.utils import preprocess
 
@@ -33,6 +36,52 @@ HELLASWAG_PROMPT_FORMAT = (
 )
 
 
+# Held-out evaluation files: never opened by probes, allocation selection or condition builds.
+HELD_OUT_FILES = (WINDOW_FILES["wikitext2_test"], WINDOW_FILES["c4_validation"], HELLASWAG_FILE)
+HELD_OUT_GUARD = (
+    "inside forbid_held_out(): locked_path refuses the held-out names, and a process audit hook refuses any "
+    "open() of a path whose file name is a held-out name; attempted opens are recorded"
+)
+
+
+class HeldOutFileAccess(RuntimeError):
+    pass
+
+
+_GUARD = {"depth": 0, "attempts": [], "hook": False}
+
+
+def _audit(event, args):
+    if event != "open" or not _GUARD["depth"] or not args:
+        return
+    path = args[0]
+    if isinstance(path, (str, bytes, os.PathLike)):
+        name = os.path.basename(os.fsdecode(path))
+        if name in HELD_OUT_FILES:
+            _GUARD["attempts"].append(os.fsdecode(path))
+            raise HeldOutFileAccess(f"held-out file opened inside the guard: {name}")
+
+
+@contextmanager
+def forbid_held_out():
+    """Refuse every read of a held-out file in this block; yields the guard record."""
+    if not _GUARD["hook"]:
+        sys.addaudithook(_audit)
+        _GUARD["hook"] = True
+    _GUARD["depth"] += 1
+    start = len(_GUARD["attempts"])
+    rec = {"forbidden": list(HELD_OUT_FILES), "mechanism": HELD_OUT_GUARD, "attempts": []}
+    try:
+        yield rec
+    finally:
+        _GUARD["depth"] -= 1
+        rec["attempts"] = list(_GUARD["attempts"][start:])
+
+
+def held_out_guard_active() -> bool:
+    return _GUARD["depth"] > 0
+
+
 def _lock():
     with open(PUBLIC_ASSETS_LOCK, encoding="utf-8") as fh:
         return json.load(fh)["files"]
@@ -40,6 +89,9 @@ def _lock():
 
 def locked_path(filename, verify: bool = True):
     """Path of a locked file; checks the decompressed-content hash against data_lock."""
+    if _GUARD["depth"] and filename in HELD_OUT_FILES:
+        _GUARD["attempts"].append(filename)
+        raise HeldOutFileAccess(f"held-out file requested inside the guard: {filename}")
     path = DATA_REPO_PUBLIC_LOCKED / filename
     if verify:
         want = _lock()[filename]["content_sha256"]
