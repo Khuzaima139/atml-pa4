@@ -32,6 +32,8 @@ def test_fixed_settings():
     for b in (C.PPL_BATCH_SIZE, C.HELLASWAG_BATCH_SIZE, C.CALIB_BATCH_SIZE, C.LMEVAL_BATCH_SIZE):
         assert isinstance(b, int) and b >= 1
     assert C.LATENCY_REPS >= 5
+    assert C.LMEVAL_ACCEPTANCE_RUN == "softmax_dtype=float32"
+    assert C.settings_dict()["lmeval_acceptance_run"] == C.LMEVAL_ACCEPTANCE_RUN
 
 
 SHAPES = C.full_model_matrix_shapes()

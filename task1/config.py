@@ -37,6 +37,9 @@ PPL_BATCH_SIZE = 8
 HELLASWAG_BATCH_SIZE = 32
 CALIB_BATCH_SIZE = 8
 LMEVAL_BATCH_SIZE = 32
+# The lm_eval run with an FP32 log-softmax (matching task1.evaluate) is the acceptance check;
+# the run with the lm_eval default (log-softmax in the model dtype) is reported for information.
+LMEVAL_ACCEPTANCE_RUN = "softmax_dtype=float32"
 # Positions per FP32 log-softmax chunk inside one sequence.
 LOGPROB_CHUNK = 128
 
@@ -130,6 +133,7 @@ def settings_dict() -> dict:
         "q3_bits": list(Q3_BITS), "eval_id": EVAL_ID,
         "batch_sizes": {"perplexity": PPL_BATCH_SIZE, "hellaswag": HELLASWAG_BATCH_SIZE,
                         "calib_nll": CALIB_BATCH_SIZE, "lmeval_verify": LMEVAL_BATCH_SIZE},
+        "lmeval_acceptance_run": LMEVAL_ACCEPTANCE_RUN,
         "logprob_chunk": LOGPROB_CHUNK,
         "latency": {"warmup": LATENCY_WARMUP, "reps": LATENCY_REPS, "decode_steps": DECODE_STEPS,
                     "prefill_lengths": list(PREFILL_LENGTHS)},

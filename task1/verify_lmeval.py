@@ -71,6 +71,8 @@ def verify(model, tokenizer, records, ours_rows, batch_size: int = C.LMEVAL_BATC
         cmp = compare(ours_rows, lls)
         cmp["wall_s"] = time.perf_counter() - t0
         report["runs"]["softmax_dtype=" + (sd or "default")] = cmp
+    assert C.LMEVAL_ACCEPTANCE_RUN in report["runs"], "acceptance run missing"
+    report["acceptance_run"] = C.LMEVAL_ACCEPTANCE_RUN
     return report
 
 

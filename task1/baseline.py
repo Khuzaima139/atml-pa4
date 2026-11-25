@@ -155,6 +155,7 @@ def run(args):
         rep = verify(model, tok, hs_records[:n_v], hs_rows[:n_v])
         write_json_new(out / OUTPUT_FILES["lmeval_verify"], rep)
         steps["lmeval_verify"] = {"file": OUTPUT_FILES["lmeval_verify"], "n_examples": n_v,
+                                  "acceptance_run": rep["acceptance_run"],
                                   "runs": {k: {kk: v[kk] for kk in v if kk != "per_example"}
                                            for k, v in rep["runs"].items()}}
         timings["lmeval_verify_s"] = time.perf_counter() - t

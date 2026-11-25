@@ -57,6 +57,7 @@ def test_verify_report(tiny_fp32, real_tokenizer, records):
     rows, _ = E.hellaswag(tiny_fp32, real_tokenizer, records, scope="full", batch_size=8)
     rep = verify(tiny_fp32, real_tokenizer, records, rows, batch_size=4)
     assert rep["lm_eval_version"] == "0.4.13" and rep["eval_id"] == C.EVAL_ID
+    assert rep["acceptance_run"] == C.LMEVAL_ACCEPTANCE_RUN == "softmax_dtype=float32"
     assert set(rep["runs"]) == {"softmax_dtype=default", "softmax_dtype=float32"}
     for run in rep["runs"].values():
         assert run["n_candidates"] == 20 and run["max_abs_diff"] < 1e-4

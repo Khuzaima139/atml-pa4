@@ -94,7 +94,8 @@ def test_run_json_keys(run_dir):
         assert set(summ) == CAL_SUMMARY and summ["N"] == LIM_C * 511
 
     lv = s["lmeval_verify"]
-    assert set(lv) == {"file", "n_examples", "runs"} and lv["n_examples"] == LIM_H
+    assert set(lv) == {"file", "n_examples", "acceptance_run", "runs"} and lv["n_examples"] == LIM_H
+    assert lv["acceptance_run"] == "softmax_dtype=float32"
     assert set(lv["runs"]) == {"softmax_dtype=default", "softmax_dtype=float32"}
     for run in lv["runs"].values():
         assert set(run) == VERIFY_RUN and run["n_candidates"] == 4 * LIM_H
@@ -135,7 +136,9 @@ def test_per_example_files(run_dir):
         rows = read_jsonl(run_dir / f"calib_nll_{split}.jsonl.gz")
         assert len(rows) == LIM_C and all(set(x) == CAL_ROW for x in rows)
     rep = json.loads((run_dir / "lmeval_verify.json").read_text())
-    assert set(rep) == {"eval_id", "lm_eval_version", "batch_size", "prompt_format", "orders", "runs"}
+    assert set(rep) == {"eval_id", "lm_eval_version", "batch_size", "prompt_format", "orders", "runs",
+                         "acceptance_run"}
+    assert rep["acceptance_run"] == "softmax_dtype=float32"
     assert rep["orders"] == list(range(LIM_H))
     for run in rep["runs"].values():
         assert set(run) == VERIFY_RUN | {"per_example"} and len(run["per_example"]) == LIM_H
