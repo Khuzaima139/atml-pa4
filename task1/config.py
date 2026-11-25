@@ -138,3 +138,70 @@ def settings_dict() -> dict:
         "latency": {"warmup": LATENCY_WARMUP, "reps": LATENCY_REPS, "decode_steps": DECODE_STEPS,
                     "prefill_lengths": list(PREFILL_LENGTHS)},
     }
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# Nonuniform allocation (P3, Q3): sensitivity probes, allocation rules, candidate grid and selection criterion.
+# Allocation unit: one full Transformer block; every eligible projection of a block receives the block's sparsity
+# (P3) or bit width (Q3).
+ALLOC_UNIT = "block"
+
+# Pruning sensitivity measures (calibration file only).
+#   S1: OWL outlier ratio of a block = fraction of the Wanda scores |W_ij| * ||X_j|| (dense calibration norms) of its
+#       seven projections that exceed OWL_M times the mean Wanda score over those seven projections.
+#   S2: isolated loss increase = calibration NLL with only that block Wanda-pruned at S (dense calibration norms,
+#       other blocks dense) minus the FP16 calibration NLL, for S in PROBE_SPARSITIES.
+OWL_M = 5.0
+PROBE_SPARSITIES = (0.50, 0.75)
+P3_MEASURES = ("S1", "S2")
+# Quantization sensitivity measures (calibration file only), for b in PROBE_BITS.
+#   QS1: isolated loss increase = calibration NLL with only that block AWQ-folded (scales searched at b) and quantized
+#        at b, minus the FP16 calibration NLL.
+#   QS2: sum over the block's seven projections of ||(W_eff - W) X||_F^2 / ||W X||_F^2 at b on dense calibration
+#        inputs, W_eff in the original basis.
+PROBE_BITS = Q3_BITS
+Q3_MEASURES = ("QS1", "QS2")
+
+# P3 rule: u = min-max normalised sensitivity over blocks (all equal -> 0.5); s_l = S + lambda - 2 lambda u_l;
+# one shift c by bisection with mean_l clip(s_l + c, P3_S_MIN, P3_S_MAX) = S; per-matrix zeros = floor(s_l * numel),
+# then single weights by largest remainder (ties: lower block, then projection order) up to the P2 total at S.
+P3_S_MIN = 0.10
+P3_S_MAX = 0.85
+P3_LAMBDAS = (0.04, 0.08, 0.12, 0.16, 0.20)
+P3_REFERENCE_LAMBDA = 0.0          # reference only, never selected; equals P2 per matrix
+P3_BISECT_MAX_ITERS = 200
+P3_BISECT_TOL = 1e-12              # |mean clip(s + c) - S| after bisection
+P3_TARGETS = {
+    "s50": {"condition": "p3_s50", "reference": "p2_s50", "sparsity": 0.50},
+    "s75": {"condition": "p3_s75", "reference": "p2_s75", "sparsity": 0.75},
+}
+
+# Q3 rule: exact multiple-choice knapsack over blocks, bits in Q3_BITS, minimising sum_l sensitivity(l, b_l) (exact
+# rational sums) subject to eligible packed bytes (task1.storage) <= the Q2 uniform budget; exact dynamic programming
+# over integer byte totals; ties: fewer bytes, then the lexicographically smaller bit vector (block order).
+# Non-eligible parameters are stored at FP16 and are identical across every Q3 candidate and its Q2 budget.
+Q3_TARGETS = {
+    "int4": {"condition": "q3_int4", "reference": "q2_b4", "bits": 4},
+    "int3": {"condition": "q3_int3", "reference": "q2_b3", "bits": 3},
+}
+# Eligible packed bytes of uniform Q2 on the real checkpoint (task1.storage, group 128, FP16 scales).
+Q3_FULL_MODEL_BUDGET_BYTES = {"int4": 680_687_616, "int3": 515_633_664}
+
+# Selection on the development file (fixed): lowest development mean NLL among non-reference candidates; ties go to
+# the smaller lambda, then measure order (S1 before S2, QS1 before QS2). References are recorded, never selected.
+SELECTION_CRITERION = (
+    "lowest mean NLL on the C4 development sequences among non-reference candidates; ties: smaller lambda, then "
+    "measure order S1 before S2 (QS1 before QS2); references (P3 lambda 0, Q3 uniform) are never selected"
+)
+
+
+def alloc_settings() -> dict:
+    """Every fixed allocation setting, for run JSONs and selected allocation files."""
+    return {
+        "unit": ALLOC_UNIT, "owl_m": OWL_M, "probe_sparsities": list(PROBE_SPARSITIES),
+        "probe_bits": list(PROBE_BITS), "p3_measures": list(P3_MEASURES), "q3_measures": list(Q3_MEASURES),
+        "p3_s_min": P3_S_MIN, "p3_s_max": P3_S_MAX, "p3_lambdas": list(P3_LAMBDAS),
+        "p3_reference_lambda": P3_REFERENCE_LAMBDA, "p3_bisect_max_iters": P3_BISECT_MAX_ITERS,
+        "p3_bisect_tol": P3_BISECT_TOL, "p3_targets": P3_TARGETS, "q3_targets": Q3_TARGETS,
+        "q3_full_model_budget_bytes": Q3_FULL_MODEL_BUDGET_BYTES, "selection_criterion": SELECTION_CRITERION,
+    }
