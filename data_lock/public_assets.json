@@ -1,0 +1,43 @@
+{
+  "data_repo_commit": "6a0a9ec9da7ef3d313ee3036cfec493886723644",
+  "data_repo_url": "https://github.com/AbDu11aHHH/atml-pa4-datasets.git",
+  "files": {
+    "c4_calibration_locked.jsonl.gz": {
+      "content_sha256": "eaa0452a7b6830b665debecc5df6960876bc7d3ad89ced339bcfc85fa4db6fe3",
+      "records": 128,
+      "scored_tokens": null
+    },
+    "c4_development_locked.jsonl.gz": {
+      "content_sha256": "85b71a7beeaaf06ea84d99510b4414f50d3a9fc3ddee6c15c1f52c2be3d5f7e2",
+      "records": 32,
+      "scored_tokens": null
+    },
+    "c4_validation_windows_locked.jsonl.gz": {
+      "content_sha256": "dd36c6eefb4a4f06b9606e28e5135556389ce98d9f86598a6b61fec3f292e8b5",
+      "records": 177,
+      "scored_tokens": 50000
+    },
+    "gsm8k_test_locked.jsonl.gz": {
+      "content_sha256": "44e2e357ee52b0da9e870e724b9bd8cf8ac25f3cf5db5fe9f01f5263ed069d7a",
+      "records": 60,
+      "scored_tokens": null
+    },
+    "gsm8k_train_locked.jsonl.gz": {
+      "content_sha256": "70adc54a8dd45432b2be6b4ab76aad886e4282ae2e55c50dc3119075a71f45d1",
+      "records": 500,
+      "scored_tokens": null
+    },
+    "hellaswag_val_locked.jsonl.gz": {
+      "content_sha256": "8686d379fe103478679199c744fa6779e4014d70f2af3941f64a3215dc677feb",
+      "records": 2000,
+      "scored_tokens": null
+    },
+    "wikitext2_test_windows_locked.jsonl.gz": {
+      "content_sha256": "879b5c741918fa58f5ce929e61a0ac83e4acf97d368d3a4f1b456e711fc560b3",
+      "records": 437,
+      "scored_tokens": 50000
+    }
+  },
+  "format": "public_assets_v1",
+  "hash": "sha256 of decompressed content"
+}
