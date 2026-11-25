@@ -15,7 +15,7 @@ from task1 import config as C
 LIM_W, LIM_H, LIM_C = 3, 6, 2
 
 TOP_KEYS = {"config", "meta", "start_time", "status", "elapsed_wall_s", "updated_time", "end_time", "model",
-            "tokenizer", "eval_id", "timings_s", "steps"}
+            "tokenizer", "eval_id", "timings_s", "steps", "acceptance"}
 CONFIG_KEYS = {"condition", "condition_spec", "settings", "device", "model_path", "limits", "limited",
                "hellaswag_scope", "output_files", "data_files"}
 STEP_KEYS = {"enumeration", "perplexity", "hellaswag", "calib_nll", "lmeval_verify", "resources", "storage",
@@ -94,8 +94,10 @@ def test_run_json_keys(run_dir):
         assert set(summ) == CAL_SUMMARY and summ["N"] == LIM_C * 511
 
     lv = s["lmeval_verify"]
-    assert set(lv) == {"file", "n_examples", "acceptance_run", "runs"} and lv["n_examples"] == LIM_H
-    assert lv["acceptance_run"] == "softmax_dtype=float32"
+    assert set(lv) == {"file", "n_examples", "acceptance_run", "acceptance", "acceptance_detail", "runs"}
+    assert lv["n_examples"] == LIM_H and lv["acceptance_run"] == "softmax_dtype=float32"
+    assert lv["acceptance"] == r["acceptance"] == "PASS"
+    assert lv["acceptance_detail"]["threshold_max_abs_diff"] == 2e-2
     assert set(lv["runs"]) == {"softmax_dtype=default", "softmax_dtype=float32"}
     for run in lv["runs"].values():
         assert set(run) == VERIFY_RUN and run["n_candidates"] == 4 * LIM_H
@@ -137,7 +139,8 @@ def test_per_example_files(run_dir):
         assert len(rows) == LIM_C and all(set(x) == CAL_ROW for x in rows)
     rep = json.loads((run_dir / "lmeval_verify.json").read_text())
     assert set(rep) == {"eval_id", "lm_eval_version", "batch_size", "prompt_format", "orders", "runs",
-                         "acceptance_run"}
+                         "acceptance_run", "acceptance", "acceptance_detail"}
+    assert rep["acceptance"] == "PASS" and rep["acceptance_detail"]["result"] == "PASS"
     assert rep["acceptance_run"] == "softmax_dtype=float32"
     assert rep["orders"] == list(range(LIM_H))
     for run in rep["runs"].values():

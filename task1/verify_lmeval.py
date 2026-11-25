@@ -57,6 +57,42 @@ def compare(ours_rows, lmeval_lls) -> dict:
             "ours_acc_norm": sum(r["correct_acc_norm"] for r in ours_rows) / n, "per_example": per_example}
 
 
+ACCEPT_MAX_ABS_DIFF = 2e-2
+ACCEPTANCE_RULE = (
+    "PASS if the acceptance run's max absolute per-candidate log-likelihood difference is <= 2e-2 nats and every "
+    "acc or acc_norm argmax disagreement has a top-two margin of our scores in that metric (log likelihood for acc, "
+    "log likelihood per character for acc_norm) smaller than the observed max difference; otherwise FAIL"
+)
+
+
+def _top_two_margin(scores) -> float:
+    s = sorted((float(x) for x in scores), reverse=True)
+    return s[0] - s[1]
+
+
+def acceptance(ours_rows, run: dict, threshold: float = ACCEPT_MAX_ABS_DIFF) -> dict:
+    """Acceptance decision for one lm_eval comparison run (see ACCEPTANCE_RULE)."""
+    max_diff = run["max_abs_diff"]
+    assert len(run["per_example"]) == len(ours_rows)
+    dis = []
+    for row, ex in zip(ours_rows, run["per_example"]):
+        assert ex["order"] == row["order"]
+        ours = np.array(row["loglik"], dtype=np.float64)
+        theirs = np.array(ex["lmeval_loglik"], dtype=np.float64)
+        chars = np.array(row["cont_chars"], dtype=np.float64)
+        for metric, so, st in (("acc", ours, theirs), ("acc_norm", ours / chars, theirs / chars)):
+            if int(np.argmax(so)) != int(np.argmax(st)):
+                m_o, m_t = _top_two_margin(so), _top_two_margin(st)
+                dis.append({"order": row["order"], "metric": metric, "ours_argmax": int(np.argmax(so)),
+                            "lmeval_argmax": int(np.argmax(st)), "margin_ours": m_o, "margin_lmeval": m_t,
+                            "explained": m_o < max_diff})
+    diff_ok = max_diff <= threshold
+    unexplained = [d for d in dis if not d["explained"]]
+    return {"result": "PASS" if diff_ok and not unexplained else "FAIL", "rule": ACCEPTANCE_RULE,
+            "threshold_max_abs_diff": threshold, "max_abs_diff": max_diff, "max_abs_diff_ok": diff_ok,
+            "n_disagreements": len(dis), "n_unexplained": len(unexplained), "disagreements": dis}
+
+
 def verify(model, tokenizer, records, ours_rows, batch_size: int = C.LMEVAL_BATCH_SIZE,
            softmax_dtypes=(None, "float32")) -> dict:
     """Run HFLM for each softmax dtype setting (None = lm_eval default, the model dtype) and compare."""
@@ -73,6 +109,9 @@ def verify(model, tokenizer, records, ours_rows, batch_size: int = C.LMEVAL_BATC
         report["runs"]["softmax_dtype=" + (sd or "default")] = cmp
     assert C.LMEVAL_ACCEPTANCE_RUN in report["runs"], "acceptance run missing"
     report["acceptance_run"] = C.LMEVAL_ACCEPTANCE_RUN
+    det = acceptance(ours_rows, report["runs"][C.LMEVAL_ACCEPTANCE_RUN])
+    report["acceptance"] = det["result"]
+    report["acceptance_detail"] = det
     return report
 
 

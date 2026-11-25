@@ -155,7 +155,8 @@ def run(args):
         rep = verify(model, tok, hs_records[:n_v], hs_rows[:n_v])
         write_json_new(out / OUTPUT_FILES["lmeval_verify"], rep)
         steps["lmeval_verify"] = {"file": OUTPUT_FILES["lmeval_verify"], "n_examples": n_v,
-                                  "acceptance_run": rep["acceptance_run"],
+                                  "acceptance_run": rep["acceptance_run"], "acceptance": rep["acceptance"],
+                                  "acceptance_detail": rep["acceptance_detail"],
                                   "runs": {k: {kk: v[kk] for kk in v if kk != "per_example"}
                                            for k, v in rep["runs"].items()}}
         timings["lmeval_verify_s"] = time.perf_counter() - t
@@ -173,17 +174,26 @@ def run(args):
         if args.model_path is None:
             assert shapes == C.full_model_matrix_shapes()
         steps["pristine_after"] = {"tensors_verified": pristine.verify(model)}
-        rec.finish("ok", steps=steps, timings_s=timings)
+        rec.finish(run_status(rep["acceptance"]), steps=steps, timings_s=timings, acceptance=rep["acceptance"])
     except BaseException as exc:  # record the failure, then propagate
         rec.finish("failed", steps=steps, timings_s=timings, error=repr(exc), traceback=traceback.format_exc())
         raise
-    return out
+    return out, rep["acceptance"]
+
+
+def run_status(acceptance: str) -> str:
+    """Run status after all outputs are written: ok on PASS, acceptance_failed on FAIL."""
+    return {"PASS": "ok", "FAIL": "acceptance_failed"}[acceptance]
+
+
+def exit_code(acceptance: str) -> int:
+    return 0 if acceptance == "PASS" else 1
 
 
 def main(argv=None):
     args = parse_args(argv)
-    run(args)
-    return 0
+    _, acc = run(args)
+    return exit_code(acc)
 
 
 if __name__ == "__main__":
