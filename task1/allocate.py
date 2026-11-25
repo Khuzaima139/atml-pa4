@@ -6,8 +6,9 @@ q, k, v, o, gate, up, down). Every projection of a block receives the block's sp
 P3: u = min-max normalised sensitivity over blocks (u = 0.5 for every block when all values are equal);
 raw s_l = S + lambda - 2 * lambda * u_l (more sensitive blocks are pruned less); one shift c is found by bisection
 so that the mean over blocks of clip(s_l + c, P3_S_MIN, P3_S_MAX) equals S; each matrix gets the real target
-s_l * numel, floored, and single weights are added by largest remainder (ties: lower block, then projection order)
-until the total equals the P2 total at S exactly.
+s_l * numel, floored, and single weights are added by largest remainder (ties: lower block sensitivity, then lower
+block, then projection order) until the total equals the P2 total at S exactly. A candidate whose per-matrix counts
+equal P2's is flagged collapsed_to_uniform.
 
 Q3: exact multiple-choice knapsack over blocks with bits in Q3_BITS: minimise sum_l sensitivity(l, b_l) (exact
 rational arithmetic on the float sensitivities) subject to total eligible packed bytes (task1.storage) <= budget;
@@ -24,7 +25,8 @@ from . import storage
 P3_RULE = (
     "u = min-max normalised block sensitivity (all equal -> 0.5); s_l = S + lambda - 2*lambda*u_l; shift c by "
     "bisection so that mean_l clip(s_l + c, 0.10, 0.85) = S; per matrix zeros = floor(s_l * numel), then +1 by "
-    "largest remainder (ties: lower block, then projection order) to the exact P2 total at S; ranking rule: "
+    "largest remainder (ties: lower block sensitivity, then lower block, then projection order) to the exact P2 "
+    "total at S; ranking rule: "
     "sequential Wanda per output row (unchanged)"
 )
 Q3_RULE = (
@@ -121,15 +123,18 @@ def check_p3_zeros(matrices, zeros: dict, S: float) -> dict:
             "eligible_weights": sum(_numel(m["shape"]) for m in matrices)}
 
 
-def largest_remainder(targets, total: int) -> list:
+def largest_remainder(targets, total: int, tie_keys=None) -> list:
     """Floor every real target, then add one to the largest remainders until the sum is total.
 
-    Ties go to the lower index (enumeration order = block, then projection order).
+    Equal remainders go to the lower tie key (P3: the block's sensitivity), then the lower index (enumeration
+    order = block, then projection order).
     """
     zeros = [int(math.floor(t)) for t in targets]
     deficit = int(total) - sum(zeros)
     assert 0 <= deficit <= len(targets), (deficit, len(targets))
-    order = sorted(range(len(targets)), key=lambda i: (-(targets[i] - zeros[i]), i))
+    keys = [0.0] * len(targets) if tie_keys is None else [float(k) for k in tie_keys]
+    assert len(keys) == len(targets)
+    order = sorted(range(len(targets)), key=lambda i: (-(targets[i] - zeros[i]), keys[i], i))
     for i in order[:deficit]:
         zeros[i] += 1
     assert sum(zeros) == total
@@ -152,14 +157,15 @@ def p3_allocation(sens, S: float, lam: float, matrices) -> dict:
     s_block = [_clip(r + c) for r in raw]
     targets = [s_block[m["layer"]] * _numel(m["shape"]) for m in matrices]
     total = sum(p2_zeros(matrices, S).values())
-    zeros = largest_remainder(targets, total)
+    zeros = largest_remainder(targets, total, tie_keys=[float(sens[m["layer"]]) for m in matrices])
     deficit = total - sum(int(math.floor(t)) for t in targets)
     zmap = {m["qualname"]: z for m, z in zip(matrices, zeros)}
     totals = check_p3_zeros(matrices, zmap, S)
+    collapsed = zmap == p2_zeros(matrices, S)
     return {"rule": P3_RULE, "sparsity": S, "lambda": lam, "sensitivity": [float(x) for x in sens], "u": u,
             "raw": raw, "shift": c, "bisect_iterations": iters, "bisect_residual": resid,
             "block_sparsity_real": s_block, "block_sparsity_achieved": block_sparsity(matrices, zmap, L),
-            "n_largest_remainder_added": deficit, "zeros": zmap, **totals}
+            "n_largest_remainder_added": deficit, "zeros": zmap, "collapsed_to_uniform": collapsed, **totals}
 
 
 # ---------------------------------------------------------------------------------------------------------------

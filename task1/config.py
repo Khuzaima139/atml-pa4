@@ -164,7 +164,8 @@ Q3_MEASURES = ("QS1", "QS2")
 
 # P3 rule: u = min-max normalised sensitivity over blocks (all equal -> 0.5); s_l = S + lambda - 2 lambda u_l;
 # one shift c by bisection with mean_l clip(s_l + c, P3_S_MIN, P3_S_MAX) = S; per-matrix zeros = floor(s_l * numel),
-# then single weights by largest remainder (ties: lower block, then projection order) up to the P2 total at S.
+# then single weights by largest remainder (ties: lower block sensitivity, then lower block, then projection order)
+# up to the P2 total at S.
 P3_S_MIN = 0.10
 P3_S_MAX = 0.85
 P3_LAMBDAS = (0.04, 0.08, 0.12, 0.16, 0.20)
@@ -187,11 +188,16 @@ Q3_TARGETS = {
 # Eligible packed bytes of uniform Q2 on the real checkpoint (task1.storage, group 128, FP16 scales).
 Q3_FULL_MODEL_BUDGET_BYTES = {"int4": 680_687_616, "int3": 515_633_664}
 
-# Selection on the development file (fixed): lowest development mean NLL among non-reference candidates; ties go to
-# the smaller lambda, then measure order (S1 before S2, QS1 before QS2). References are recorded, never selected.
+# Selection on the development file (fixed): lowest development mean NLL among non-reference candidates whose
+# allocation differs from the reference (P2 per-matrix zero counts, uniform Q2 bits); ties go to the smaller lambda,
+# then measure order (S1 before S2, QS1 before QS2). References are recorded, never selected. Only if every
+# non-reference candidate equals the reference is the same rule applied to them, and the winner is flagged
+# collapsed_to_uniform in selected_allocation.json and the run JSON.
 SELECTION_CRITERION = (
-    "lowest mean NLL on the C4 development sequences among non-reference candidates; ties: smaller lambda, then "
-    "measure order S1 before S2 (QS1 before QS2); references (P3 lambda 0, Q3 uniform) are never selected"
+    "lowest mean NLL on the C4 development sequences among non-reference candidates whose allocation differs from "
+    "the reference (P2 per-matrix zeros, uniform Q2 bits); ties: smaller lambda, then measure order S1 before S2 "
+    "(QS1 before QS2); references (P3 lambda 0, Q3 uniform) are never selected; only if every non-reference "
+    "candidate equals the reference is the collapsed allocation used, flagged collapsed_to_uniform"
 )
 
 

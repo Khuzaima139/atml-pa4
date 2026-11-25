@@ -52,7 +52,10 @@ def test_p3_exact_total_bounds_and_reference(mats, S):
             assert all(C.P3_S_MIN <= s <= C.P3_S_MAX for s in r["block_sparsity_real"])
             assert abs(r["bisect_residual"]) <= C.P3_BISECT_TOL
         ref = A.p3_allocation(sens, S, 0.0, mats)
-        assert ref["zeros"] == p2 and ref["shift"] == 0.0
+        assert ref["zeros"] == p2 and ref["shift"] == 0.0 and ref["collapsed_to_uniform"] is True
+        assert A.p3_allocation(sens, S, 0.04, mats)["collapsed_to_uniform"] is False
+        flat = A.p3_allocation([0.3] * L, S, 0.2, mats)  # equal sensitivities: u = 0.5, equals P2
+        assert flat["zeros"] == p2 and flat["collapsed_to_uniform"] is True
 
 
 def test_p3_monotone():
@@ -68,11 +71,8 @@ def test_p3_monotone():
                             sa, sb = r["block_sparsity_real"][a], r["block_sparsity_real"][b]
                             assert sa <= sb
                             for n in C.ELIGIBLE:  # same shape: never more zeros for the more sensitive block
-                                za, zb = z[f"model.layers.{a}.{n}"], z[f"model.layers.{b}.{n}"]
-                                if sa < sb:
-                                    assert za <= zb
-                                else:  # both clipped to the same bound: the fixed tie rule (lower block first)
-                                    assert sa == sb and abs(za - zb) <= 1
+                                # exact also when both are clipped to the same bound (ties: lower sensitivity first)
+                                assert z[f"model.layers.{a}.{n}"] <= z[f"model.layers.{b}.{n}"]
 
 
 def test_p3_bisection():
@@ -88,15 +88,21 @@ def test_p3_bisection():
 
 def test_p3_largest_remainder_ties():
     # 4 blocks of 4x4 matrices at S = 0.5: s = 0.5 -+ 1/32 gives remainders of exactly 0.5 in every matrix;
-    # 14 extra weights go to blocks 0 and 1 (lower block first), all their projections.
+    # 14 extra weights go to the less sensitive blocks 1 and 2, all their projections.
     mats = _mats(4, {n: (4, 4) for n in C.ELIGIBLE})
     for _ in range(2):
         r = A.p3_allocation([1.0, 0.0, 0.0, 1.0], 0.5, 1 / 32, mats)
         assert r["block_sparsity_real"] == [0.46875, 0.53125, 0.53125, 0.46875]
         assert r["n_largest_remainder_added"] == 14
-        want = {0: 8, 1: 9, 2: 8, 3: 7}
+        want = {0: 7, 1: 9, 2: 9, 3: 7}
         assert r["zeros"] == {m["qualname"]: want[m["layer"]] for m in mats}
-    # Partial assignment: equal remainders go to the lower enumeration index (block, then projection order).
+    # Equal sensitivities: equal remainders go to the lower block (all projections of block 0 first).
+    r = A.p3_allocation([1.0, 0.0, 0.0, 1.0, 0.5, 0.5], 0.5, 1 / 32, _mats(6, {n: (4, 4) for n in C.ELIGIBLE}))
+    assert [r["zeros"][f"model.layers.{li}.q_proj"] for li in range(6)] == [7, 9, 9, 7, 8, 8]
+    # Equal remainders: lower tie key (sensitivity) first, then the lower enumeration index.
+    assert A.largest_remainder([1.5, 1.5, 1.5], 5, tie_keys=[0.3, 0.1, 0.1]) == [1, 2, 2]
+    assert A.largest_remainder([1.5, 1.5, 1.5], 4, tie_keys=[0.3, 0.2, 0.2]) == [1, 2, 1]
+    assert A.largest_remainder([1.5, 1.5, 1.5], 5) == [2, 2, 1]
     assert A.largest_remainder([1.5, 2.5, 3.5], 8) == [2, 3, 3]
     assert A.largest_remainder([1.5, 2.5, 3.5, 0.9], 8) == [2, 2, 3, 1]
     assert A.largest_remainder([2.0, 3.0], 5) == [2, 3]

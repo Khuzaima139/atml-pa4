@@ -7,8 +7,9 @@ from task1.select import candidate_id, choose, p3_candidates, q3_candidates
 from tests.test_t1_allocate import SMALL4
 
 
-def _row(cid, nll, measure, lam, ref=False):
-    return {"candidate_id": cid, "development": {"mean_nll": nll}, "measure": measure, "lambda": lam, "reference": ref}
+def _row(cid, nll, measure, lam, ref=False, collapsed=None):
+    return {"candidate_id": cid, "development": {"mean_nll": nll}, "measure": measure, "lambda": lam, "reference": ref,
+            "collapsed_to_uniform": ref if collapsed is None else collapsed}
 
 
 def test_choose_minimum_and_tie_rule():
@@ -23,6 +24,20 @@ def test_choose_minimum_and_tie_rule():
     assert choose(rows, "q3")["candidate_id"] == "qs1"
     with pytest.raises(AssertionError):
         choose([_row("u", 0.5, None, None, ref=True)], "q3")
+
+
+def test_choose_excludes_candidates_equal_to_the_reference():
+    rows = [_row("u", 0.5, None, None, ref=True), _row("qs1", 2.0, "QS1", None),
+            _row("qs2", 1.0, "QS2", None, collapsed=True)]
+    assert choose(rows, "q3")["candidate_id"] == "qs1"  # the collapsed candidate is lower but cannot win
+    rows = [_row("ref", 0.1, None, 0.0, ref=True), _row("a", 1.0, "S1", 0.04, collapsed=True),
+            _row("b", 3.0, "S2", 0.08), _row("c", 2.0, "S2", 0.12)]
+    assert choose(rows, "p3")["candidate_id"] == "c"
+    # Every candidate collapsed: the same rule among them; the winner carries the flag.
+    rows = [_row("u", 0.5, None, None, ref=True), _row("qs2", 2.0, "QS2", None, collapsed=True),
+            _row("qs1", 2.0, "QS1", None, collapsed=True)]
+    w = choose(rows, "q3")
+    assert w["candidate_id"] == "qs1" and w["collapsed_to_uniform"] is True
 
 
 def test_candidate_grid():

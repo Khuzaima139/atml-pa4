@@ -38,11 +38,12 @@ ISOLATED_ROW = {"eval_id", "kind", "measure", "level", "layer", "value", "calib_
                 "n_scored", "fp16_calib_mean_nll", "wall_s"}
 CAND = {"eval_id", "candidate_id", "index", "condition", "kind", "target", "reference", "measure", "lambda", "rule",
         "development", "calibration", "output_error_pooled_rel", "timings_s", "per_block", "totals", "selected"}
+CAND = CAND | {"collapsed_to_uniform"}
 CAND_P3 = CAND | {"shift", "bisect_iterations", "bisect_residual", "n_largest_remainder_added", "per_matrix_zeros"}
-CAND_Q3 = CAND | {"per_matrix_bits", "collapsed_to_uniform", "objective", "objective_exact", "dp_states_per_block"}
+CAND_Q3 = CAND | {"per_matrix_bits", "objective", "objective_exact", "dp_states_per_block"}
 SELECTED = {"eval_id", "condition", "kind", "target", "unit", "n_blocks", "rule", "measure", "lambda", "candidate_id",
             "per_block", "totals", "development", "calibration", "selection_criterion", "n_candidates",
-            "n_reference_candidates", "inputs", "model", "model_path", "limits", "code_commit", "code_dirty",
+            "n_reference_candidates", "collapsed_to_uniform", "all_candidates_collapsed", "inputs", "model", "model_path", "limits", "code_commit", "code_dirty",
             "alloc_settings"}
 MANIFEST = {"eval_id", "condition", "family", "kind", "model", "model_dtype", "conventions", "matrices",
             "extra_tensors", "logical_bytes", "tensors", "stored_tensor_bytes", "file", "allocation"}
@@ -174,14 +175,21 @@ def test_select_outputs(runs, kind):
     win = [x for x in rows if x["selected"]][0]
     assert not win["reference"]
     pool = [x for x in rows if not x["reference"]]
-    assert win["development"]["mean_nll"] == min(x["development"]["mean_nll"] for x in pool)
+    fresh = [x for x in pool if not x["collapsed_to_uniform"]]
+    assert fresh, "the tiny model gives at least one allocation that differs from the reference"
+    assert not win["collapsed_to_uniform"]
+    assert win["development"]["mean_nll"] == min(x["development"]["mean_nll"] for x in fresh)
+    assert s["selection"]["collapsed_to_uniform"] == [x["candidate_id"] for x in pool if x["collapsed_to_uniform"]]
+    assert s["selection"]["winner_collapsed_to_uniform"] is False and s["selection"]["all_candidates_collapsed"] is False
     for x in rows:
         assert set(x["development"]) == CAL_SUMMARY and x["development"]["n_sequences"] == LIM_D
         assert set(x["calibration"]) == CAL_SUMMARY and x["calibration"]["n_sequences"] == LIM_C
     if kind == "p3":
         p2 = A.p2_zeros(MATS, 0.5)
         ref = [x for x in rows if x["reference"]][0]
-        assert ref["per_matrix_zeros"] == p2 and ref["lambda"] == 0.0
+        assert ref["per_matrix_zeros"] == p2 and ref["lambda"] == 0.0 and ref["collapsed_to_uniform"] is True
+        for x in pool:
+            assert x["collapsed_to_uniform"] == (x["per_matrix_zeros"] == p2)
         lams = sorted({(x["measure"], x["lambda"]) for x in pool})
         assert lams == sorted((m, lam) for m in C.P3_MEASURES for lam in C.P3_LAMBDAS)
         for x in rows:
@@ -194,14 +202,14 @@ def test_select_outputs(runs, kind):
             assert x["totals"]["eligible_packed_bytes"] <= x["totals"]["budget_bytes"] == budget
             assert x["collapsed_to_uniform"] == (x["per_block"]["bits"] == [3] * N_LAYERS)
         assert [x for x in rows if x["reference"]][0]["per_block"]["bits"] == [3] * N_LAYERS
-        assert s["selection"]["collapsed_to_uniform"] == [x["candidate_id"] for x in pool if x["collapsed_to_uniform"]]
     nll = read_jsonl(d / "candidate_nll.jsonl.gz")
     assert len(nll) == n_cand * (LIM_C + LIM_D) and all(set(x) == CAL_ROW | {"candidate_id"} for x in nll)
     sel = _load(d / "selected_allocation.json")
     extra = {"sparsity", "per_matrix_zeros", "shift"} if kind == "p3" else {
-        "ref_bits", "per_matrix_bits", "collapsed_to_uniform", "objective"}
+        "ref_bits", "per_matrix_bits", "objective"}
     assert set(sel) == SELECTED | extra
     assert sel["candidate_id"] == win["candidate_id"] == s["selection"]["winner"]
+    assert sel["collapsed_to_uniform"] is False and sel["all_candidates_collapsed"] is False
     assert sel["condition"] == ("p3_s50" if kind == "p3" else "q3_int3") and sel["n_candidates"] == n_cand
     assert sel["inputs"]["calib_stats"]["awq_scales_sha256"] == sha256_file(runs / "calib" / "awq_scales.safetensors")
     assert sel["inputs"]["probe"]["run_sha256"] == sha256_file(pdir / "run.json")

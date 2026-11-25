@@ -108,10 +108,16 @@ def candidate_id(cond: str, c: dict) -> str:
 
 
 def choose(rows: list, kind: str) -> dict:
-    """Fixed criterion: lowest development mean NLL among non-reference candidates; ties: smaller lambda, measure order."""
+    """Fixed criterion (config.SELECTION_CRITERION).
+
+    Lowest development mean NLL among non-reference candidates that differ from the reference; ties: smaller
+    lambda, then measure order. Only if every non-reference candidate equals the reference is the rule applied
+    to those collapsed candidates.
+    """
     order = MEASURES[kind]
     pool = [r for r in rows if not r["reference"]]
     assert pool, "no non-reference candidate"
+    pool = [r for r in pool if not r["collapsed_to_uniform"]] or pool
     return min(pool, key=lambda r: (r["development"]["mean_nll"], r["lambda"] or 0.0, order.index(r["measure"])))
 
 
@@ -221,7 +227,7 @@ def run(args):
                                shift=al["shift"], bisect_iterations=al["bisect_iterations"],
                                bisect_residual=al["bisect_residual"],
                                n_largest_remainder_added=al["n_largest_remainder_added"],
-                               per_matrix_zeros=al["zeros"],
+                               per_matrix_zeros=al["zeros"], collapsed_to_uniform=al["collapsed_to_uniform"],
                                totals={"zeros": al["total_zeros"], "p2_zeros": al["p2_total_zeros"],
                                        "eligible_weights": al["eligible_weights"]})
                 else:
@@ -257,6 +263,8 @@ def run(args):
                    "development": win["development"], "calibration": win["calibration"],
                    "selection_criterion": C.SELECTION_CRITERION, "n_candidates": len(rows),
                    "n_reference_candidates": sum(r["reference"] for r in rows),
+                   "collapsed_to_uniform": win["collapsed_to_uniform"],
+                   "all_candidates_collapsed": all(r["collapsed_to_uniform"] for r in rows if not r["reference"]),
                    "inputs": steps["inputs"], "model": info, "model_path": args.model_path, "limits": lim["limits"],
                    "code_commit": meta["git_commit"], "code_dirty": meta["git_dirty"],
                    "alloc_settings": C.alloc_settings()}
@@ -264,16 +272,17 @@ def run(args):
                 sel.update(sparsity=tgt["sparsity"], per_matrix_zeros=win["per_matrix_zeros"], shift=win["shift"])
             else:
                 sel.update(ref_bits=tgt["bits"], per_matrix_bits=win["per_matrix_bits"],
-                           collapsed_to_uniform=win["collapsed_to_uniform"], objective=win["objective"])
+                           objective=win["objective"])
             write_json_new(out / OUTPUT_FILES["selected"], sel)
             steps["selection"] = {"winner": win["candidate_id"], "development_mean_nll": win["development"]["mean_nll"],
                                   "file": OUTPUT_FILES["selected"], "sha256": sha256_file(out / OUTPUT_FILES["selected"]),
                                   "candidates": [{"candidate_id": r["candidate_id"], "reference": r["reference"],
                                                   "development_mean_nll": r["development"]["mean_nll"],
                                                   "calibration_mean_nll": r["calibration"]["mean_nll"]} for r in rows]}
-            if args.kind == "q3":
-                steps["selection"]["collapsed_to_uniform"] = [r["candidate_id"] for r in rows
-                                                              if r["collapsed_to_uniform"] and not r["reference"]]
+            steps["selection"]["collapsed_to_uniform"] = [r["candidate_id"] for r in rows
+                                                          if r["collapsed_to_uniform"] and not r["reference"]]
+            steps["selection"]["winner_collapsed_to_uniform"] = win["collapsed_to_uniform"]
+            steps["selection"]["all_candidates_collapsed"] = sel["all_candidates_collapsed"]
             steps["pristine_after"] = {"tensors_verified": pristine.verify(model)}
             if torch.cuda.is_available() and str(args.device).startswith("cuda"):
                 steps["peak_gpu_allocated_bytes"] = torch.cuda.max_memory_allocated(dev)
