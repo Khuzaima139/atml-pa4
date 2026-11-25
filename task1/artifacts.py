@@ -22,8 +22,9 @@ ARTIFACT_FILE = "artifact.safetensors"
 MANIFEST_FILE = "manifest.json"
 
 
-def save_artifact(art_dir, condition: str, model_source: dict, payload: list, extra_tensors: dict, model) -> dict:
-    """Write the artifact of a built condition; returns the manifest."""
+def save_artifact(art_dir, condition: str, model_source: dict, payload: list, extra_tensors: dict, model,
+                  extra_meta: dict = None) -> dict:
+    """Write the artifact of a built condition; returns the manifest (extra_meta keys are added to it)."""
     art_dir = Path(art_dir)
     elig = enumerate_eligible(model)
     params = dict(model.named_parameters())
@@ -73,6 +74,9 @@ def save_artifact(art_dir, condition: str, model_source: dict, payload: list, ex
                               "whole_model": storage.whole_model_bytes(eligible_bytes, n_non_elig),
                               "format": {"mask": "sparse16", "quant": "packed_group_quant",
                                          "dense": "fp16_dense"}[kind]}}
+    for k, v in (extra_meta or {}).items():
+        assert k not in meta, k
+        meta[k] = v
     return save_tensors(art_dir / ARTIFACT_FILE, tensors, meta, art_dir / MANIFEST_FILE)
 
 

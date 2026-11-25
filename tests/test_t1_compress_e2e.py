@@ -20,7 +20,7 @@ RUN_TOP = {"config", "meta", "start_time", "status", "elapsed_wall_s", "updated_
            "eval_id", "timings_s", "steps"}
 COMMON_CONFIG = {"entry_point", "settings", "device", "model_path", "limits", "limited", "test_only",
                  "output_files", "data_files", "batch_size"}
-COMPRESS_CONFIG = COMMON_CONFIG | {"condition", "condition_spec", "artifacts_dir", "calib_stats_dir"}
+COMPRESS_CONFIG = COMMON_CONFIG | {"condition", "condition_spec", "artifacts_dir", "calib_stats_dir", "allocation_file"}
 CALIB_CONFIG = COMMON_CONFIG | {"awq"}
 BUILD_TIMINGS = {f"build_{k}" for k in ("capture_s", "calibration_stats_s", "construct_s", "error_pass_s",
                                         "apply_s", "rerun_s", "compression_s", "measurement_s")} | {"build_total_s"}
@@ -122,8 +122,9 @@ def test_compress_outputs(runs, cond):
     prune_like = fam in ("P1", "P2", "P2_2of4")
     assert set(r["timings_s"]) == COMPRESS_TIMINGS | ({"build_distributions_s"} if prune_like else set())
     s = r["steps"]
-    assert set(s) == {"restore", "build", "storage", "calib_nll", "artifact", "peak_gpu_allocated_bytes"} | (
-        {"awq_source"} if fam == "Q2" else set())
+    assert set(s) == {"restore", "build", "storage", "calib_nll", "artifact", "peak_gpu_allocated_bytes",
+                      "held_out_guard"} | ({"awq_source"} if fam == "Q2" else set())
+    assert s["held_out_guard"]["attempts"] == [] and len(s["held_out_guard"]["forbidden"]) == 3
     b = s["build"]
     assert set(b) == BUILD | ({"mask_zeros_total", "target_zeros_total"} if prune_like else set())
     nz = b["nonzeros"]
