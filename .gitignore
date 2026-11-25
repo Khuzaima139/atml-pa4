@@ -19,3 +19,6 @@ ATML_PA4*.pdf
 # Calibration statistics of task1.calib_stats (small, inputs to Q2/Q3): the only tracked safetensors files.
 !results/task1/calib_stats/awq_scales.safetensors
 !results/task1/calib_stats/dense_stats.safetensors
+# Smoke and preflight outputs of the Kaggle notebooks (results_smoke/preflight, results_smoke/smoke, plan.json).
+results_smoke/
+*_smoke/
