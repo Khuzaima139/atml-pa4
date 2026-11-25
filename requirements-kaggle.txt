@@ -1,0 +1,22 @@
+# Kaggle installs: pip install -r requirements-kaggle.txt -c constraints.txt (constraints.txt pins the preinstalled
+# torch, which is never installed or changed here). Versions equal the Mac environment of requirements.txt.
+transformers==4.57.1
+huggingface_hub==0.36.2
+datasets==4.8.5
+accelerate==1.16.0
+safetensors==0.8.0
+lm_eval==0.4.13
+# Direct dependencies of lm_eval 0.4.13 (base requirements; datasets is pinned above)
+numpy==2.4.6
+evaluate==0.4.6
+jinja2==3.1.6
+pytablewriter==0.38.0
+rouge-score==0.1.2
+sacrebleu==2.6.0
+scikit-learn==1.9.1
+sqlitedict==2.1.0
+dill==0.4.1
+word2number==1.1
+more_itertools==11.2.1
+typing_extensions==4.16.0
+tqdm==4.70.1
