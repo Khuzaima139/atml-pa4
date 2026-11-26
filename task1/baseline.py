@@ -1,5 +1,8 @@
 """Unchanged FP16 baseline: enumeration, perplexity, HellaSwag, calibration NLL, lm_eval check, resources, storage.
 
+The lm_eval check (first 512 HellaSwag IDs) prints one line per lm_eval run and the acceptance verdict to stdout
+(on FAIL also disagreements and the largest per-candidate differences); see task1.verify_lmeval.
+
 Usage: python -m task1.baseline --out results/task1/fp16 [--device cuda:0] [--model-path PATH]
        [--limit-windows N --limit-hellaswag N --limit-calib N]   (limits: tests and smoke runs only)
        [--no-resources | --resources-only]
@@ -95,6 +98,7 @@ def run(args):
     from .resources import latency, prompt_ids
     from .data import forbid_held_out
     from .verify_lmeval import verify
+    import torch
 
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=False)
@@ -107,6 +111,8 @@ def run(args):
     if mode == "only":
         cfg["data_files"] = [file_info(SEQUENCE_FILES["c4_calibration"])]
     rec = RunRecorder(out / files["run"], cfg)
+    cuda = torch.cuda.is_available() and str(args.device).startswith("cuda")
+    dev = torch.device(args.device)
     steps = {}
     timings = {}
     rep = {"acceptance": None}
@@ -180,16 +186,36 @@ def run(args):
                     timings[f"calib_nll_{split}_s"] = time.perf_counter() - t
                     rec.update(steps=steps, timings_s=timings)
 
-                # lm_eval check on the first 512 IDs.
+                # lm_eval check on the first 512 IDs: acceptance on a float32 copy of the model, two informational
+                # runs on the FP16 model. Peak memory of this step alone: the CUDA peak statistics are reset at its
+                # start (the peak before the step is kept as peak_allocated_bytes_before_step).
                 t = time.perf_counter()
                 n_v = min(C.HELLASWAG_SUBSET_N, len(hs_rows))
+                pre_peak = None
+                if cuda:
+                    torch.cuda.synchronize(dev)
+                    pre_peak = torch.cuda.max_memory_allocated(dev)
+                    torch.cuda.reset_peak_memory_stats(dev)
+                dtypes_before = sorted({str(p.dtype) for p in model.parameters()})
                 rep = verify(model, tok, hs_records[:n_v], hs_rows[:n_v])
+                if cuda:
+                    torch.cuda.synchronize(dev)
+                peak_a = torch.cuda.max_memory_allocated(dev) if cuda else None
+                peak_r = torch.cuda.max_memory_reserved(dev) if cuda else None
+                print_lmeval(rep)
                 write_json_new(out / files["lmeval_verify"], rep)
+                dtypes_after = sorted({str(p.dtype) for p in model.parameters()})
+                assert dtypes_after == dtypes_before, (dtypes_before, dtypes_after)
+                n_fp = pristine.verify(model)  # parameter fingerprints unchanged since load
                 steps["lmeval_verify"] = {"file": files["lmeval_verify"], "n_examples": n_v,
                                           "acceptance_run": rep["acceptance_run"], "acceptance": rep["acceptance"],
                                           "acceptance_detail": rep["acceptance_detail"],
                                           "runs": {k: {kk: v[kk] for kk in v if kk != "per_example"}
-                                                   for k, v in rep["runs"].items()}}
+                                                   for k, v in rep["runs"].items()},
+                                          "peak_allocated_bytes": peak_a, "peak_reserved_bytes": peak_r,
+                                          "peak_allocated_bytes_before_step": pre_peak,
+                                          "fp16_model_after": {"parameter_dtypes": dtypes_after,
+                                                               "fingerprints_verified": n_fp}}
                 timings["lmeval_verify_s"] = time.perf_counter() - t
                 rec.update(steps=steps, timings_s=timings)
 
@@ -215,6 +241,14 @@ def run(args):
         rec.finish("failed", steps=steps, timings_s=timings, error=repr(exc), traceback=traceback.format_exc())
         raise
     return out, rep["acceptance"]
+
+
+def print_lmeval(rep: dict):
+    """The lm_eval check lines (one per run, the verdict; on FAIL disagreements and largest differences) to stdout."""
+    from .verify_lmeval import report_lines
+
+    for line in report_lines(rep):
+        print(line, flush=True)
 
 
 def run_status(acceptance) -> str:

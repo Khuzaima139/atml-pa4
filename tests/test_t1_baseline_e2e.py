@@ -32,7 +32,8 @@ CAL_SUMMARY = {"eval_id", "split", "n_sequences", "N", "nll_sum", "mean_nll", "b
 CAL_ROW = {"eval_id", "split", "seq_index", "source_row", "token_offset", "nll_sum", "n_scored"}
 VERIFY_RUN = {"n_examples", "n_candidates", "max_abs_diff", "mean_abs_diff", "argmax_disagreements_acc",
               "argmax_disagreements_acc_norm", "lmeval_acc", "lmeval_acc_norm", "ours_acc", "ours_acc_norm",
-              "wall_s"}
+              "model_dtype", "softmax_dtype", "ours_from", "rule_check", "wall_s"}
+RUNS = {"softmax_dtype=default", "softmax_dtype=float32", "fp32_model"}
 MEAS = {"what", "unit", "repetitions", "warmup", "times_ms", "median_ms", "min_ms", "max_ms",
         "peak_allocated_bytes", "peak_reserved_bytes", "peak_allocated_bytes_max", "peak_reserved_bytes_max"}
 
@@ -46,7 +47,44 @@ def run_dir(tiny_model_dir, tmp_path_factory):
     env = dict(os.environ, HF_HUB_OFFLINE="1", PYTHONUNBUFFERED="1")
     proc = subprocess.run(cmd, cwd=REPO_ROOT, env=env, capture_output=True, text=True, timeout=900)
     assert proc.returncode == 0, proc.stderr[-4000:]
+    (out.parent / "stdout.txt").write_text(proc.stdout)
     return out
+
+
+def test_lmeval_lines_on_pass(run_dir):
+    from task1.verify_lmeval import LOG_PREFIX
+
+    lines = [x for x in (run_dir.parent / "stdout.txt").read_text().splitlines() if x.startswith(LOG_PREFIX)]
+    assert len(lines) == 4, lines  # one per run and the verdict; no failure rows on PASS
+    for name in RUNS:
+        line = [x for x in lines if f" run {name} (" in x]
+        assert len(line) == 1 and all(k in line[0] for k in ("max_abs_diff=", "mean_abs_diff=", "disagreements acc=",
+                                                              "acc_norm=", "unexplained="))
+    assert "(acceptance;" in [x for x in lines if " run fp32_model (" in x][0]
+    assert lines[-1].startswith(f"{LOG_PREFIX} acceptance PASS (run fp32_model;")
+
+
+def test_forced_fail_prints_rows_and_exits_1(tiny_model_dir, tmp_path, monkeypatch, capsys):
+    """A zero threshold forces FAIL: exit code 1, status acceptance_failed, outputs written, failure rows printed."""
+    from task1 import verify_lmeval as V
+
+    real = V.acceptance
+    monkeypatch.setattr(V, "acceptance", lambda rows, run: real(rows, run, threshold=0.0))
+    monkeypatch.setenv("HF_HUB_OFFLINE", "1")
+    out = tmp_path / "fp16_fail"
+    rc = baseline.main(["--out", str(out), "--model-path", str(tiny_model_dir), "--device", "cpu",
+                        "--limit-windows", "1", "--limit-hellaswag", str(LIM_H), "--limit-calib", "1",
+                        "--no-resources"])
+    assert rc == 1
+    lines = [x for x in capsys.readouterr().out.splitlines() if x.startswith(V.LOG_PREFIX)]
+    assert sum(" run " in x for x in lines) == 3
+    assert any(x.startswith(f"{V.LOG_PREFIX} acceptance FAIL (run fp32_model;") for x in lines)
+    diffs = [x for x in lines if " difference order=" in x]
+    assert len(diffs) == min(V.N_LOG_ROWS, 4 * LIM_H)
+    r = json.loads((out / "run.json").read_text())
+    assert r["status"] == "acceptance_failed" and r["acceptance"] == "FAIL"
+    assert r["steps"]["lmeval_verify"]["acceptance_detail"]["threshold_max_abs_diff"] == 0.0
+    assert sorted(p.name for p in out.iterdir()) == sorted(baseline.OUTPUT_FILES.values())
 
 
 def test_output_files(run_dir):
@@ -94,14 +132,22 @@ def test_run_json_keys(run_dir):
         assert set(summ) == CAL_SUMMARY and summ["N"] == LIM_C * 511
 
     lv = s["lmeval_verify"]
-    assert set(lv) == {"file", "n_examples", "acceptance_run", "acceptance", "acceptance_detail", "runs"}
-    assert lv["n_examples"] == LIM_H and lv["acceptance_run"] == "softmax_dtype=float32"
+    assert set(lv) == {"file", "n_examples", "acceptance_run", "acceptance", "acceptance_detail", "runs",
+                       "peak_allocated_bytes", "peak_reserved_bytes", "peak_allocated_bytes_before_step",
+                       "fp16_model_after"}
+    assert lv["n_examples"] == LIM_H and lv["acceptance_run"] == "fp32_model"
     assert lv["acceptance"] == r["acceptance"] == "PASS"
     assert lv["acceptance_detail"]["threshold_max_abs_diff"] == 2e-2
-    assert set(lv["runs"]) == {"softmax_dtype=default", "softmax_dtype=float32"}
-    for run in lv["runs"].values():
+    assert lv["acceptance_detail"]["max_abs_diff"] == lv["runs"]["fp32_model"]["max_abs_diff"]
+    assert lv["peak_allocated_bytes"] is None and lv["peak_allocated_bytes_before_step"] is None  # CPU
+    assert lv["fp16_model_after"] == {"parameter_dtypes": ["torch.float16"],
+                                      "fingerprints_verified": en["pristine_tensors_verified"]}
+    assert set(lv["runs"]) == RUNS
+    for name, run in lv["runs"].items():
         assert set(run) == VERIFY_RUN and run["n_candidates"] == 4 * LIM_H
+        assert run["model_dtype"] == ("torch.float32" if name == "fp32_model" else "torch.float16")
         assert run["max_abs_diff"] < 0.5  # FP16 model on CPU; agreement is checked at FP32 in unit tests
+    assert lv["runs"]["fp32_model"]["max_abs_diff"] < 1e-3
 
     res = s["resources"]
     assert set(res) == {"execution", "device", "timer", "batch_size", "eval_id", "device_name",
@@ -141,10 +187,12 @@ def test_per_example_files(run_dir):
     assert set(rep) == {"eval_id", "lm_eval_version", "batch_size", "prompt_format", "orders", "runs",
                          "acceptance_run", "acceptance", "acceptance_detail"}
     assert rep["acceptance"] == "PASS" and rep["acceptance_detail"]["result"] == "PASS"
-    assert rep["acceptance_run"] == "softmax_dtype=float32"
+    assert rep["acceptance_run"] == "fp32_model" and set(rep["runs"]) == RUNS
     assert rep["orders"] == list(range(LIM_H))
     for run in rep["runs"].values():
         assert set(run) == VERIFY_RUN | {"per_example"} and len(run["per_example"]) == LIM_H
+        assert all(set(ex) == {"order", "ours_loglik", "lmeval_loglik", "max_abs_diff"} for ex in run["per_example"])
+    assert [ex["ours_loglik"] for ex in rep["runs"]["softmax_dtype=default"]["per_example"]] == [x["loglik"] for x in hs]
     for p in run_dir.glob("*.gz"):
         assert p.read_bytes()[4:8] == b"\x00\x00\x00\x00"  # gzip mtime 0
 

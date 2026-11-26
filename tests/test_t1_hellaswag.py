@@ -4,7 +4,7 @@ import pytest
 from task1 import config as C
 from task1 import evaluate as E
 from task1.data import encode_pair, format_hellaswag, read_hellaswag
-from task1.verify_lmeval import compare, lmeval_loglikelihoods, verify
+from task1.verify_lmeval import FP32_RUN, compare, lmeval_loglikelihoods, verify
 
 
 @pytest.fixture(scope="module")
@@ -57,10 +57,33 @@ def test_verify_report(tiny_fp32, real_tokenizer, records):
     rows, _ = E.hellaswag(tiny_fp32, real_tokenizer, records, scope="full", batch_size=8)
     rep = verify(tiny_fp32, real_tokenizer, records, rows, batch_size=4)
     assert rep["lm_eval_version"] == "0.4.13" and rep["eval_id"] == C.EVAL_ID
-    assert rep["acceptance_run"] == C.LMEVAL_ACCEPTANCE_RUN == "softmax_dtype=float32"
-    assert set(rep["runs"]) == {"softmax_dtype=default", "softmax_dtype=float32"}
+    assert rep["acceptance_run"] == C.LMEVAL_ACCEPTANCE_RUN == FP32_RUN == "fp32_model"
+    assert set(rep["runs"]) == {"softmax_dtype=default", "softmax_dtype=float32", "fp32_model"}
     for run in rep["runs"].values():
         assert run["n_candidates"] == 20 and run["max_abs_diff"] < 1e-4
+        assert run["model_dtype"] == "torch.float32" and run["rule_check"]["result"] == "PASS"
+        assert all(set(ex) == {"order", "ours_loglik", "lmeval_loglik", "max_abs_diff"} for ex in run["per_example"])
+    assert rep["acceptance"] == "PASS" and rep["acceptance_detail"]["max_abs_diff"] == rep["runs"][FP32_RUN]["max_abs_diff"]
+
+
+def test_fp32_copy_acceptance_leaves_fp16_model_unchanged(tiny_model_dir, real_tokenizer, records):
+    """Acceptance uses the float32 copy (its own task1.evaluate rows); the FP16 model keeps dtype and fingerprints."""
+    from task1.model import Pristine, load_model
+
+    model, _ = load_model("cpu", tiny_model_dir)
+    pristine = Pristine(model)
+    rows, _ = E.hellaswag(model, real_tokenizer, records, scope="full", batch_size=8)
+    rep = verify(model, real_tokenizer, records, rows, batch_size=4)
+    assert sorted({str(p.dtype) for p in model.parameters()}) == ["torch.float16"]
+    assert pristine.verify(model) == len(pristine.names)
+    fp = rep["runs"][FP32_RUN]
+    assert fp["model_dtype"] == "torch.float32" and fp["ours_from"].endswith("float32 copy")
+    for name in ("softmax_dtype=default", "softmax_dtype=float32"):
+        assert rep["runs"][name]["model_dtype"] == "torch.float16"
+        assert [ex["ours_loglik"] for ex in rep["runs"][name]["per_example"]] == [r["loglik"] for r in rows]
+    # The FP32-copy run compares task1.evaluate on the copy (not the FP16 rows) with lm_eval on the copy.
+    assert [ex["ours_loglik"] for ex in fp["per_example"]] != [r["loglik"] for r in rows]
+    assert fp["max_abs_diff"] < 1e-4 and rep["acceptance"] == "PASS"
 
 
 def test_rows_and_summary(tiny_fp32, real_tokenizer, records):

@@ -8,7 +8,10 @@ python -m task1.kaggle_run2 jobs --stage preflight|smoke|run2 --jobs-dir DIR --l
        --repo-root DIR]   (test options)
 python -m task1.kaggle_run2 plan --smoke-dir DIR --located FILE --working-bytes N [--smoke-condition ID]
        [--conditions ID ...] [--budget-h 10.5] [--disk-gb 18] [--out FILE]
+       [--min-lmeval-examples 512]   (test option)
 python -m task1.kaggle_run2 summary|check|zip|final --jobs-dir DIR [--stage run2] [--status DIR] ...
+python -m task1.kaggle_run2 failure-lines --jobs-dir DIR [--stage run2] [--status DIR] [--logs DIR]
+python -m task1.kaggle_run2 job --out DIR -- CMD ...
 
 locate finds every artifact directory (<...>/artifacts/<ID>/ with manifest.json and artifact.safetensors) under the
 attached notebook outputs and keeps, per condition, the one whose manifest sha256 equals the committed copy
@@ -25,9 +28,13 @@ Jobs (run2), one background queue per GPU for the evaluation phase and one more 
               GPUs has finished. GPU 1 is idle in this phase.
 Outputs: results/task1/run2/<ID>/ and results/task1/run2_resources/<ID>/.
 Preflight: fp16 and q3_int3 (GPU 0), p3_s50 (GPU 1) with one window per suite and one HellaSwag ID (fp16 also one
-calibration sequence), --no-resources, under results_smoke/preflight/. Smoke: fp16 with the first 100 HellaSwag IDs
-then the worst-case batches (GPU 0); the smoke condition with the first 100 HellaSwag IDs then its --resources-only
-run (GPU 1); under results_smoke/smoke/.
+calibration sequence), --no-resources, under results_smoke/preflight/. Smoke: fp16 with the first 512 HellaSwag IDs
+(so its lm_eval check runs on the full 512 IDs) then the worst-case batches (GPU 0); the smoke condition with the
+first 100 HellaSwag IDs then its --resources-only run (GPU 1); under results_smoke/smoke/.
+Every job command runs through `job --out DIR -- CMD`: the command's output goes to the job log unchanged, signals are
+forwarded to it, its exit code is returned, and on a nonzero exit the status fields of DIR/run.json are printed (lines
+starting with STATUS_PREFIX). failure-lines prints, for every job that did not exit 0, the lines of its log that start
+with STATUS_PREFIX or the lm_eval check prefix (task1.verify_lmeval.LOG_PREFIX).
 summary, check and zip report incomplete jobs and missing files instead of stopping; final returns 1 if any job is
 not ok, the check report is missing or lists problems, or the zip is missing.
 """
@@ -44,7 +51,8 @@ DEFAULTS = {
     "run2": {"results": "results/task1", "status": "notes/kaggle_status", "logs": "notes/kaggle_logs",
              "prefix": "", "limits": {}},
     "smoke": {"results": "results_smoke/smoke", "status": "notes/kaggle_status_smoke",
-              "logs": "notes/kaggle_logs_smoke", "prefix": "sm_", "limits": {"limit_hellaswag": 100}},
+              "logs": "notes/kaggle_logs_smoke", "prefix": "sm_", "limits": {"limit_hellaswag": 100},
+              "fp16_limits": {"limit_hellaswag": C.HELLASWAG_SUBSET_N}},
     "preflight": {"results": "results_smoke/preflight", "status": "notes/kaggle_status_smoke",
                   "logs": "notes/kaggle_logs_smoke", "prefix": "pf_",
                   "limits": {"limit_windows": 1, "limit_hellaswag": 1, "limit_calib": 1}},
@@ -56,6 +64,8 @@ SMOKE_CONDITION = "q3_int4"
 RUN1_MANIFEST_COPY = K.RUN1_MANIFEST_COPY
 STAGGER_S = 60.0
 VRAM_LIMIT_BYTES = 14 * 2**30  # T4: 15 GiB per GPU
+STATUS_PREFIX = "[job status]"
+TRACEBACK_TAIL = 15
 ROOT_GLOBS = {"run1": "**/atml-pa4-t1-run1", "run1b": "**/atml-pa4-t1-run1b"}
 
 
@@ -184,12 +194,15 @@ def stage_jobs(stage: str, located: dict, results=None, status=None, run1_root=N
     R = Path(results or d["results"])
     S = Path(status or d["status"])
     run1_root = run1_root or located.get("run1_root", "results/task1")
-    t = {**d["limits"], **(test or {})}
+    t_all = {**d["limits"], **(test or {})}
+    t_fp16 = {**d["limits"], **d.get("fp16_limits", {}), **(test or {})}
     pre = d["prefix"]
     jobs = []
 
     def add(gpu, queue, phase, name, entry, cond, out, args, wait_for=(), resources_only=False):
-        cmd = [python, "-m", entry, *args, "--out", str(out), *_test_args(entry, t, resources_only)]
+        t = t_fp16 if cond == "fp16" else t_all
+        inner = [python, "-m", entry, *args, "--out", str(out), *_test_args(entry, t, resources_only)]
+        cmd = [python, "-m", "task1.kaggle_run2", "job", "--out", str(out), "--", *inner]
         loc = located["conditions"].get(cond, {}) if cond else {}
         scope = C.CONDITIONS[cond]["hellaswag"] if cond else None
         expect = {"resources_only": resources_only, "limits": {k: t.get(k) for k in
@@ -293,8 +306,11 @@ def _run(path) -> dict:
 
 
 def project(smoke_dir, located: dict, working_bytes: int, budget_h: float = 10.5, disk_gb: float = 18.0,
-            safety: float = K.SAFETY, conditions=CONDITIONS, smoke_condition=SMOKE_CONDITION) -> dict:
-    """Per-job time projection, GPU assignment of the evaluation jobs, queue end times, VRAM and disk."""
+            safety: float = K.SAFETY, conditions=CONDITIONS, smoke_condition=SMOKE_CONDITION,
+            min_lmeval_examples: int = C.HELLASWAG_SUBSET_N) -> dict:
+    """Per-job time projection, GPU assignment of the evaluation jobs, queue end times, VRAM and disk. The fp16 smoke's
+    lm_eval check must cover min_lmeval_examples IDs (the full 512 on Kaggle); its peak allocated memory (the step
+    alone) is checked against VRAM_LIMIT_BYTES like every other smoke peak."""
     sd = Path(smoke_dir)
     base = _run(sd / "eval" / "fp16" / "run.json")
     ev = _run(sd / "eval" / smoke_condition / "run.json")
@@ -343,6 +359,8 @@ def project(smoke_dir, located: dict, working_bytes: int, budget_h: float = 10.5
              f"smoke_res_{smoke_condition}": max((res.get("peak_vram_allocated_bytes") or {"x": 0}).values())}
     for k, u in worst["steps"]["units"].items():
         peaks[f"worst_{k}"] = u["peak_allocated_bytes"] or 0
+    lv = base["steps"]["lmeval_verify"]
+    peaks["smoke_lmeval_verify_fp16"] = lv.get("peak_allocated_bytes") or 0
     disk = working_bytes + K.RESULTS_BYTES_PER_JOB * len(rows)
     limits = {"queue_hours": budget_h, "disk_bytes": int(disk_gb * 1e9), "vram_bytes": VRAM_LIMIT_BYTES}
     over = [f"GPU {g} queue {s / 3600:.2f} h > {budget_h} h" for g, s in q.items() if s > budget_h * 3600]
@@ -350,10 +368,16 @@ def project(smoke_dir, located: dict, working_bytes: int, budget_h: float = 10.5
         over.append(f"projected /kaggle/working use {disk / 1e9:.2f} GB > {disk_gb} GB")
     over += [f"peak allocated VRAM of {k} {v / 2**30:.2f} GiB > {VRAM_LIMIT_BYTES / 2**30:.0f} GiB"
              for k, v in peaks.items() if v and v > VRAM_LIMIT_BYTES]
+    if lv["n_examples"] < min_lmeval_examples:
+        over.append(f"fp16 smoke lm_eval check ran on {lv['n_examples']} IDs < {min_lmeval_examples}; its peak "
+                    f"memory does not cover the full step")
+    if "peak_allocated_bytes" not in lv:
+        over.append("fp16 smoke record lacks steps.lmeval_verify.peak_allocated_bytes")
     return {"rows": rows, "assignment": assign, "order": list(conditions), "eval_end_s": end,
             "resources_start_s": res_start, "queue_end_s": q, "queue_end_h": {g: s / 3600 for g, s in q.items()},
             "per_example_s": {"hellaswag_fp16": hs_b, "lmeval_fp16": lm_b, f"hellaswag_{smoke_condition}": hs_e},
-            "peak_allocated_bytes": peaks, "disk_bytes": disk, "working_bytes_now": working_bytes,
+            "peak_allocated_bytes": peaks, "lmeval_verify_n_examples": lv["n_examples"], "disk_bytes": disk,
+            "working_bytes_now": working_bytes,
             "limits": limits, "safety": safety, "stagger_s": STAGGER_S, "over": over}
 
 
@@ -363,6 +387,8 @@ def print_plan(p: dict):
         print(f"{r['name']:<22}{r['gpu']:>4}{r['raw_s'] / 60:>10.1f}{r['projected_s'] / 60:>10.1f}")
     print("per example (s):", json.dumps({k: round(v, 4) for k, v in p["per_example_s"].items()}))
     print("peak allocated VRAM (GiB):", json.dumps({k: round(v / 2**30, 2) for k, v in p["peak_allocated_bytes"].items()}))
+    print(f"fp16 smoke lm_eval check: {p['lmeval_verify_n_examples']} IDs, step peak allocated "
+          f"{p['peak_allocated_bytes']['smoke_lmeval_verify_fp16'] / 2**30:.2f} GiB")
     print(f"evaluation phase ends: GPU 0 {p['eval_end_s']['0'] / 3600:.2f} h, GPU 1 {p['eval_end_s']['1'] / 3600:.2f} h;"
           f" resources phase on GPU 0 from {p['resources_start_s'] / 3600:.2f} h")
     for g, h in p["queue_end_h"].items():
@@ -593,6 +619,79 @@ def zip_roots(meta: list) -> list:
 
 
 # ---------------------------------------------------------------------------------------------------------------
+# Job wrapper and failure lines.
+
+def status_lines(out, code: int) -> list:
+    """STATUS_PREFIX lines for a job that exited with code: the status fields of <out>/run.json and the traceback tail."""
+    P = STATUS_PREFIX
+    path = Path(out) / "run.json"
+    lines = [f"{P} exit code {code}; record {path}"]
+    run = K._load_json(path)
+    if run is None:
+        return lines + [f"{P} run.json missing or unreadable"]
+    for k in ("status", "acceptance", "error", "end_time", "elapsed_wall_s"):
+        if k in run:
+            lines.append(f"{P} {k}: {json.dumps(run[k])}")
+    lv = (run.get("steps") or {}).get("lmeval_verify")
+    if isinstance(lv, dict):
+        lines.append(f"{P} steps.lmeval_verify: acceptance {lv.get('acceptance')} run {lv.get('acceptance_run')} "
+                     f"n_examples {lv.get('n_examples')} peak_allocated_bytes {lv.get('peak_allocated_bytes')}")
+    tb = run.get("traceback")
+    if tb:
+        lines += [f"{P} traceback: {x}" for x in tb.rstrip().splitlines()[-TRACEBACK_TAIL:]]
+    return lines
+
+
+def run_job(out, cmd: list) -> int:
+    """Run cmd (output inherited), forward SIGTERM/SIGINT/SIGHUP to it, print status_lines on a nonzero exit and return
+    its exit code (a child ended by signal k ends this process by the same signal)."""
+    import os
+    import signal
+    import subprocess
+
+    child = subprocess.Popen(cmd)
+
+    def forward(sig, _frame):
+        try:
+            child.send_signal(sig)
+        except ProcessLookupError:
+            pass
+
+    for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
+        signal.signal(sig, forward)
+    code = child.wait()
+    if code != 0:
+        for line in status_lines(out, code):
+            print(line, flush=True)
+    sys.stdout.flush()
+    if code < 0:
+        signal.signal(-code, signal.SIG_DFL)
+        os.kill(os.getpid(), -code)
+    return code
+
+
+def failure_lines(meta: list, status_dir, logs_dir) -> list:
+    """For every job without exit code 0: a header and the lines of its log that start with STATUS_PREFIX or the
+    lm_eval check prefix."""
+    from .verify_lmeval import LOG_PREFIX
+
+    out = []
+    for j in meta:
+        st = K._status(Path(status_dir), j["name"])
+        if st["exit"] == 0:
+            continue
+        log = Path(logs_dir) / f"{j['name']}.log"
+        out.append(f"== {j['name']} (exit {st['exit']}, log {log}) ==")
+        if not log.is_file():
+            out.append("(no log)")
+            continue
+        with open(log, "r", encoding="utf-8", errors="replace") as fh:
+            hits = [x.rstrip("\n") for x in fh if x.startswith((STATUS_PREFIX, LOG_PREFIX))]
+        out += hits or ["(no status or lm_eval check lines in the log)"]
+    return out
+
+
+# ---------------------------------------------------------------------------------------------------------------
 
 def _conditions(a):
     conds = a.conditions or list(CONDITIONS)
@@ -637,6 +736,16 @@ def main(argv=None):
     p.add_argument("--budget-h", type=float, default=10.5)
     p.add_argument("--disk-gb", type=float, default=18.0)
     p.add_argument("--out", default=None, help="write the projection JSON here (new file)")
+    p.add_argument("--min-lmeval-examples", type=int, default=C.HELLASWAG_SUBSET_N,
+                   help="IDs the fp16 smoke lm_eval check must cover (tests only)")
+    jb = sub.add_parser("job")
+    jb.add_argument("--out", required=True)
+    jb.add_argument("command", nargs=argparse.REMAINDER)
+    fl = sub.add_parser("failure-lines")
+    fl.add_argument("--jobs-dir", required=True)
+    fl.add_argument("--stage", choices=STAGES, default="run2")
+    fl.add_argument("--status", default=None)
+    fl.add_argument("--logs", default=None)
     for name in ("summary", "check", "zip", "final"):
         s = sub.add_parser(name)
         s.add_argument("--jobs-dir", required=True)
@@ -652,6 +761,11 @@ def main(argv=None):
             s.add_argument("--zip", required=True)
     a = ap.parse_args(argv)
 
+    if a.cmd == "job":
+        cmd = a.command[1:] if a.command[:1] == ["--"] else a.command
+        if not cmd:
+            raise SystemExit("job: no command after --")
+        return run_job(a.out, cmd)
     if a.cmd == "locate":
         rec = locate(a.inputs, a.run1_root, _conditions(a), hash_files=not a.no_hash)
         print_located(rec)
@@ -674,7 +788,7 @@ def main(argv=None):
     if a.cmd == "plan":
         located = json.loads(Path(a.located).read_text(encoding="utf-8"))
         pl = project(a.smoke_dir, located, a.working_bytes, a.budget_h, a.disk_gb, conditions=_conditions(a),
-                     smoke_condition=a.smoke_condition)
+                     smoke_condition=a.smoke_condition, min_lmeval_examples=a.min_lmeval_examples)
         print_plan(pl)
         if a.out:
             _write_new(a.out, pl)
@@ -683,6 +797,10 @@ def main(argv=None):
     status = a.status or DEFAULTS[a.stage]["status"]
     if a.cmd == "summary":
         print_summary(summary(meta, status))
+        return 0
+    if a.cmd == "failure-lines":
+        for x in failure_lines(meta, status, a.logs or DEFAULTS[a.stage]["logs"]):
+            print(x)
         return 0
     if a.cmd == "check":
         problems = check(meta, status)

@@ -37,9 +37,11 @@ PPL_BATCH_SIZE = 8
 HELLASWAG_BATCH_SIZE = 32
 CALIB_BATCH_SIZE = 8
 LMEVAL_BATCH_SIZE = 32
-# The lm_eval run with an FP32 log-softmax (matching task1.evaluate) is the acceptance check;
-# the run with the lm_eval default (log-softmax in the model dtype) is reported for information.
-LMEVAL_ACCEPTANCE_RUN = "softmax_dtype=float32"
+# The acceptance check is the lm_eval run on a float32 copy of the loaded model (task1.evaluate and HFLM with an FP32
+# log-softmax, both on the copy). The two runs on the FP16 model (lm_eval default log-softmax in the model dtype, and
+# FP32 log-softmax) are reported for information: there the two scorers pad and mask differently, so FP16 attention
+# kernels can differ between them.
+LMEVAL_ACCEPTANCE_RUN = "fp32_model"
 # Positions per FP32 log-softmax chunk inside one sequence.
 LOGPROB_CHUNK = 128
 

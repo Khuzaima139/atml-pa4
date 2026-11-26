@@ -7,8 +7,10 @@ and host peak RSS:
   worst_batch_hellaswag  task1.evaluate.score_spans on the HELLASWAG_BATCH_SIZE longest (context + continuation)
                          sequences of the full HellaSwag ID list (the first batch of the full run, which sorts by
                          length, longest first)
-  worst_batch_lmeval     lm_eval HFLM.loglikelihood (the acceptance-run softmax dtype) on the requests of the
+  worst_batch_lmeval     lm_eval HFLM.loglikelihood (FP32 log-softmax, on the FP16 model) on the requests of the
                          LMEVAL_BATCH_SIZE / 4 examples of the first HELLASWAG_SUBSET_N IDs with the longest request
+The peak memory of the whole lm_eval check (including the float32 model copy of the acceptance run) is measured by the
+fp16 smoke run of task1.baseline on the full HELLASWAG_SUBSET_N IDs (steps.lmeval_verify.peak_allocated_bytes).
 No score, log likelihood or accuracy is written: only lengths, the selected example orders, times and memory.
 """
 import argparse
@@ -26,7 +28,7 @@ from .smoke import host_maxrss_bytes
 
 OUTPUT_FILES = {"run": "run.json"}
 UNITS = ("load", "worst_batch_hellaswag", "worst_batch_lmeval")
-LMEVAL_SOFTMAX_DTYPE = "float32"  # the acceptance run (softmax_dtype=float32)
+LMEVAL_SOFTMAX_DTYPE = "float32"  # the softmax_dtype=float32 run on the FP16 model
 
 
 def parse_args(argv=None):

@@ -102,9 +102,14 @@ def test_preflight_and_smoke_jobs():
     assert [(j["name"], j["queue"]) for j in sm] == [("sm_eval_fp16", "gpu0"), ("sm_worst_batch", "gpu0"),
                                                     ("sm_eval_q3_int4", "gpu1"), ("sm_res_q3_int4", "gpu1")]
     by = {j["name"]: j for j in sm}
-    for n in ("sm_eval_fp16", "sm_eval_q3_int4"):
+    for n, lim in (("sm_eval_fp16", C.HELLASWAG_SUBSET_N), ("sm_eval_q3_int4", 100)):
         a = by[n]["cmd"]
-        assert a[a.index("--limit-hellaswag") + 1] == "100" and "--limit-windows" not in a
+        assert a[a.index("--limit-hellaswag") + 1] == str(lim) and "--limit-windows" not in a
+        assert by[n]["expect"]["hellaswag_n"] == lim
+    for j in pf + sm:  # every command runs through the job wrapper with the job's output directory
+        a = j["cmd"]
+        assert a[1:6] == ["-m", "task1.kaggle_run2", "job", "--out", j["out"]] and a[6] == "--"
+        assert a[8:10] == ["-m", j["entry"]] and a[a.index("--out", 7) + 1] == j["out"]
     assert "--limit-hellaswag" not in by["sm_res_q3_int4"]["cmd"] and "--resources-only" in by["sm_res_q3_int4"]["cmd"]
     assert by["sm_res_q3_int4"]["out"] == "results_smoke/smoke/resources/q3_int4"
     assert by["sm_worst_batch"]["entry"] == "task1.smoke_run2"
@@ -161,11 +166,13 @@ def _smoke_record(path, timings, steps, peak=1 << 30):
                                 "peak_vram_allocated_bytes": {"0": peak}}))
 
 
-def _fake_smoke(d, peak=1 << 30):
+def _fake_smoke(d, peak=1 << 30, lm_peak=1 << 30, n_lmeval=512):
     _smoke_record(d / "eval" / "fp16" / "run.json",
                   {"load_s": 20, "enumeration_s": 1, "ppl_wikitext2_test_s": 30, "ppl_c4_validation_s": 30,
                    "hellaswag_s": 10, "calib_nll_c4_calibration_s": 20, "calib_nll_c4_development_s": 5,
-                   "lmeval_verify_s": 40}, {"hellaswag": {"n": 100}, "lmeval_verify": {"n_examples": 100}}, peak)
+                   "lmeval_verify_s": 40}, {"hellaswag": {"n": 512},
+                                            "lmeval_verify": {"n_examples": n_lmeval, "peak_allocated_bytes": lm_peak}},
+                  peak)
     _smoke_record(d / "eval" / "q3_int4" / "run.json",
                   {"load_s": 20, "artifact_load_s": 10, "calib_nll_c4_development_s": 5, "ppl_wikitext2_test_s": 30,
                    "ppl_c4_validation_s": 30, "hellaswag_s": 10}, {"hellaswag": {"n": 100}}, peak)
@@ -184,7 +191,7 @@ def test_plan_formulas_and_limits(tmp_path):
     pl = K.project(tmp_path, loc, 0)
     rows = {r["name"]: r for r in pl["rows"]}
     assert len(rows) == 36
-    assert rows["eval_fp16"]["raw_s"] == pytest.approx(20 + 1 + 60 + 0.1 * 2000 + 25 + 0.4 * 512)
+    assert rows["eval_fp16"]["raw_s"] == pytest.approx(20 + 1 + 60 + 10 / 512 * 2000 + 25 + 40)
     assert rows["eval_q3_int3"]["raw_s"] == pytest.approx(20 + 10 + 5 + 60 + 0.1 * 2000)
     assert rows["eval_p1_s25"]["raw_s"] == pytest.approx(20 + 10 + 5 + 60 + 0.1 * 512)
     assert rows["eval_q1_b8"]["raw_s"] == pytest.approx(20 + 30 + 5 + 60 + 0.1 * 512)  # artifact load x 3
@@ -201,9 +208,17 @@ def test_plan_formulas_and_limits(tmp_path):
     assert rows["eval_fp16"]["projected_s"] == pytest.approx(rows["eval_fp16"]["raw_s"] * f)
     assert pl["over"] == []
     assert any("GPU 0 queue" in x for x in K.project(tmp_path, loc, 0, budget_h=0.5)["over"])
+    assert pl["peak_allocated_bytes"]["smoke_lmeval_verify_fp16"] == 1 << 30 and pl["lmeval_verify_n_examples"] == 512
     hot = tmp_path / "hot"
     _fake_smoke(hot, peak=15 * 2**30)
     assert any("peak allocated VRAM" in x for x in K.project(hot, loc, 0)["over"])
+    lm_hot = tmp_path / "lm_hot"  # only the lm_eval step exceeds 14 GiB
+    _fake_smoke(lm_hot, lm_peak=14 * 2**30 + 1)
+    assert K.project(lm_hot, loc, 0)["over"] == ["peak allocated VRAM of smoke_lmeval_verify_fp16 14.00 GiB > 14 GiB"]
+    short = tmp_path / "short"  # lm_eval check on fewer than 512 IDs
+    _fake_smoke(short, n_lmeval=100)
+    assert any("ran on 100 IDs < 512" in x for x in K.project(short, loc, 0)["over"])
+    assert K.project(short, loc, 0, min_lmeval_examples=100)["over"] == []
 
 
 def test_smoke_run2_refuses_results_path(tmp_path):
@@ -355,7 +370,7 @@ def test_smoke_outputs_and_plan(built, smoke):
     out = smoke["base"] / "plan.json"
     assert K.main(["plan", "--smoke-dir", str(smoke["results"]), "--located", str(built["located"]),
                    "--working-bytes", "0", "--smoke-condition", "q3_int3", "--conditions", *E2E,
-                   "--out", str(out)]) == 0
+                   "--min-lmeval-examples", str(LIM_H), "--out", str(out)]) == 0
     pl = json.loads(out.read_text())
     assert set(pl["assignment"]) == {f"eval_{c}" for c in E2E} and pl["over"] == []
     assert len(pl["rows"]) == 2 * len(E2E)
@@ -449,7 +464,13 @@ def test_failed_evaluation_does_not_block_resources(tmp_path):
     jobs = K.stage_jobs("run2", loc, results=tmp_path / "r", status=st, conditions=["fp16", "p1_s25"])
     by = {j["name"]: j for j in jobs}
     by["eval_fp16"]["cmd"] = [sys.executable, "-c", "print('eval fp16 stand-in')"]
-    by["eval_p1_s25"]["cmd"] = [sys.executable, "-c", "import sys; print('boom'); sys.exit(4)"]
+    # The failing job keeps the wrapper; its stand-in writes a failed run.json and exits 4.
+    fail_out = tmp_path / "r" / "run2" / "p1_s25"
+    stand_in = ("import json, os, sys; os.makedirs(sys.argv[1]); json.dump({'status': 'failed', 'error': "
+                "\"RuntimeError('x')\", 'traceback': 'Traceback\\n  line\\nRuntimeError: x\\n'}, "
+                "open(os.path.join(sys.argv[1], 'run.json'), 'w')); print('boom'); sys.exit(4)")
+    by["eval_p1_s25"]["cmd"] = [sys.executable, "-m", "task1.kaggle_run2", "job", "--out", str(fail_out), "--",
+                                sys.executable, "-c", stand_in, str(fail_out)]
     for n in ("res_fp16", "res_p1_s25"):
         by[n]["cmd"] = [sys.executable, "-c", f"print('{n} ran')"]
     K.write_jobs("run2", jd, jobs)
@@ -461,6 +482,12 @@ def test_failed_evaluation_does_not_block_resources(tmp_path):
     assert KQ.read_int(st / "eval_p1_s25.exit") == 4
     assert KQ.read_int(st / "res_fp16.exit") == 0 and KQ.read_int(st / "res_p1_s25.exit") == 0
     assert "res_p1_s25 ran" in (logs / "res_p1_s25.log").read_text()
+    log = (logs / "eval_p1_s25.log").read_text()
+    assert f"{K.STATUS_PREFIX} exit code 4; record {fail_out / 'run.json'}" in log
+    assert f'{K.STATUS_PREFIX} status: "failed"' in log and f"{K.STATUS_PREFIX} traceback: RuntimeError: x" in log
+    fl = K.failure_lines(jobs, st, logs)
+    assert fl[0].startswith("== eval_p1_s25 (exit 4,") and f'{K.STATUS_PREFIX} status: "failed"' in fl
+    assert not any("eval_fp16" in x or "res_" in x for x in fl)
     probs = K.check(jobs, st)
     assert "eval_p1_s25: exit 4, done False" in probs
     zp = tmp_path / "z.zip"
@@ -469,3 +496,70 @@ def test_failed_evaluation_does_not_block_resources(tmp_path):
     assert K.main(["check", "--jobs-dir", str(jd), "--status", str(st), "--out", str(report)]) == 1
     assert K.main(["final", "--jobs-dir", str(jd), "--status", str(st), "--check-report", str(report),
                    "--zip", str(zp)]) == 1
+
+
+def test_job_wrapper_exit_codes(tmp_path):
+    """Success passes through silently; a nonzero exit prints the run.json status fields (or that it is missing);
+    SIGTERM to the wrapper reaches the child and the wrapper ends by the same signal."""
+    import signal
+    import time
+
+    def job(out, code):
+        return subprocess.run([sys.executable, "-m", "task1.kaggle_run2", "job", "--out", str(out), "--",
+                               sys.executable, "-c", code], cwd=REPO_ROOT, env=_env(), capture_output=True, text=True,
+                              timeout=60)
+
+    ok = job(tmp_path / "a", "print('fine')")
+    assert ok.returncode == 0 and ok.stdout == "fine\n"
+    d = tmp_path / "b"
+    d.mkdir()
+    (d / "run.json").write_text(json.dumps({"status": "acceptance_failed", "acceptance": "FAIL", "steps": {
+        "lmeval_verify": {"acceptance": "FAIL", "acceptance_run": "fp32_model", "n_examples": 512,
+                          "peak_allocated_bytes": 7}}}))
+    bad = job(d, "import sys; sys.exit(1)")
+    assert bad.returncode == 1
+    assert bad.stdout.splitlines() == [
+        f"{K.STATUS_PREFIX} exit code 1; record {d / 'run.json'}", f'{K.STATUS_PREFIX} status: "acceptance_failed"',
+        f'{K.STATUS_PREFIX} acceptance: "FAIL"',
+        f"{K.STATUS_PREFIX} steps.lmeval_verify: acceptance FAIL run fp32_model n_examples 512 peak_allocated_bytes 7"]
+    gone = job(tmp_path / "c", "import sys; sys.exit(3)")
+    assert gone.returncode == 3 and f"{K.STATUS_PREFIX} run.json missing or unreadable" in gone.stdout
+    marker = tmp_path / "child_got_term"
+    code = (f"import signal, sys, time; signal.signal(signal.SIGTERM, lambda *a: (open({str(marker)!r}, 'w').close(), "
+            f"sys.exit(143))); print('ready', flush=True); time.sleep(60)")
+    p = subprocess.Popen([sys.executable, "-m", "task1.kaggle_run2", "job", "--out", str(tmp_path / "d"), "--",
+                          sys.executable, "-c", code], cwd=REPO_ROOT, env=_env(), stdout=subprocess.PIPE, text=True)
+    assert p.stdout.readline() == "ready\n"
+    p.send_signal(signal.SIGTERM)
+    assert p.wait(timeout=30) == 143 and marker.exists()
+    p = subprocess.Popen([sys.executable, "-m", "task1.kaggle_run2", "job", "--out", str(tmp_path / "e"), "--",
+                          sys.executable, "-c", "import time; print('ready', flush=True); time.sleep(60)"],
+                         cwd=REPO_ROOT, env=_env(), stdout=subprocess.PIPE, text=True)
+    assert p.stdout.readline() == "ready\n"
+    time.sleep(0.2)
+    p.send_signal(signal.SIGTERM)
+    assert p.wait(timeout=30) == -signal.SIGTERM
+    assert f"{K.STATUS_PREFIX} exit code -15" in p.stdout.read()
+
+
+def test_failure_lines_cli(tmp_path, capsys):
+    from task1.verify_lmeval import LOG_PREFIX
+
+    st, logs = tmp_path / "st", tmp_path / "logs"
+    st.mkdir()
+    logs.mkdir()
+    meta = [{"name": "pf_eval_fp16"}, {"name": "pf_eval_q3_int3"}, {"name": "pf_eval_p3_s50"}]
+    (st / "pf_eval_fp16.exit").write_text("1\n")
+    (logs / "pf_eval_fp16.log").write_text(f"noise\n{LOG_PREFIX} acceptance FAIL (run fp32_model; ...)\n"
+                                           f"{K.STATUS_PREFIX} status: \"acceptance_failed\"\nmore noise\n")
+    (st / "pf_eval_q3_int3.exit").write_text("0\n")
+    (st / "pf_eval_q3_int3.done").write_text("")
+    jd = tmp_path / "jobs"
+    jd.mkdir()
+    (jd / "preflight_meta.json").write_text(json.dumps(meta))
+    assert K.main(["failure-lines", "--stage", "preflight", "--jobs-dir", str(jd), "--status", str(st),
+                   "--logs", str(logs)]) == 0
+    out = capsys.readouterr().out.splitlines()
+    assert out[0].startswith("== pf_eval_fp16 (exit 1,") and out[1:3] == [
+        f"{LOG_PREFIX} acceptance FAIL (run fp32_model; ...)", f'{K.STATUS_PREFIX} status: "acceptance_failed"']
+    assert out[3].startswith("== pf_eval_p3_s50 (exit None,") and out[4] == "(no log)" and len(out) == 5
