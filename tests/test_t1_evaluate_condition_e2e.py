@@ -24,7 +24,7 @@ RUN_TOP = {"config", "meta", "start_time", "status", "elapsed_wall_s", "updated_
            "tokenizer", "eval_id", "timings_s", "steps"}
 CONFIG = {"entry_point", "condition", "condition_spec", "settings", "device", "model_path", "limits", "limited",
           "test_only", "hellaswag_scope", "output_files", "artifacts_dir", "run1_dir", "repo_root", "repro_tol",
-          "data_files"}
+          "data_files", "resources_mode"}
 STEPS = {"inputs", "executed_model", "reproduction", "perplexity", "hellaswag", "resources", "storage"}
 TIMINGS = {"load_s", "artifact_load_s", "calib_nll_c4_development_s", "ppl_wikitext2_test_s", "ppl_c4_validation_s",
            "hellaswag_s", "resources_s"}
@@ -311,3 +311,69 @@ def test_refuses_other_inputs(built, tmp_path):
     with pytest.raises(SystemExit, match="refusing test options"):
         EC.main(_eval_args(built, "q2_b3", real))
     assert not real.exists()
+
+
+def _held_out_opens(fn):
+    """Names of held-out files opened while fn runs (audit hook over every open of the process)."""
+    from task1.data import HELD_OUT_FILES
+
+    seen, state = [], {"on": True}
+
+    def hook(event, args):
+        if state["on"] and event == "open" and args and isinstance(args[0], (str, bytes, os.PathLike)):
+            name = os.path.basename(os.fsdecode(args[0]))
+            if name in HELD_OUT_FILES:
+                seen.append(name)
+
+    sys.addaudithook(hook)
+    try:
+        fn()
+    finally:
+        state["on"] = False
+    return seen
+
+
+def test_held_out_hook_sees_test_file_reads():
+    from task1.data import read_windows
+
+    seen = _held_out_opens(lambda: read_windows("wikitext2_test", limit=1))
+    assert set(seen) == {"wikitext2_test_windows_locked.jsonl.gz"}
+
+
+@pytest.mark.parametrize("cond", ["q2_b3", "p3_s50"])
+def test_resources_only_reads_no_test_file(built, cond, tmp_path, monkeypatch):
+    monkeypatch.setenv("HF_HUB_OFFLINE", "1")
+    out = tmp_path / "res_only"
+    seen = _held_out_opens(lambda: EC.main(_eval_args(built, cond, out, extra=["--resources-only"])))
+    assert seen == []
+    assert sorted(x.name for x in out.iterdir()) == ["run.json"]
+    r = _load(out / "run.json")
+    assert r["status"] == "ok" and r["config"]["resources_mode"] == "only"
+    assert r["config"]["output_files"] == {"run": "run.json"} and len(r["config"]["data_files"]) == 1
+    s = r["steps"]
+    assert set(s) == {"inputs", "executed_model", "resources", "storage", "held_out_guard"}
+    assert s["held_out_guard"]["attempts"] == []
+    assert set(r["timings_s"]) == {"load_s", "artifact_load_s", "resources_s"}
+    full = _load(built["base"] / "eval" / cond / "run.json")["steps"]
+    assert set(s["resources"]) == set(full["resources"])
+    assert {k: v for k, v in s["storage"].items()} == full["storage"]
+
+
+def test_no_resources_skips_resources(built, evals, tmp_path):
+    out = tmp_path / "no_res"
+    p = _run(["task1.evaluate_condition", *_eval_args(built, "q2_b3", out, extra=["--no-resources"])])
+    assert p.returncode == 0, p.stderr[-4000:]
+    assert sorted(x.name for x in out.iterdir()) == sorted(EC.output_files("full").values())
+    r = _load(out / "run.json")
+    assert r["status"] == "ok" and r["config"]["resources_mode"] == "skip"
+    assert set(r["steps"]) == STEPS - {"resources"} and set(r["timings_s"]) == TIMINGS - {"resources_s"}
+    full = _load(evals["q2_b3"] / "run.json")
+    assert full["config"]["resources_mode"] == "default"
+    for k in ("reproduction", "perplexity", "hellaswag", "storage"):
+        a, b = r["steps"][k], full["steps"][k]
+        assert a == b, k
+
+
+def test_resource_flags_exclusive(built, tmp_path):
+    with pytest.raises(SystemExit):
+        EC.parse_args(_eval_args(built, "q2_b3", tmp_path / "x", extra=["--no-resources", "--resources-only"]))

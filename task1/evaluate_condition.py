@@ -12,7 +12,11 @@ sha256 against the committed run-1 copy and the run-1 record; for P3/Q3 the free
 (tracked, unmodified, touched by exactly one commit, sha256 equal to the allocation sha256 in the manifest).
 Then: development NLL (reproduction of run 1), both perplexity suites, HellaSwag at the condition's scope,
 dense-execution resources and storage.
+--no-resources skips the resources step; --resources-only runs only the executed-model rebuild, resources and storage
+(no development NLL, perplexity or HellaSwag) inside task1.data.forbid_held_out, so no held-out test file can be
+opened. The default runs every step.
 """
+import contextlib
 import argparse
 import json
 import sys
@@ -43,8 +47,15 @@ BASE_OUTPUT_FILES = {
 }
 
 
-def output_files(scope: str) -> dict:
+def output_files(scope: str, mode: str = "default") -> dict:
+    if mode == "only":
+        return {"run": BASE_OUTPUT_FILES["run"]}
     return {**BASE_OUTPUT_FILES, "hellaswag": f"hellaswag_{scope}.jsonl.gz"}
+
+
+def resources_mode(args) -> str:
+    """'default', 'skip' (--no-resources) or 'only' (--resources-only)."""
+    return "only" if args.resources_only else "skip" if args.no_resources else "default"
 
 
 def parse_args(argv=None):
@@ -59,6 +70,10 @@ def parse_args(argv=None):
     ap.add_argument("--limit-hellaswag", type=int, default=None, help="first N HellaSwag IDs (tests only)")
     ap.add_argument("--limit-dev", type=int, default=None, help="first N development sequences (tests only)")
     ap.add_argument("--repo-root", default=None, help="repository holding task1/frozen (tests only)")
+    res = ap.add_mutually_exclusive_group()
+    res.add_argument("--no-resources", action="store_true", help="skip the resources step")
+    res.add_argument("--resources-only", action="store_true",
+                     help="only the executed-model rebuild, resources and storage; no held-out file is read")
     return ap.parse_args(argv)
 
 
@@ -241,12 +256,14 @@ def run(args):
     import torch
 
     from .artifacts import load_artifact
-    from .data import HELLASWAG_FILE, SEQUENCE_FILES, WINDOW_FILES, file_info, read_hellaswag, read_sequences, read_windows
+    from .data import (HELLASWAG_FILE, SEQUENCE_FILES, WINDOW_FILES, file_info, forbid_held_out, read_hellaswag,
+                       read_sequences, read_windows)
     from .evaluate import calib_nll, hellaswag, perplexity, write_rows
     from .model import Pristine, load_model, load_tokenizer
     from .resources import latency, prompt_ids
 
-    files = output_files(scope)
+    mode = resources_mode(args)
+    files = output_files(scope, mode)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=False)
     seed_everything(C.SEED)
@@ -254,86 +271,96 @@ def run(args):
            "settings": C.settings_dict(), "device": args.device, "model_path": args.model_path, **lim,
            "hellaswag_scope": scope, "output_files": files, "artifacts_dir": str(args.artifacts),
            "run1_dir": str(args.run1), "repo_root": str(repo_root), "repro_tol": REPRO_TOL,
+           "resources_mode": mode,
            "data_files": [file_info(f) for f in (*WINDOW_FILES.values(), SEQUENCE_FILES["c4_calibration"],
                                                  SEQUENCE_FILES["c4_development"], HELLASWAG_FILE)]}
+    if mode == "only":
+        cfg["data_files"] = [file_info(SEQUENCE_FILES["c4_calibration"])]
     rec = RunRecorder(out / files["run"], cfg)
     steps = {"inputs": {"artifact": art, "run1": run1, "freeze": frozen}}
     timings = {}
     cuda = torch.cuda.is_available() and str(args.device).startswith("cuda")
+    guard_cm = forbid_held_out() if mode == "only" else contextlib.nullcontext(None)
     try:
-        t = time.perf_counter()
-        model, info = load_model(args.device, args.model_path)
-        tok = load_tokenizer(args.model_path)
-        pristine = Pristine(model)
-        timings["load_s"] = time.perf_counter() - t
-        rec.update(model=info, eval_id=C.EVAL_ID, steps=steps, timings_s=timings,
-                   tokenizer={"class": type(tok).__name__, "name_or_path": tok.name_or_path, "len": len(tok)})
-
-        # Executed model: restore() then the artifact (sha256 values checked again by the loader).
-        t = time.perf_counter()
-        man2 = load_artifact(model, pristine, args.artifacts)
-        assert man2["file"]["sha256"] == art["file"]["sha256"]
-        timings["artifact_load_s"] = time.perf_counter() - t
-        steps["executed_model"] = {"restored_tensors_verified": len(pristine.names), "artifact_applied": True,
-                                   "extra_tensors": man2["extra_tensors"]}
-        rec.update(steps=steps, timings_s=timings)
-
-        # Development NLL against the run-1 value of the same executed model.
-        t = time.perf_counter()
-        devel = read_sequences("c4_development", limit=args.limit_dev)
-        if args.limit_dev is None:
-            assert len(devel) == C.N_DEVELOPMENT
-        rows, summ = calib_nll(model, devel, split="c4_development")
-        write_rows(out / files["calib_nll_c4_development"], rows)
-        diff = summ["mean_nll"] - run1["development_mean_nll"]
-        summ.update(file=files["calib_nll_c4_development"], run1_mean_nll=run1["development_mean_nll"],
-                    diff_vs_run1=diff, reproduces_run1=abs(diff) <= REPRO_TOL)
-        steps["reproduction"] = summ
-        timings["calib_nll_c4_development_s"] = time.perf_counter() - t
-        rec.update(steps=steps, timings_s=timings)
-        if abs(diff) > REPRO_TOL:
-            raise RuntimeError(f"development mean NLL {summ['mean_nll']} differs from run 1 by {diff}")
-
-        # Perplexity suites.
-        steps["perplexity"] = {}
-        for suite in ("wikitext2_test", "c4_validation"):
+        with guard_cm as guard:
             t = time.perf_counter()
-            windows = read_windows(suite, limit=args.limit_windows)
-            exp_n = None if args.limit_windows is not None else C.PPL_SCORED_TOKENS
-            rows, summ = perplexity(model, windows, suite=suite, expected_n=exp_n)
-            write_rows(out / files[f"ppl_{suite}"], rows)
-            summ["file"] = files[f"ppl_{suite}"]
-            steps["perplexity"][suite] = summ
-            timings[f"ppl_{suite}_s"] = time.perf_counter() - t
+            model, info = load_model(args.device, args.model_path)
+            tok = load_tokenizer(args.model_path)
+            pristine = Pristine(model)
+            timings["load_s"] = time.perf_counter() - t
+            rec.update(model=info, eval_id=C.EVAL_ID, steps=steps, timings_s=timings,
+                       tokenizer={"class": type(tok).__name__, "name_or_path": tok.name_or_path, "len": len(tok)})
+
+            # Executed model: restore() then the artifact (sha256 values checked again by the loader).
+            t = time.perf_counter()
+            man2 = load_artifact(model, pristine, args.artifacts)
+            assert man2["file"]["sha256"] == art["file"]["sha256"]
+            timings["artifact_load_s"] = time.perf_counter() - t
+            steps["executed_model"] = {"restored_tensors_verified": len(pristine.names), "artifact_applied": True,
+                                       "extra_tensors": man2["extra_tensors"]}
             rec.update(steps=steps, timings_s=timings)
 
-        # HellaSwag at the condition's scope.
-        t = time.perf_counter()
-        hs = read_hellaswag(limit=args.limit_hellaswag)
-        if args.limit_hellaswag is None:
-            hs = hs[:C.hellaswag_n(scope)]
-        exp = None if args.limit_hellaswag is not None else C.hellaswag_n(scope)
-        rows, summ = hellaswag(model, tok, hs, scope=scope, expected_n=exp)
-        write_rows(out / files["hellaswag"], rows)
-        summ["file"] = files["hellaswag"]
-        steps["hellaswag"] = summ
-        timings["hellaswag_s"] = time.perf_counter() - t
-        rec.update(steps=steps, timings_s=timings)
+            if mode != "only":
+                # Development NLL against the run-1 value of the same executed model.
+                t = time.perf_counter()
+                devel = read_sequences("c4_development", limit=args.limit_dev)
+                if args.limit_dev is None:
+                    assert len(devel) == C.N_DEVELOPMENT
+                rows, summ = calib_nll(model, devel, split="c4_development")
+                write_rows(out / files["calib_nll_c4_development"], rows)
+                diff = summ["mean_nll"] - run1["development_mean_nll"]
+                summ.update(file=files["calib_nll_c4_development"], run1_mean_nll=run1["development_mean_nll"],
+                            diff_vs_run1=diff, reproduces_run1=abs(diff) <= REPRO_TOL)
+                steps["reproduction"] = summ
+                timings["calib_nll_c4_development_s"] = time.perf_counter() - t
+                rec.update(steps=steps, timings_s=timings)
+                if abs(diff) > REPRO_TOL:
+                    raise RuntimeError(f"development mean NLL {summ['mean_nll']} differs from run 1 by {diff}")
 
-        # Resources: the baseline protocol on the dense FP16 execution of the stored weights.
-        t = time.perf_counter()
-        steps["resources"] = latency(model, prompt_ids(read_sequences("c4_calibration")))
-        timings["resources_s"] = time.perf_counter() - t
-        rec.update(steps=steps, timings_s=timings)
+                # Perplexity suites.
+                steps["perplexity"] = {}
+                for suite in ("wikitext2_test", "c4_validation"):
+                    t = time.perf_counter()
+                    windows = read_windows(suite, limit=args.limit_windows)
+                    exp_n = None if args.limit_windows is not None else C.PPL_SCORED_TOKENS
+                    rows, summ = perplexity(model, windows, suite=suite, expected_n=exp_n)
+                    write_rows(out / files[f"ppl_{suite}"], rows)
+                    summ["file"] = files[f"ppl_{suite}"]
+                    steps["perplexity"][suite] = summ
+                    timings[f"ppl_{suite}_s"] = time.perf_counter() - t
+                    rec.update(steps=steps, timings_s=timings)
 
-        # Storage.
-        steps["storage"] = storage_report(model, man, fam, frozen)
-        steps["storage"]["artifact_files"] = {"safetensors_bytes": art["file"]["bytes"],
-                                              "manifest_bytes": art["manifest_bytes"],
-                                              "total_bytes": art["file"]["bytes"] + art["manifest_bytes"],
-                                              "stored_tensor_bytes": art["stored_tensor_bytes"]}
-        if cuda:
-            steps["peak_gpu_allocated_bytes"] = torch.cuda.max_memory_allocated(next(model.parameters()).device)
+                # HellaSwag at the condition's scope.
+                t = time.perf_counter()
+                hs = read_hellaswag(limit=args.limit_hellaswag)
+                if args.limit_hellaswag is None:
+                    hs = hs[:C.hellaswag_n(scope)]
+                exp = None if args.limit_hellaswag is not None else C.hellaswag_n(scope)
+                rows, summ = hellaswag(model, tok, hs, scope=scope, expected_n=exp)
+                write_rows(out / files["hellaswag"], rows)
+                summ["file"] = files["hellaswag"]
+                steps["hellaswag"] = summ
+                timings["hellaswag_s"] = time.perf_counter() - t
+                rec.update(steps=steps, timings_s=timings)
+
+            if mode != "skip":
+                # Resources: the baseline protocol on the dense FP16 execution of the stored weights.
+                t = time.perf_counter()
+                steps["resources"] = latency(model, prompt_ids(read_sequences("c4_calibration")))
+                timings["resources_s"] = time.perf_counter() - t
+                rec.update(steps=steps, timings_s=timings)
+
+            # Storage.
+            steps["storage"] = storage_report(model, man, fam, frozen)
+            steps["storage"]["artifact_files"] = {"safetensors_bytes": art["file"]["bytes"],
+                                                  "manifest_bytes": art["manifest_bytes"],
+                                                  "total_bytes": art["file"]["bytes"] + art["manifest_bytes"],
+                                                  "stored_tensor_bytes": art["stored_tensor_bytes"]}
+            if cuda:
+                steps["peak_gpu_allocated_bytes"] = torch.cuda.max_memory_allocated(next(model.parameters()).device)
+        if guard is not None:
+            steps["held_out_guard"] = guard
+            assert not guard["attempts"], guard
         rec.finish("ok", steps=steps, timings_s=timings)
     except BaseException as exc:
         rec.finish("failed", steps=steps, timings_s=timings, error=repr(exc), traceback=traceback.format_exc())

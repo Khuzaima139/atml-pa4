@@ -17,7 +17,7 @@ LIM_W, LIM_H, LIM_C = 3, 6, 2
 TOP_KEYS = {"config", "meta", "start_time", "status", "elapsed_wall_s", "updated_time", "end_time", "model",
             "tokenizer", "eval_id", "timings_s", "steps", "acceptance"}
 CONFIG_KEYS = {"condition", "condition_spec", "settings", "device", "model_path", "limits", "limited",
-               "hellaswag_scope", "output_files", "data_files"}
+               "hellaswag_scope", "output_files", "data_files", "resources_mode", "steps_run"}
 STEP_KEYS = {"enumeration", "perplexity", "hellaswag", "calib_nll", "lmeval_verify", "resources", "storage",
              "pristine_after"}
 TIMING_KEYS = {"load_s", "enumeration_s", "ppl_wikitext2_test_s", "ppl_c4_validation_s", "hellaswag_s",
@@ -161,3 +161,70 @@ def test_refuses_limits_under_results(tmp_path):
     with pytest.raises(SystemExit, match="refusing limits"):
         baseline.main(["--out", str(out), "--limit-hellaswag", "3"])
     assert not out.exists()
+
+
+def _held_out_opens(fn):
+    """Names of held-out files opened while fn runs (audit hook over every open of the process)."""
+    from task1.data import HELD_OUT_FILES
+
+    seen, state = [], {"on": True}
+
+    def hook(event, args):
+        if state["on"] and event == "open" and args and isinstance(args[0], (str, bytes, os.PathLike)):
+            name = os.path.basename(os.fsdecode(args[0]))
+            if name in HELD_OUT_FILES:
+                seen.append(name)
+
+    sys.addaudithook(hook)
+    try:
+        fn()
+    finally:
+        state["on"] = False
+    return seen
+
+
+def test_resources_only_reads_no_test_file(run_dir, tiny_model_dir, tmp_path, monkeypatch):
+    from task1.data import read_hellaswag
+
+    assert set(_held_out_opens(lambda: read_hellaswag(limit=1))) == {"hellaswag_val_locked.jsonl.gz"}
+    monkeypatch.setenv("HF_HUB_OFFLINE", "1")
+    out = tmp_path / "fp16_res"
+    rc = {}
+    seen = _held_out_opens(lambda: rc.setdefault("rc", baseline.main(
+        ["--out", str(out), "--model-path", str(tiny_model_dir), "--device", "cpu", "--resources-only"])))
+    assert seen == [] and rc["rc"] == 0
+    assert sorted(p.name for p in out.iterdir()) == ["run.json"]
+    r = json.loads((out / "run.json").read_text())
+    assert r["status"] == "ok" and r["acceptance"] is None
+    assert set(r["config"]) == CONFIG_KEYS and r["config"]["resources_mode"] == "only"
+    assert r["config"]["steps_run"] == ["enumeration", "resources", "storage"]
+    assert r["config"]["output_files"] == {"run": "run.json"} and len(r["config"]["data_files"]) == 1
+    assert set(r["steps"]) == {"enumeration", "resources", "storage", "pristine_after", "held_out_guard"}
+    assert r["steps"]["held_out_guard"]["attempts"] == []
+    assert set(r["timings_s"]) == {"load_s", "enumeration_s", "resources_s"}
+    full = json.loads((run_dir / "run.json").read_text())
+    assert full["config"]["resources_mode"] == "default" and full["config"]["steps_run"] == list(baseline.STEPS)
+    assert set(r["steps"]["resources"]) == set(full["steps"]["resources"])
+    assert r["steps"]["storage"] == full["steps"]["storage"]
+
+
+def test_no_resources_skips_resources(run_dir, tiny_model_dir, tmp_path):
+    out = tmp_path / "fp16_nores"
+    cmd = [sys.executable, "-m", "task1.baseline", "--model-path", str(tiny_model_dir), "--device", "cpu",
+           "--limit-windows", str(LIM_W), "--limit-hellaswag", str(LIM_H), "--limit-calib", str(LIM_C),
+           "--out", str(out), "--no-resources"]
+    env = dict(os.environ, HF_HUB_OFFLINE="1", PYTHONUNBUFFERED="1")
+    proc = subprocess.run(cmd, cwd=REPO_ROOT, env=env, capture_output=True, text=True, timeout=900)
+    assert proc.returncode == 0, proc.stderr[-4000:]
+    assert sorted(p.name for p in out.iterdir()) == sorted(baseline.OUTPUT_FILES.values())
+    r = json.loads((out / "run.json").read_text())
+    full = json.loads((run_dir / "run.json").read_text())
+    assert r["status"] == "ok" and r["config"]["resources_mode"] == "skip"
+    assert set(r["steps"]) == STEP_KEYS - {"resources"} and set(r["timings_s"]) == TIMING_KEYS - {"resources_s"}
+    for k in ("perplexity", "hellaswag", "calib_nll", "storage"):
+        assert r["steps"][k] == full["steps"][k], k
+
+
+def test_resource_flags_exclusive(tmp_path):
+    with pytest.raises(SystemExit):
+        baseline.parse_args(["--out", str(tmp_path / "x"), "--no-resources", "--resources-only"])
