@@ -1,0 +1,499 @@
+{
+  "config": {
+    "alloc_settings": {
+      "owl_m": 5.0,
+      "p3_bisect_max_iters": 200,
+      "p3_bisect_tol": 1e-12,
+      "p3_lambdas": [
+        0.04,
+        0.08,
+        0.12,
+        0.16,
+        0.2
+      ],
+      "p3_measures": [
+        "S1",
+        "S2"
+      ],
+      "p3_reference_lambda": 0.0,
+      "p3_s_max": 0.85,
+      "p3_s_min": 0.1,
+      "p3_targets": {
+        "s50": {
+          "condition": "p3_s50",
+          "reference": "p2_s50",
+          "sparsity": 0.5
+        },
+        "s75": {
+          "condition": "p3_s75",
+          "reference": "p2_s75",
+          "sparsity": 0.75
+        }
+      },
+      "probe_bits": [
+        2,
+        3,
+        4,
+        8
+      ],
+      "probe_sparsities": [
+        0.5,
+        0.75
+      ],
+      "q3_full_model_budget_bytes": {
+        "int3": 515633664,
+        "int4": 680687616
+      },
+      "q3_measures": [
+        "QS1",
+        "QS2"
+      ],
+      "q3_targets": {
+        "int3": {
+          "bits": 3,
+          "condition": "q3_int3",
+          "reference": "q2_b3"
+        },
+        "int4": {
+          "bits": 4,
+          "condition": "q3_int4",
+          "reference": "q2_b4"
+        }
+      },
+      "selection_criterion": "lowest mean NLL on the C4 development sequences among non-reference candidates whose allocation differs from the reference (P2 per-matrix zeros, uniform Q2 bits); ties: smaller lambda, then measure order S1 before S2 (QS1 before QS2); references (P3 lambda 0, Q3 uniform) are never selected; only if every non-reference candidate equals the reference is the collapsed allocation used, flagged collapsed_to_uniform",
+      "unit": "block"
+    },
+    "batch_size": 8,
+    "calib_stats_dir": "results/task1/calib_stats",
+    "condition": "q3_int4",
+    "data_files": [
+      {
+        "content_sha256": "eaa0452a7b6830b665debecc5df6960876bc7d3ad89ced339bcfc85fa4db6fe3",
+        "file": "c4_calibration_locked.jsonl.gz",
+        "records": 128
+      },
+      {
+        "content_sha256": "85b71a7beeaaf06ea84d99510b4414f50d3a9fc3ddee6c15c1f52c2be3d5f7e2",
+        "file": "c4_development_locked.jsonl.gz",
+        "records": 32
+      }
+    ],
+    "design": "fold_group_v2",
+    "device": "cuda:0",
+    "entry_point": "task1.select",
+    "kind": "q3v2",
+    "limited": false,
+    "limits": {
+      "calib": null,
+      "dev": null
+    },
+    "model_path": null,
+    "output_files": {
+      "candidate_nll": "candidate_nll.jsonl.gz",
+      "candidates": "candidates.jsonl.gz",
+      "run": "run.json",
+      "selected": "selected_allocation.json"
+    },
+    "probe_dir": [
+      "results/task1/probe_quant_v2/blocks_00_13",
+      "results/task1/probe_quant_v2/blocks_14_27"
+    ],
+    "q3v2_settings": {
+      "bits": [
+        2,
+        3,
+        4,
+        8
+      ],
+      "design": "fold_group_v2",
+      "fp16_ref_tol": 1e-06,
+      "full_model_chunk_groups": 3072,
+      "full_model_n_units": 112,
+      "full_model_unit_chunks": {
+        "attn_in": 8,
+        "attn_out": 6,
+        "mlp_in": 70,
+        "mlp_out": 35
+      },
+      "measures": [
+        "QS1v2",
+        "QS2v2"
+      ],
+      "q3_full_model_budget_bytes": {
+        "int3": 515633664,
+        "int4": 680687616
+      },
+      "q3_targets": {
+        "int3": {
+          "bits": 3,
+          "condition": "q3_int3",
+          "reference": "q2_b3"
+        },
+        "int4": {
+          "bits": 4,
+          "condition": "q3_int4",
+          "reference": "q2_b4"
+        }
+      },
+      "rule": "exact multiple-choice knapsack over fold-group units (attn_in, attn_out, mlp_in, mlp_out per block), bits in {2,3,4,8}: minimise sum_u sensitivity(u, b_u) (exact rational sums) subject to eligible packed bytes (task1.storage) <= the Q2 uniform budget; costs in chunks of g groups (g = gcd of unit group counts) times eighth-bytes per group; dynamic programming over integer costs; ties: fewer bytes, then lexicographically smaller bit vector by unit order",
+      "selection_criterion": "lowest mean NLL on the C4 development sequences among non-reference candidates (QS1v2, QS2v2) whose allocation differs from the uniform Q2 bits; ties: measure order QS1v2 before QS2v2; the uniform reference is never selected; only if every non-reference candidate equals the reference is the collapsed allocation used, flagged collapsed_to_uniform",
+      "unit": "fold_group",
+      "units": [
+        {
+          "projections": [
+            "q_proj",
+            "k_proj",
+            "v_proj"
+          ],
+          "scale_group": "qkv",
+          "unit": "attn_in"
+        },
+        {
+          "projections": [
+            "o_proj"
+          ],
+          "scale_group": "o",
+          "unit": "attn_out"
+        },
+        {
+          "projections": [
+            "gate_proj",
+            "up_proj"
+          ],
+          "scale_group": "gateup",
+          "unit": "mlp_in"
+        },
+        {
+          "projections": [
+            "down_proj"
+          ],
+          "scale_group": "down",
+          "unit": "mlp_out"
+        }
+      ]
+    },
+    "settings": {
+      "attn_implementation": "sdpa",
+      "batch_sizes": {
+        "calib_nll": 8,
+        "hellaswag": 32,
+        "lmeval_verify": 32,
+        "perplexity": 8
+      },
+      "bits": [
+        8,
+        4,
+        3
+      ],
+      "dtype": "float16",
+      "eligible": [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj"
+      ],
+      "eval_id": "t1-eval-v1",
+      "group_size": 128,
+      "latency": {
+        "decode_steps": 64,
+        "prefill_lengths": [
+          512,
+          2048
+        ],
+        "reps": 10,
+        "warmup": 3
+      },
+      "lmeval_acceptance_run": "softmax_dtype=float32",
+      "logprob_chunk": 128,
+      "model_id": "Qwen/Qwen2.5-1.5B",
+      "model_revision": "8faed761d45a263340a0528343f099c05c9a4323",
+      "q3_bits": [
+        2,
+        3,
+        4,
+        8
+      ],
+      "seed": 6304,
+      "sparsities": [
+        0.25,
+        0.5,
+        0.75
+      ]
+    },
+    "target": "int4",
+    "target_spec": {
+      "bits": 4,
+      "condition": "q3_int4",
+      "reference": "q2_b4"
+    },
+    "test_only": false
+  },
+  "elapsed_wall_s": 475.40795285900003,
+  "end_time": "2026-11-26T20:05:29.800044+00:00",
+  "eval_id": "t1-eval-v1",
+  "meta": {
+    "cuda_available": true,
+    "device_count": 1,
+    "device_names": [
+      "Tesla T4"
+    ],
+    "git_commit": "31ff127d46bdc5aa189242829726ec201e16508e",
+    "git_dirty": false,
+    "hostname": "a22a76a99c7d",
+    "mps_available": false,
+    "package_versions": {
+      "accelerate": "1.16.0",
+      "datasets": "4.8.5",
+      "huggingface_hub": "0.36.2",
+      "lm_eval": "0.4.13",
+      "matplotlib": "3.10.0",
+      "numpy": "2.4.6",
+      "peft": "0.21.2",
+      "safetensors": "0.8.0",
+      "scipy": "1.16.3",
+      "tokenizers": "0.22.2",
+      "torch": "2.11.0+cu130",
+      "transformers": "4.57.1"
+    },
+    "platform": "Linux-6.18.55+-x86_64-with-glibc2.39",
+    "python_version": "3.13.16",
+    "torch_cuda_build": "13.0",
+    "torch_cudnn_build": 92700,
+    "torch_version": "2.11.0+cu130"
+  },
+  "model": {
+    "attn_implementation_effective": "sdpa",
+    "attn_implementation_requested": "sdpa",
+    "device": "cuda:0",
+    "model_class": "Qwen2ForCausalLM",
+    "model_id": "Qwen/Qwen2.5-1.5B",
+    "parameter_dtypes": [
+      "torch.float16"
+    ],
+    "requested_dtype": "float16",
+    "revision": "8faed761d45a263340a0528343f099c05c9a4323"
+  },
+  "peak_vram_allocated_bytes": {
+    "0": 4805417984
+  },
+  "peak_vram_reserved_bytes": {
+    "0": 5360320512
+  },
+  "start_time": "2026-11-26T19:57:34.475922+00:00",
+  "status": "ok",
+  "steps": {
+    "held_out_guard": {
+      "attempts": [],
+      "forbidden": [
+        "wikitext2_test_windows_locked.jsonl.gz",
+        "c4_validation_windows_locked.jsonl.gz",
+        "hellaswag_val_locked.jsonl.gz"
+      ],
+      "mechanism": "inside forbid_held_out(): locked_path refuses the held-out names, and a process audit hook refuses any open() of a path whose file name is a held-out name; attempted opens are recorded"
+    },
+    "inputs": {
+      "calib_stats": {
+        "awq_scales_sha256": "7fa30d763948c6b5c2f2e75f372250268bac7613a2c4ff0c68519282ff4631b5",
+        "awq_search_sha256": "96434243b7faefc92c74882809eb312ed09db350562d0a8f80f71b1b945d10ff",
+        "calib_git_commit": "02f128b2dd9dc9057e8c6a47a4e8008eb9067cf0",
+        "dense_stats_sha256": "60aa2ae00617c1429eaeb2f6f3f8ffcd0f514177dbfd3090306c5855cf69661c",
+        "dir": "results/task1/calib_stats",
+        "run_sha256": "381cf9a4467d03a9064802e4f036a594734075eb2c4d717eedfd9996ee9f7a46"
+      },
+      "probe": [
+        {
+          "dir": "results/task1/probe_quant_v2/blocks_00_13",
+          "probe_git_commit": "31ff127d46bdc5aa189242829726ec201e16508e",
+          "run_sha256": "eeca4152a25872ca69b33334883d15424779e33832b25c65849594a2dbec2e8f",
+          "sensitivity_sha256": "c2ddfe1deca06f42450de81b945c3c6ad468299d048ed79c6faaea2d31161850"
+        },
+        {
+          "dir": "results/task1/probe_quant_v2/blocks_14_27",
+          "probe_git_commit": "31ff127d46bdc5aa189242829726ec201e16508e",
+          "run_sha256": "63262739cbbf20c28a78d6f1c9e147845ef2350f363e6ebe2411b503c2d59338",
+          "sensitivity_sha256": "5a507415936b191685b04846792e2fce9353665af78a910637338dcb80c35030"
+        }
+      ]
+    },
+    "n_candidates": {
+      "reference": 1,
+      "total": 3
+    },
+    "peak_gpu_allocated_bytes": 4805417984,
+    "pristine_after": {
+      "tensors_verified": 338
+    },
+    "probe_union": {
+      "block_ranges": [
+        [
+          0,
+          13
+        ],
+        [
+          14,
+          27
+        ]
+      ],
+      "fp16_calib_mean_nll": [
+        2.6160733503131888,
+        2.6160733503131888
+      ],
+      "fp16_spread": 0.0,
+      "n_parts": 2,
+      "n_units": 112,
+      "part_of_unit": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "restore": {
+      "tensors_verified": 338
+    },
+    "selection": {
+      "all_candidates_collapsed": false,
+      "candidates": [
+        {
+          "calibration_mean_nll": 2.666944476209924,
+          "candidate_id": "q3_int4.reference",
+          "development_mean_nll": 2.575358863086607,
+          "reference": true
+        },
+        {
+          "calibration_mean_nll": 2.666822330742102,
+          "candidate_id": "q3_int4.QS1v2",
+          "development_mean_nll": 2.572347931474737,
+          "reference": false
+        },
+        {
+          "calibration_mean_nll": 2.785375659737601,
+          "candidate_id": "q3_int4.QS2v2",
+          "development_mean_nll": 2.6928627355185233,
+          "reference": false
+        }
+      ],
+      "collapsed_to_uniform": [],
+      "development_mean_nll": 2.572347931474737,
+      "file": "selected_allocation.json",
+      "sha256": "ba77d0d039020f28c3a6551b160fdeb168da48cd8f33dad2a63fdc3a07bff998",
+      "winner": "q3_int4.QS1v2",
+      "winner_collapsed_to_uniform": false
+    }
+  },
+  "timings_s": {
+    "load_s": 17.05055693600025
+  },
+  "updated_time": "2026-11-26T20:05:29.800353+00:00"
+}

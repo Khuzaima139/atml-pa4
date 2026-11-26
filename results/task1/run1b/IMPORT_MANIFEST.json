@@ -1,0 +1,526 @@
+{
+  "files": [
+    {
+      "bytes": 445521,
+      "path": "results/task1/probe_quant_v2/blocks_00_13/probe_calib_nll.jsonl.gz",
+      "sha256": "a923a73704d964906959482228e545022a67d99b3fe81ba34cfff0579b68b13b",
+      "zip_path": "results/task1/probe_quant_v2/blocks_00_13/probe_calib_nll.jsonl.gz"
+    },
+    {
+      "bytes": 25360,
+      "path": "results/task1/probe_quant_v2/blocks_00_13/probe_rows.jsonl.gz",
+      "sha256": "42c79a4339d43ebd0b0d0fa162e715fec86554a89ba307237f2a605967a5d5aa",
+      "zip_path": "results/task1/probe_quant_v2/blocks_00_13/probe_rows.jsonl.gz"
+    },
+    {
+      "bytes": 36670,
+      "path": "results/task1/probe_quant_v2/blocks_00_13/run.json",
+      "sha256": "eeca4152a25872ca69b33334883d15424779e33832b25c65849594a2dbec2e8f",
+      "zip_path": "results/task1/probe_quant_v2/blocks_00_13/run.json"
+    },
+    {
+      "bytes": 32164,
+      "path": "results/task1/probe_quant_v2/blocks_00_13/sensitivity.json",
+      "sha256": "c2ddfe1deca06f42450de81b945c3c6ad468299d048ed79c6faaea2d31161850",
+      "zip_path": "results/task1/probe_quant_v2/blocks_00_13/sensitivity.json"
+    },
+    {
+      "bytes": 445333,
+      "path": "results/task1/probe_quant_v2/blocks_14_27/probe_calib_nll.jsonl.gz",
+      "sha256": "2ea07bacc8f5d08d58fb1363b19b524a7175c7417672b191931f45c01d628b97",
+      "zip_path": "results/task1/probe_quant_v2/blocks_14_27/probe_calib_nll.jsonl.gz"
+    },
+    {
+      "bytes": 25432,
+      "path": "results/task1/probe_quant_v2/blocks_14_27/probe_rows.jsonl.gz",
+      "sha256": "21bfc3dd0085e7e84932f893ec545aea26c0bf1b0c2cf24e5569956b6d2696f9",
+      "zip_path": "results/task1/probe_quant_v2/blocks_14_27/probe_rows.jsonl.gz"
+    },
+    {
+      "bytes": 36597,
+      "path": "results/task1/probe_quant_v2/blocks_14_27/run.json",
+      "sha256": "63262739cbbf20c28a78d6f1c9e147845ef2350f363e6ebe2411b503c2d59338",
+      "zip_path": "results/task1/probe_quant_v2/blocks_14_27/run.json"
+    },
+    {
+      "bytes": 32197,
+      "path": "results/task1/probe_quant_v2/blocks_14_27/sensitivity.json",
+      "sha256": "5a507415936b191685b04846792e2fce9353665af78a910637338dcb80c35030",
+      "zip_path": "results/task1/probe_quant_v2/blocks_14_27/sensitivity.json"
+    },
+    {
+      "bytes": 206782,
+      "path": "results/task1/run1b/q3_int3/artifact_manifest.json",
+      "sha256": "ff09f667d846b17a1bb3c53c65734d148d57ca753a5a96165c88a1f4e40cc4b0",
+      "zip_path": "results/task1/run1b/q3_int3/artifact_manifest.json"
+    },
+    {
+      "bytes": 2354,
+      "path": "results/task1/run1b/q3_int3/calib_nll_c4_calibration.jsonl.gz",
+      "sha256": "8a55e3505a0a2693364a403386ae2cd9ea42551bb848b5a1049d8f05b8cfa123",
+      "zip_path": "results/task1/run1b/q3_int3/calib_nll_c4_calibration.jsonl.gz"
+    },
+    {
+      "bytes": 697,
+      "path": "results/task1/run1b/q3_int3/calib_nll_c4_development.jsonl.gz",
+      "sha256": "dd0f8ab553aff66ad5d504845c895a847757f62ae9f988393bf860a03955bd4c",
+      "zip_path": "results/task1/run1b/q3_int3/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 9902,
+      "path": "results/task1/run1b/q3_int3/projections.jsonl.gz",
+      "sha256": "bc35698bd410adb2a79d3fd4f9dfe18fce12c34f77b6708e2b54e184340d92d5",
+      "zip_path": "results/task1/run1b/q3_int3/projections.jsonl.gz"
+    },
+    {
+      "bytes": 45785,
+      "path": "results/task1/run1b/q3_int3/run.json",
+      "sha256": "da548d98d2f9c143474ad0a56dbbd58ec86b361c278497460c1a6a135e516b1d",
+      "zip_path": "results/task1/run1b/q3_int3/run.json"
+    },
+    {
+      "bytes": 206973,
+      "path": "results/task1/run1b/q3_int4/artifact_manifest.json",
+      "sha256": "a7f081e947d4b7c076444087ebe2ef6bb83b79cc51ff42e8fe510cdf511c5fd6",
+      "zip_path": "results/task1/run1b/q3_int4/artifact_manifest.json"
+    },
+    {
+      "bytes": 2336,
+      "path": "results/task1/run1b/q3_int4/calib_nll_c4_calibration.jsonl.gz",
+      "sha256": "11e5960129198264802de4b94148bf33ceec7e6004c617e8a305dd2e26a1c712",
+      "zip_path": "results/task1/run1b/q3_int4/calib_nll_c4_calibration.jsonl.gz"
+    },
+    {
+      "bytes": 702,
+      "path": "results/task1/run1b/q3_int4/calib_nll_c4_development.jsonl.gz",
+      "sha256": "134224f1b5c077ec6a266b50e5f5062c36111e208a2470c3b85a3b3714dcde5c",
+      "zip_path": "results/task1/run1b/q3_int4/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 9923,
+      "path": "results/task1/run1b/q3_int4/projections.jsonl.gz",
+      "sha256": "01b961a62165ebda29a82fdee10b5a285556e04d66e7a82e09d206b9d9d83912",
+      "zip_path": "results/task1/run1b/q3_int4/projections.jsonl.gz"
+    },
+    {
+      "bytes": 45878,
+      "path": "results/task1/run1b/q3_int4/run.json",
+      "sha256": "273447ca8251085d653fb9155b54993e3044a915801c12d10c31e8623f002c56",
+      "zip_path": "results/task1/run1b/q3_int4/run.json"
+    },
+    {
+      "bytes": 8005,
+      "path": "results/task1/select_q3v2_int3/candidate_nll.jsonl.gz",
+      "sha256": "732db09da64dfef4a421215e110a1a31421895a177b756ebde7c2d17d44b2ad8",
+      "zip_path": "results/task1/select_q3v2_int3/candidate_nll.jsonl.gz"
+    },
+    {
+      "bytes": 13626,
+      "path": "results/task1/select_q3v2_int3/candidates.jsonl.gz",
+      "sha256": "7b1b5d87388396b3b4958f956eb33e44e3a6d3dd8bf26828db4b7f123ccce868",
+      "zip_path": "results/task1/select_q3v2_int3/candidates.jsonl.gz"
+    },
+    {
+      "bytes": 12303,
+      "path": "results/task1/select_q3v2_int3/run.json",
+      "sha256": "57cef83aa2b389e219b99d5b81fc42b1ada8538165e07703601e7efbf3a30a88",
+      "zip_path": "results/task1/select_q3v2_int3/run.json"
+    },
+    {
+      "bytes": 39955,
+      "path": "results/task1/select_q3v2_int3/selected_allocation.json",
+      "sha256": "d8dcb1cd5a24da3d7e04be42a2cd463e813607f9e23018cc3b5f1388b0dbf2d9",
+      "zip_path": "results/task1/select_q3v2_int3/selected_allocation.json"
+    },
+    {
+      "bytes": 8008,
+      "path": "results/task1/select_q3v2_int4/candidate_nll.jsonl.gz",
+      "sha256": "d600edc52580b49eec579b85f98d94cad89b6dfa1da7c5df91ff494ff3aabddb",
+      "zip_path": "results/task1/select_q3v2_int4/candidate_nll.jsonl.gz"
+    },
+    {
+      "bytes": 13475,
+      "path": "results/task1/select_q3v2_int4/candidates.jsonl.gz",
+      "sha256": "80adf747c4243fee70e3a00bf3905c4168ce32417a2b7f4d5123971d1c7048f2",
+      "zip_path": "results/task1/select_q3v2_int4/candidates.jsonl.gz"
+    },
+    {
+      "bytes": 12298,
+      "path": "results/task1/select_q3v2_int4/run.json",
+      "sha256": "c1bed40d2f605e110c786026d67e6189ee49489abf9c7ea539c9119c89182d69",
+      "zip_path": "results/task1/select_q3v2_int4/run.json"
+    },
+    {
+      "bytes": 39989,
+      "path": "results/task1/select_q3v2_int4/selected_allocation.json",
+      "sha256": "ba77d0d039020f28c3a6551b160fdeb168da48cd8f33dad2a63fdc3a07bff998",
+      "zip_path": "results/task1/select_q3v2_int4/selected_allocation.json"
+    }
+  ],
+  "logs_and_status_not_committed": [
+    {
+      "bytes": 2013,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_jobs/preflight_gpu0.json",
+      "sha256": "6189395585f7d9602e08a5c2e15663d541970d6b3a37516c9db2be5b5d9cd31e",
+      "zip_path": "notes/kaggle_jobs/preflight_gpu0.json"
+    },
+    {
+      "bytes": 1778,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_jobs/preflight_gpu1.json",
+      "sha256": "e5ca50978267d917443a772c7fe6f4ae792b935448691968f9abc8da9e51ee65",
+      "zip_path": "notes/kaggle_jobs/preflight_gpu1.json"
+    },
+    {
+      "bytes": 5254,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_jobs/preflight_meta.json",
+      "sha256": "a130780f056471e434050a564306ae8c0c58354ed39357c97e5c6a6a73ad28d0",
+      "zip_path": "notes/kaggle_jobs/preflight_meta.json"
+    },
+    {
+      "bytes": 1365,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_jobs/run1b_gpu0.json",
+      "sha256": "fbfd67a5eedbec68cc4758ffb642ec6e73863b443428cc5593482cc0ca6775c2",
+      "zip_path": "notes/kaggle_jobs/run1b_gpu0.json"
+    },
+    {
+      "bytes": 1366,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_jobs/run1b_gpu1.json",
+      "sha256": "02e50d75f83ca7bf7ca66c2f43293d256e9ee8c9129f6f5b0722121fa79a8ffc",
+      "zip_path": "notes/kaggle_jobs/run1b_gpu1.json"
+    },
+    {
+      "bytes": 3949,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_jobs/run1b_meta.json",
+      "sha256": "1f46274f8d126eb74c52683eed2d417a21a19ff20f79ffb12994082f3127a3bd",
+      "zip_path": "notes/kaggle_jobs/run1b_meta.json"
+    },
+    {
+      "bytes": 2548,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/calib_check.json",
+      "sha256": "e03eaed851508b8e78a2c8a1bba13867d10e703d99bbdc6190fed1387deac293",
+      "zip_path": "notes/kaggle_logs/calib_check.json"
+    },
+    {
+      "bytes": 625,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/calib_check.log",
+      "sha256": "f94d6a60ae97dd21b051ce303424b4cc41120d18fb32c60e10418cb914217cf6",
+      "zip_path": "notes/kaggle_logs/calib_check.log"
+    },
+    {
+      "bytes": 62,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/check_run1b.json",
+      "sha256": "aeb119e018224d195faf64461059af8d23c9eb4c6902c7894c9dd92b9b33aaac",
+      "zip_path": "notes/kaggle_logs/check_run1b.json"
+    },
+    {
+      "bytes": 655,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/compress_q3_int3.log",
+      "sha256": "21256e1460abd0e7f7223fc039caa460293a202b65db88c6fea3a8230112177b",
+      "zip_path": "notes/kaggle_logs/compress_q3_int3.log"
+    },
+    {
+      "bytes": 655,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/compress_q3_int4.log",
+      "sha256": "a92e9f037b3cdca3d14e01a8d76191c3e28c691304b0b5408454730696db09f1",
+      "zip_path": "notes/kaggle_logs/compress_q3_int4.log"
+    },
+    {
+      "bytes": 792,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/env_check.log",
+      "sha256": "f8dd5f905013ce9e51b6c5ea25f33040598cf07709dacce066f253b0dbb9583b",
+      "zip_path": "notes/kaggle_logs/env_check.log"
+    },
+    {
+      "bytes": 845,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/model_snapshot.log",
+      "sha256": "179d79ff7b54589c742174424f50ac98d55054eb308266a3a7e2fc05465a4943",
+      "zip_path": "notes/kaggle_logs/model_snapshot.log"
+    },
+    {
+      "bytes": 2057,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/nvidia_smi.txt",
+      "sha256": "e7461977d7faf3beee18e623af598f3b9b88785728c8cf127d5c3495ae4ee716",
+      "zip_path": "notes/kaggle_logs/nvidia_smi.txt"
+    },
+    {
+      "bytes": 18338,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/pip_freeze.txt",
+      "sha256": "4e7472780039178ee4841e1cc58283e878cfb02084cda3774587a00cad36293c",
+      "zip_path": "notes/kaggle_logs/pip_freeze.txt"
+    },
+    {
+      "bytes": 3748,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/prepare_data.log",
+      "sha256": "5278b0991a1cfaa497801873a5374fa36dcc1593dcee1a46080d6f8f7add32f3",
+      "zip_path": "notes/kaggle_logs/prepare_data.log"
+    },
+    {
+      "bytes": 556,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/probe_quant_v2_a.log",
+      "sha256": "edeeacac33e434963002da9759bbedcdbd6c94389a4037da5bb707d46e6d53c7",
+      "zip_path": "notes/kaggle_logs/probe_quant_v2_a.log"
+    },
+    {
+      "bytes": 557,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/probe_quant_v2_b.log",
+      "sha256": "dc448767ea342e5685125f0c33aabd9361680943acb0a1aa828ea939f0b0ead7",
+      "zip_path": "notes/kaggle_logs/probe_quant_v2_b.log"
+    },
+    {
+      "bytes": 1934,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/queue_gpu0.log",
+      "sha256": "56c630593fc4805decc7c1b559a5e942a98047c0ba897914f902d683f08961c0",
+      "zip_path": "notes/kaggle_logs/queue_gpu0.log"
+    },
+    {
+      "bytes": 1935,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/queue_gpu1.log",
+      "sha256": "c38942fcf2d442edfa6233f41f146aaa02817c761b02573c778de8107200a3c0",
+      "zip_path": "notes/kaggle_logs/queue_gpu1.log"
+    },
+    {
+      "bytes": 642,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/select_q3v2_int3.log",
+      "sha256": "cb17f4068eded5f4b1f883a3dea95b74569925f660bef0a6ad1808c3e58a7ac8",
+      "zip_path": "notes/kaggle_logs/select_q3v2_int3.log"
+    },
+    {
+      "bytes": 642,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/select_q3v2_int4.log",
+      "sha256": "0db944cc396d7405a0a0d1228bc3f949e6942b37241be75fb5f1495b4bb24050",
+      "zip_path": "notes/kaggle_logs/select_q3v2_int4.log"
+    },
+    {
+      "bytes": 590,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_logs/wait_run1b.json",
+      "sha256": "04adc9622cf4832636e23bfb36a3740110eb4d68aa08a3c29f58308e387f7b6c",
+      "zip_path": "notes/kaggle_logs/wait_run1b.json"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/compress_q3_int3.done",
+      "sha256": "f42385ead5d8d49b616d62e08e1c96df3a06dbaebb329be2afb7aef74d3f76f5",
+      "zip_path": "notes/kaggle_status/compress_q3_int3.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/compress_q3_int3.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/compress_q3_int3.exit"
+    },
+    {
+      "bytes": 770,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/compress_q3_int3.json",
+      "sha256": "da722b70270fcc226905442d7775398ad28b12a96952c39870505c8ab62a70e6",
+      "zip_path": "notes/kaggle_status/compress_q3_int3.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/compress_q3_int3.pid",
+      "sha256": "76b9bf7abc6c828814d919b5d66d18fd2ba7c5821df8c1e9e968ba3ee10f03c7",
+      "zip_path": "notes/kaggle_status/compress_q3_int3.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/compress_q3_int4.done",
+      "sha256": "e9cf3c4d4b4a509fa13d8485d4b016bee3d2961db3b64d42f33dd43b55959749",
+      "zip_path": "notes/kaggle_status/compress_q3_int4.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/compress_q3_int4.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/compress_q3_int4.exit"
+    },
+    {
+      "bytes": 769,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/compress_q3_int4.json",
+      "sha256": "69692458e4db8444be3759295fc8b10d67e1aabc6fb5c3329b8e4c7219745b00",
+      "zip_path": "notes/kaggle_status/compress_q3_int4.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/compress_q3_int4.pid",
+      "sha256": "32d622e9856b32cac99156716290d347d0feef3d29ecb2160e3c786bc5a6cd08",
+      "zip_path": "notes/kaggle_status/compress_q3_int4.pid"
+    },
+    {
+      "bytes": 70,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/gpu0.queue.exit",
+      "sha256": "41896b34ebfe00e895ba9859ce3ca19b33ceb71592eccbfb66e56bee1a007365",
+      "zip_path": "notes/kaggle_status/gpu0.queue.exit"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/gpu0.queue.pid",
+      "sha256": "f8bf41177a5f5e808a7ccb648b51080b031f15ca8018d91a576263d6cc626eb6",
+      "zip_path": "notes/kaggle_status/gpu0.queue.pid"
+    },
+    {
+      "bytes": 70,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/gpu1.queue.exit",
+      "sha256": "8757301df624db87b082c2e958cbec476d1c0516d59527fdc0d232c17b76b25f",
+      "zip_path": "notes/kaggle_status/gpu1.queue.exit"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/gpu1.queue.pid",
+      "sha256": "ffab722c4165f59136c1fab84214789efd376d3851cc4195e3555c3755201e7e",
+      "zip_path": "notes/kaggle_status/gpu1.queue.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/probe_quant_v2_a.done",
+      "sha256": "99f0c80a58d6b58eaf79e2b2d98650932189d5a36fc913f8f960824c32f270be",
+      "zip_path": "notes/kaggle_status/probe_quant_v2_a.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/probe_quant_v2_a.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/probe_quant_v2_a.exit"
+    },
+    {
+      "bytes": 611,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/probe_quant_v2_a.json",
+      "sha256": "7785885858161f896909274e719e5e22284abe73d209f49defdf9b021c2492e0",
+      "zip_path": "notes/kaggle_status/probe_quant_v2_a.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/probe_quant_v2_a.pid",
+      "sha256": "28e9df17875451b106e9c052725fdca7fa706cc28f1d99e93e40fc5f456d45cb",
+      "zip_path": "notes/kaggle_status/probe_quant_v2_a.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/probe_quant_v2_b.done",
+      "sha256": "99f4424406c7f5a814c854d99713891d9ecaaf22e5834ac13316a8061d3b89bb",
+      "zip_path": "notes/kaggle_status/probe_quant_v2_b.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/probe_quant_v2_b.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/probe_quant_v2_b.exit"
+    },
+    {
+      "bytes": 608,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/probe_quant_v2_b.json",
+      "sha256": "6b2e2dfe5ec43c4967277829c2aa61c900bb74e42e11a65841f361fc92db2175",
+      "zip_path": "notes/kaggle_status/probe_quant_v2_b.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/probe_quant_v2_b.pid",
+      "sha256": "ab16147fdae6b952e586cd7634a0c82517751faca08c9a6bd38a2831fd04511a",
+      "zip_path": "notes/kaggle_status/probe_quant_v2_b.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/select_q3v2_int3.done",
+      "sha256": "254d5f19a072b2fd0e717092637a767d0bb19d47cdf69db9d60da6ca425e8935",
+      "zip_path": "notes/kaggle_status/select_q3v2_int3.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/select_q3v2_int3.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/select_q3v2_int3.exit"
+    },
+    {
+      "bytes": 809,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/select_q3v2_int3.json",
+      "sha256": "d9db9bbfc3c7f7bff0bff506c2822c0032e2c22f67670633589a279d3fe8c057",
+      "zip_path": "notes/kaggle_status/select_q3v2_int3.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/select_q3v2_int3.pid",
+      "sha256": "e3eebf5db7f62a8a42bdea11ff52c2e05664e676fb96fe668d51a960f7e6165e",
+      "zip_path": "notes/kaggle_status/select_q3v2_int3.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/select_q3v2_int4.done",
+      "sha256": "0340c979351e21eba10e460bb2e0b255fd9b9ac03ec4a072bff780baf99fe2a9",
+      "zip_path": "notes/kaggle_status/select_q3v2_int4.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/select_q3v2_int4.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/select_q3v2_int4.exit"
+    },
+    {
+      "bytes": 809,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/select_q3v2_int4.json",
+      "sha256": "c63ed216920b850ab495f08685357edc615e1f1df4547a21d995547684e9dbdd",
+      "zip_path": "notes/kaggle_status/select_q3v2_int4.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run1b/kaggle_status/select_q3v2_int4.pid",
+      "sha256": "9bea2229d7b87b9ec122b7c1629ce40a3c61220035c0acf119c6aa446c958df6",
+      "zip_path": "notes/kaggle_status/select_q3v2_int4.pid"
+    }
+  ],
+  "n_files": 26,
+  "source": {
+    "bytes": 1182876,
+    "name": "t1_run1b_results.zip",
+    "notebook_output": "t1_run1b (Kaggle run 1b of Task 1, Q3 design v2)",
+    "sha256": "78a1c3734fb51f77cc5d92c66bf396c18a8f46605c5bcec168436ed73f26ebf5"
+  }
+}
