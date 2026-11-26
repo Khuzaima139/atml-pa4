@@ -5,8 +5,8 @@ Usage: python -m task1.compress --condition ID --out DIR --artifacts DIR [--cali
        under results/task1)
 Conditions: fp16, p1_*, p2_*, p2_24_s50, q1_*, q2_* (q2 reads the AWQ scales of a calib_stats run), and
 p3_s50, p3_s75, q3_int4, q3_int3 only with --allocation (a selected_allocation.json of task1.select; q3 also
-reads the AWQ scales). Reads only the C4 calibration (statistics, masks, scales, calibration NLL) and development
-(NLL) files; no held-out file can be opened while it runs (task1.data.forbid_held_out).
+reads the AWQ scales; a Q3 design-v2 file, design fold_group_v2, assigns bits per fold-group unit). Reads only the
+C4 calibration (statistics, masks, scales, calibration NLL) and development (NLL) files; no held-out file can be opened while it runs (task1.data.forbid_held_out).
 """
 import argparse
 import json
@@ -89,6 +89,8 @@ def load_allocation(path, cond: str, args, matrices, calib_prov=None) -> tuple:
         raise SystemExit(f"allocation file is for condition {al.get('condition')}, not {cond}")
     if al.get("model_path") != args.model_path:
         raise SystemExit("allocation file was selected on a different model source")
+    if al.get("design") is not None:
+        return _load_allocation_v2(path, sha, al, cond, matrices, calib_prov)
     if al.get("unit") != C.ALLOC_UNIT or al.get("eval_id") != C.EVAL_ID:
         raise SystemExit("allocation file has a different allocation unit or evaluation identifier")
     quals = [m["qualname"] for m in matrices]
@@ -117,6 +119,37 @@ def load_allocation(path, cond: str, args, matrices, calib_prov=None) -> tuple:
            "lambda": al["lambda"], "selection_code_commit": al["code_commit"], "totals": tot,
            "inputs": al["inputs"], "git": git_file_status(path)}
     return value, rec
+
+
+def _load_allocation_v2(path, sha, al, cond, matrices, calib_prov) -> tuple:
+    """Q3 design-v2 allocation: per-matrix bits with one width per fold-group unit; returns ({qualname: bits}, record)."""
+    from . import q3v2
+
+    spec = C.CONDITIONS[cond]
+    if spec["family"] != "Q3" or al.get("design") != C.Q3V2_DESIGN:
+        raise SystemExit(f"allocation design {al.get('design')} is not usable for {cond}")
+    if al.get("unit") != C.Q3V2_UNIT or al.get("eval_id") != C.EVAL_ID:
+        raise SystemExit("allocation file has a different allocation unit or evaluation identifier")
+    quals = [m["qualname"] for m in matrices]
+    if sorted(al.get("per_matrix_bits", {})) != sorted(quals):
+        raise SystemExit("allocation file per_matrix_bits does not name exactly the eligible matrices of this model")
+    try:
+        ref_bits = C.Q3_TARGETS[al["target"]]["bits"]
+        bits = {q: int(al["per_matrix_bits"][q]) for q in quals}
+        tot = q3v2.check_bits(matrices, bits, ref_bits)
+        assert tot["unit_bits"] == al["per_unit"]["bits"], "per-unit bits differ from per-matrix bits"
+        assert [u["id"] for u in q3v2.units_of(matrices)] == al["per_unit"]["ids"], "unit order differs"
+        assert tot["eligible_packed_bytes"] == al["totals"]["eligible_packed_bytes"], (tot, al["totals"])
+        assert tot["budget_bytes"] == al["totals"]["budget_bytes"], (tot, al["totals"])
+        if calib_prov is not None:
+            assert al["inputs"]["calib_stats"]["awq_scales_sha256"] == calib_prov["awq_scales_sha256"], \
+                "allocation was selected with different AWQ scales"
+    except (AssertionError, KeyError) as exc:
+        raise SystemExit(f"allocation file failed validation: {exc!r}")
+    rec = {"file": str(path), "sha256": sha, "design": C.Q3V2_DESIGN, "candidate_id": al["candidate_id"],
+           "measure": al["measure"], "lambda": al["lambda"], "selection_code_commit": al["code_commit"],
+           "totals": tot, "inputs": al["inputs"], "git": git_file_status(path)}
+    return bits, rec
 
 
 def load_awq_scales(calib_dir, bits: int, args, device) -> tuple:
@@ -188,7 +221,7 @@ def run(args):
             if args.limit_dev is None:
                 assert len(devel) == C.N_DEVELOPMENT
 
-            awq_scales = zeros_pm = bits_pb = None
+            awq_scales = zeros_pm = bits_pb = bits_v2 = None
             if fam == "Q2":
                 awq_scales, steps["awq_source"] = load_awq_scales(args.calib_stats, spec["bits"], args, dev)
             if fam in NEEDS_ALLOCATION:
@@ -199,6 +232,18 @@ def run(args):
                                                              matrices_of(model), cprov)
                 if fam == "P3":
                     zeros_pm = value
+                elif steps["allocation"].get("design") == C.Q3V2_DESIGN:
+                    from . import q3v2
+
+                    bits_v2 = value
+                    unit_bits = steps["allocation"]["totals"]["unit_bits"]
+                    units = q3v2.units_of(matrices_of(model))
+                    awq_scales, steps["awq_source"] = {}, {}
+                    for b in sorted(set(unit_bits)):
+                        sc, steps["awq_source"][str(b)] = load_awq_scales(args.calib_stats, b, args, dev)
+                        awq_scales.update({(u["layer"], u["scale_group"]): sc[(u["layer"], u["scale_group"])]
+                                           for u, ub in zip(units, unit_bits) if ub == b})
+                    assert len(awq_scales) == len(units)
                 else:
                     bits_pb = value
                     awq_scales, steps["awq_source"] = {}, {}
@@ -215,7 +260,8 @@ def run(args):
                 torch.cuda.reset_peak_memory_stats(dev)
             t = time.perf_counter()
             res = build_condition(model, calib, args.condition, C.CALIB_BATCH_SIZE, awq_scales=awq_scales,
-                                  zeros_per_matrix=zeros_pm, bits_per_block=bits_pb, pristine=pristine, log=log)
+                                  zeros_per_matrix=zeros_pm, bits_per_block=bits_pb, pristine=pristine, log=log,
+                                  bits_per_matrix=bits_v2)
             timings["build_total_s"] = time.perf_counter() - t
             timings.update({f"build_{k}": v for k, v in res.timings.items()})
             steps.pop("build_progress", None)
@@ -255,7 +301,7 @@ def run(args):
             if fam in ("Q1", "Q2", "Q3"):
                 bits_pm = [r["bits"] for r in res.records]
                 pq = storage.packed_quant_bytes(shapes, bits_pm, detail=True)
-                st["packed_quant"] = {**pq, "bits": spec["bits"] if fam != "Q3" else bits_pb,
+                st["packed_quant"] = {**pq, "bits": spec["bits"] if fam != "Q3" else (bits_pb or bits_v2),
                                       "whole_model_bytes": storage.whole_model_bytes(pq["total"], counts["non_eligible"]),
                                       "bits_per_eligible_weight": storage.bits_per_eligible_weight(pq["total"], shapes),
                                       "extra_fp16_scale_bytes": 0}
@@ -292,6 +338,9 @@ def run(args):
                       else {"model_id": C.MODEL_ID, "revision": C.MODEL_REVISION})
             alloc_meta = ({"allocation": {k: steps["allocation"][k] for k in ("file", "sha256", "candidate_id")}}
                           if fam in NEEDS_ALLOCATION else None)
+            if bits_v2 is not None:
+                alloc_meta["allocation"]["design"] = C.Q3V2_DESIGN
+                alloc_meta["design"] = C.Q3V2_DESIGN
             man = save_artifact(args.artifacts, args.condition, source, res.payload, res.extra_tensors, model,
                                 extra_meta=alloc_meta)
             timings["artifact_save_s"] = time.perf_counter() - t

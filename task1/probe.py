@@ -1,11 +1,16 @@
 """Block sensitivity probes for the P3 and Q3 allocations, on the C4 calibration file only.
 
-Usage: python -m task1.probe --kind prune|quant --calib-stats DIR --out DIR [--device cuda:0]
+Usage: python -m task1.probe --kind prune|quant|quant_v2 --calib-stats DIR --out DIR [--blocks A-B] [--device cuda:0]
        [--model-path PATH --limit-calib N]   (tests only; refused for outputs under results/task1)
 prune: S1 = OWL outlier ratio of each block (dense calibration norms, no forward);
        S2 = isolated loss increase with only that block Wanda-pruned at S in PROBE_SPARSITIES.
 quant: QS1 = isolated loss increase with only that block AWQ-folded and quantized at b in PROBE_BITS;
        QS2 = sum over the block's projections of the relative output error at b on dense calibration inputs.
+quant_v2 (Q3 design v2, fold-group units attn_in/attn_out/mlp_in/mlp_out of blocks A..B, --blocks A-B, default all):
+       QS1v2 = isolated loss increase with only that unit folded (its group's scales searched at b) and only its
+               projections quantized at b;
+       QS2v2 = sum over the unit's projections of the relative output error at b (own-group fold) on dense inputs.
+       Each part records its own FP16 reference; task1.select --kind q3v2 joins the parts.
 Every isolated probe starts from restore(); the FP16 calibration NLL is measured once and subtracted.
 No held-out file can be opened while the probe runs (task1.data.forbid_held_out).
 """
@@ -28,7 +33,7 @@ OUTPUT_FILES = {
     "probe_rows": "probe_rows.jsonl.gz",
     "probe_calib_nll": "probe_calib_nll.jsonl.gz",
 }
-KINDS = {"prune": ("S1", "S2"), "quant": ("QS1", "QS2")}
+KINDS = {"prune": ("S1", "S2"), "quant": ("QS1", "QS2"), "quant_v2": C.Q3V2_MEASURES}
 DEFINITIONS = {
     "S1": "fraction of the block's Wanda scores |W_ij|*||X_j|| (dense calibration norms) over its seven projections "
           "greater than OWL_M times their mean (OWL outlier ratio); no forward pass",
@@ -38,6 +43,11 @@ DEFINITIONS = {
            "FP16 calibration mean NLL",
     "QS2": "sum over the block's seven projections of ||(W_eff - W) X||_F^2 / ||W X||_F^2 at b on dense calibration "
            "inputs, W_eff the AWQ-folded quantized weight in the original basis",
+    "QS1v2": "calibration mean NLL after restore() with only this fold-group unit folded (its group's AWQ scales "
+             "searched at b; partner tensors rewritten, no other fold) and only its projections quantized at b, minus "
+             "the FP16 calibration mean NLL of the same probe run",
+    "QS2v2": "sum over the unit's projections of ||(W_eff - W) X||_F^2 / ||W X||_F^2 at b on dense calibration inputs, "
+             "W_eff = Q(W diag(s)) diag(1/s) in the original basis with s the unit's own group scales at b",
 }
 
 
@@ -51,8 +61,20 @@ def parse_args(argv=None):
     ap.add_argument("--kind", required=True, choices=sorted(KINDS))
     ap.add_argument("--calib-stats", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--blocks", default=None, help="block range A-B, inclusive (quant_v2 only; default all blocks)")
     runargs.add_test_args(ap)
     return ap.parse_args(argv)
+
+
+def parse_blocks(text) -> tuple:
+    """'A-B' -> (A, B) with 0 <= A <= B."""
+    try:
+        a, b = (int(x) for x in str(text).split("-"))
+    except ValueError:
+        raise SystemExit(f"--blocks must be A-B with integers, got {text!r}")
+    if not 0 <= a <= b:
+        raise SystemExit(f"--blocks needs 0 <= A <= B, got {text!r}")
+    return a, b
 
 
 def owl_ratio(weights, norms, m: float = C.OWL_M) -> dict:
@@ -119,9 +141,87 @@ def qs2_errors(model, calib, scales: dict, bits_list, batch_size: int = C.CALIB_
     return out
 
 
+def run_quant_v2(model, pristine, calib, scales, lo, hi, values, probe_rows, effort, ref, nll_pass, steps, rec,
+                 timings) -> list:
+    """QS2v2 and QS1v2 of every fold-group unit of blocks lo..hi; fills values, probe_rows and effort."""
+    from . import q3v2
+    from .awq import geometry
+    from .blocks import capture_block_inputs, layers, projections, run_block
+    from .build import SCALE_GROUPS, error_pass
+    from .select import matrices_of
+
+    geom = geometry(model.config)
+    units = [u for u in q3v2.units_of(matrices_of(model)) if lo <= u["layer"] <= hi]
+    n_seq = len(calib)
+    bits = C.Q3V2_BITS
+
+    t0 = time.perf_counter()
+    stream = capture_block_inputs(model, calib, C.CALIB_BATCH_SIZE)
+    for li in range(lo):
+        stream = run_block(layers(model)[li], stream)
+    values["QS2v2"] = {level_key(b): [] for b in bits}
+    for li in range(lo, hi + 1):
+        block = layers(model)[li]
+        W = {n: m.weight.detach().float() for n, m in projections(block).items()}
+        nxt = None
+        for b in bits:
+            E = q3v2.own_fold_effective(block, W, b, {g: scales[(li, g, b)] for g in SCALE_GROUPS}, geom)
+            acc, _, nxt = error_pass(block, stream, W, E)
+            for u in units:
+                if u["layer"] != li:
+                    continue
+                v = sum(acc[n][0] / acc[n][1] for n in u["projections"])
+                values["QS2v2"][level_key(b)].append(v)
+                probe_rows.append({"eval_id": C.EVAL_ID, "kind": "quant_v2", "design": C.Q3V2_DESIGN,
+                                   "measure": "QS2v2", "level": level_key(b), "layer": li, "unit": u["unit"],
+                                   "unit_id": u["id"], "unit_index": u["index"], "value": v,
+                                   "projections": {n: {"err_num": acc[n][0], "err_den": acc[n][1],
+                                                       "rel": acc[n][0] / acc[n][1]} for n in u["projections"]}})
+            del E
+        stream = nxt
+        del W
+    del stream
+    n_blocks = hi - lo + 1
+    effort["QS2v2"] = {"wall_s": time.perf_counter() - t0, "full_model_calibration_passes": 0,
+                       "block_forward_passes": lo + n_blocks * len(bits), "calibration_sequences_per_pass": n_seq,
+                       "restores": 0, "blocks_run_to_reach_range": lo}
+
+    t0 = time.perf_counter()
+    values["QS1v2"] = {}
+    passes = 0
+    for b in bits:
+        key = level_key(b)
+        values["QS1v2"][key] = []
+        for u in units:
+            t1 = time.perf_counter()
+            pristine.restore(model)
+            li = u["layer"]
+            detail = q3v2.fold_quant_unit(layers(model)[li], u["unit"], b, scales[(li, u["scale_group"], b)], geom)
+            summ = nll_pass("QS1v2", key, li, unit=u["unit"], unit_id=u["id"])
+            passes += 1
+            delta = summ["mean_nll"] - ref["mean_nll"]
+            values["QS1v2"][key].append(delta)
+            probe_rows.append({"eval_id": C.EVAL_ID, "kind": "quant_v2", "design": C.Q3V2_DESIGN, "measure": "QS1v2",
+                               "level": key, "layer": li, "unit": u["unit"], "unit_id": u["id"],
+                               "unit_index": u["index"], "value": delta, "calib_mean_nll": summ["mean_nll"],
+                               "calib_nll_sum": summ["nll_sum"], "n_scored": summ["N"],
+                               "fp16_calib_mean_nll": ref["mean_nll"], "wall_s": time.perf_counter() - t1,
+                               **{k: v for k, v in detail.items() if k not in ("unit",)}})
+            steps["progress"] = {"measure": "QS1v2", "level": key, "unit": u["id"], "done": passes,
+                                 "of": len(units) * len(bits)}
+            rec.update(steps=steps, timings_s=timings)
+    pristine.restore(model)
+    effort["QS1v2"] = {"wall_s": time.perf_counter() - t0, "full_model_calibration_passes": passes,
+                       "block_forward_passes": 0, "calibration_sequences_per_pass": n_seq, "restores": passes}
+    return units
+
+
 def run(args):
     if args.limit_dev is not None:
         raise SystemExit("--limit-dev is not used by the probes")
+    if args.blocks is not None and args.kind != "quant_v2":
+        raise SystemExit("--blocks is only used by --kind quant_v2")
+    block_arg = parse_blocks(args.blocks) if args.blocks is not None else None
     lim = runargs.check(args, [args.out])
 
     import torch
@@ -143,6 +243,8 @@ def run(args):
            "alloc_settings": C.alloc_settings(), "device": args.device, "model_path": args.model_path, **lim,
            "output_files": OUTPUT_FILES, "calib_stats_dir": args.calib_stats,
            "data_files": [file_info(SEQUENCE_FILES["c4_calibration"])], "batch_size": C.CALIB_BATCH_SIZE}
+    if args.kind == "quant_v2":
+        cfg.update(design=C.Q3V2_DESIGN, q3v2_settings=C.q3v2_settings(), blocks=args.blocks)
     rec = RunRecorder(out / OUTPUT_FILES["run"], cfg)
     steps, timings = {}, {}
     try:
@@ -155,6 +257,11 @@ def run(args):
             rec.update(model=info, eval_id=C.EVAL_ID, steps=steps, timings_s=timings)
             dev = next(model.parameters()).device
             L = len(layers(model))
+            if args.kind == "quant_v2":
+                lo, hi = block_arg if block_arg is not None else (0, L - 1)
+                if hi >= L:
+                    raise SystemExit(f"--blocks {args.blocks} exceeds the {L} blocks of this model")
+                steps["block_range"] = [lo, hi]
 
             steps["calib_stats_source"] = provenance(args.calib_stats)
             if args.kind == "prune":
@@ -173,14 +280,14 @@ def run(args):
 
             nll_rows, probe_rows = [], []
 
-            def nll_pass(measure, level, layer):
+            def nll_pass(measure, level, layer, **extra):
                 rows, summ = calib_nll(model, calib, split="c4_calibration")
                 for r in rows:
-                    nll_rows.append({**r, "measure": measure, "level": level, "layer": layer})
+                    nll_rows.append({**r, "measure": measure, "level": level, "layer": layer, **extra})
                 return summ
 
             t = time.perf_counter()
-            ref = nll_pass("fp16", None, None)
+            ref = nll_pass("fp16", None, None, **({"unit": None, "unit_id": None} if args.kind == "quant_v2" else {}))
             timings["fp16_calib_nll_s"] = time.perf_counter() - t
             steps["fp16_calib_nll"] = ref
             effort = {"fp16_reference": {"wall_s": timings["fp16_calib_nll_s"], "full_model_calibration_passes": 1,
@@ -229,6 +336,9 @@ def run(args):
                                 "block_forward_passes": 0, "calibration_sequences_per_pass": n_seq, "restores": 0}
                 values["S2"] = isolated("S2", C.PROBE_SPARSITIES,
                                         lambda li, S: {"zeros": sum(prune_block(model, li, S, x_l2).values())})
+            elif args.kind == "quant_v2":
+                units = run_quant_v2(model, pristine, calib, scales, lo, hi, values, probe_rows, effort, ref,
+                                     nll_pass, steps, rec, timings)
             else:
                 t0 = time.perf_counter()
                 errs = qs2_errors(model, calib, scales, C.PROBE_BITS)
@@ -261,6 +371,12 @@ def run(args):
                     "values": {m: values[m] for m in measures}, "fp16_calib_nll": ref, "effort": effort,
                     "calib_stats": steps["calib_stats_source"], "model": info, "limits": lim["limits"],
                     "alloc_settings": C.alloc_settings()}
+            if args.kind == "quant_v2":
+                sens.update(unit=C.Q3V2_UNIT, design=C.Q3V2_DESIGN, block_range=[lo, hi],
+                            n_units_total=L * len(C.Q3V2_UNITS),
+                            units=[{k: u[k] for k in ("index", "id", "layer", "unit", "scale_group", "projections",
+                                                      "groups")} for u in units],
+                            q3v2_settings=C.q3v2_settings())
             write_json_new(out / OUTPUT_FILES["sensitivity"], sens)
             steps["sensitivity"] = {"file": OUTPUT_FILES["sensitivity"],
                                     "sha256": sha256_file(out / OUTPUT_FILES["sensitivity"]), "values": sens["values"]}

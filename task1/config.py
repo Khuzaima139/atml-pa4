@@ -211,3 +211,61 @@ def alloc_settings() -> dict:
         "p3_bisect_tol": P3_BISECT_TOL, "p3_targets": P3_TARGETS, "q3_targets": Q3_TARGETS,
         "q3_full_model_budget_bytes": Q3_FULL_MODEL_BUDGET_BYTES, "selection_criterion": SELECTION_CRITERION,
     }
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# Q3 design v2 (fold-group granularity). The block-level Q3 design above and its run-1 outputs are kept unchanged
+# as an unsuccessful design (every candidate collapsed to the uniform Q2 allocation).
+# Allocation unit: one AWQ fold group of one block; per block, in this order:
+#   attn_in  (q, k, v; scale group qkv), attn_out (o; group o), mlp_in (gate, up; group gateup), mlp_out (down; group
+#   down). A unit's bit width applies to all its projections and uses the calib_stats AWQ scales searched for its
+#   group at that bit width; the four folds of every block are applied as in Q2.
+Q3V2_DESIGN = "fold_group_v2"
+Q3V2_UNIT = "fold_group"
+Q3V2_UNITS = (
+    ("attn_in", "qkv", ("q_proj", "k_proj", "v_proj")),
+    ("attn_out", "o", ("o_proj",)),
+    ("mlp_in", "gateup", ("gate_proj", "up_proj")),
+    ("mlp_out", "down", ("down_proj",)),
+)
+Q3V2_BITS = Q3_BITS
+# Quantization sensitivity measures v2 (calibration file only), per (unit, b), b in Q3V2_BITS:
+#   QS1v2: restore(); apply only that unit's fold (its scale group, searched at b); quantize only that unit's
+#          projections at b; calibration mean NLL minus the FP16 calibration mean NLL (same calibration sequences).
+#   QS2v2: sum over the unit's projections of ||(W_eff - W) X||_F^2 / ||W X||_F^2 at b on dense calibration inputs,
+#          W_eff = Q(W diag(s)) diag(1/s) with s the unit's own group scales at b (original basis).
+Q3V2_MEASURES = ("QS1v2", "QS2v2")
+# Exact knapsack: unit costs in chunks of g quantization groups, g = gcd of the units' group counts, and per-group
+# bytes in eighth-bytes (codes group_size*b, FP16 scale 16, zero-point b), so every cost is an integer number of
+# g/8-byte units; the budget is floor(8 * budget_bytes / g) such units.
+Q3V2_FULL_MODEL_N_UNITS = N_LAYERS * len(Q3V2_UNITS)          # 112
+Q3V2_FULL_MODEL_CHUNK_GROUPS = 3_072
+Q3V2_FULL_MODEL_UNIT_CHUNKS = {"attn_in": 8, "attn_out": 6, "mlp_in": 70, "mlp_out": 35}
+# Largest accepted difference between the FP16 calibration mean NLL recorded by the probe parts.
+Q3V2_FP16_REF_TOL = 1e-6
+Q3V2_RULE = (
+    "exact multiple-choice knapsack over fold-group units (attn_in, attn_out, mlp_in, mlp_out per block), bits in "
+    "{2,3,4,8}: minimise sum_u sensitivity(u, b_u) (exact rational sums) subject to eligible packed bytes "
+    "(task1.storage) <= the Q2 uniform budget; costs in chunks of g groups (g = gcd of unit group counts) times "
+    "eighth-bytes per group; dynamic programming over integer costs; ties: fewer bytes, then lexicographically "
+    "smaller bit vector by unit order"
+)
+Q3V2_SELECTION_CRITERION = (
+    "lowest mean NLL on the C4 development sequences among non-reference candidates (QS1v2, QS2v2) whose allocation "
+    "differs from the uniform Q2 bits; ties: measure order QS1v2 before QS2v2; the uniform reference is never "
+    "selected; only if every non-reference candidate equals the reference is the collapsed allocation used, flagged "
+    "collapsed_to_uniform"
+)
+
+
+def q3v2_settings() -> dict:
+    """Every fixed setting of Q3 design v2, for run JSONs, selected allocation files and artifact manifests."""
+    return {
+        "design": Q3V2_DESIGN, "unit": Q3V2_UNIT,
+        "units": [{"unit": u, "scale_group": g, "projections": list(p)} for u, g, p in Q3V2_UNITS],
+        "bits": list(Q3V2_BITS), "measures": list(Q3V2_MEASURES), "rule": Q3V2_RULE,
+        "q3_targets": Q3_TARGETS, "q3_full_model_budget_bytes": Q3_FULL_MODEL_BUDGET_BYTES,
+        "full_model_n_units": Q3V2_FULL_MODEL_N_UNITS, "full_model_chunk_groups": Q3V2_FULL_MODEL_CHUNK_GROUPS,
+        "full_model_unit_chunks": Q3V2_FULL_MODEL_UNIT_CHUNKS, "fp16_ref_tol": Q3V2_FP16_REF_TOL,
+        "selection_criterion": Q3V2_SELECTION_CRITERION,
+    }

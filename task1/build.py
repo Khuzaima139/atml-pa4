@@ -62,8 +62,10 @@ def error_pass(block, stream, W: dict, E: dict):
 
 
 @torch.no_grad()
-def quantize_block(block, W: dict, bits: int, block_scales=None, geom=None) -> tuple:
-    """Quantize the seven projections of one block at one bit width, plain (block_scales None) or AWQ-folded.
+def quantize_block(block, W: dict, bits, block_scales=None, geom=None) -> tuple:
+    """Quantize the seven projections of one block, plain (block_scales None) or AWQ-folded.
+
+    bits: one bit width for all seven projections, or {projection name: bit width}.
 
     Returns (executed weights in the model dtype, FP32 effective weights in the original basis, FP32 folded
     non-eligible tensors keyed by block-relative name, {name: task1.quant.Quantized}).
@@ -79,7 +81,7 @@ def quantize_block(block, W: dict, bits: int, block_scales=None, geom=None) -> t
     execw, E, qres = {}, {}, {}
     for n in C.ELIGIBLE:
         src = W[n] if fold is None else fold[("self_attn." if n in C.ATTN_PROJ else "mlp.") + n + ".weight"]
-        r = quantize(src, bits)
+        r = quantize(src, bits[n] if isinstance(bits, dict) else bits)
         execw[n] = dequantize(r.q, r.z, r.scale).to(projs[n].weight.dtype)
         E[n] = execw[n].float() if fold is None else unfold_weight(execw[n], col[n], row.get(n))
         qres[n] = r
@@ -106,12 +108,14 @@ def _zeros_for(qual, shape, spec, zeros_per_matrix):
 @torch.inference_mode()
 def build_condition(model, calib_seqs, cond_id: str, batch_size: int = C.CALIB_BATCH_SIZE, awq_scales=None,
                     zeros_per_matrix=None, bits_per_block=None, pristine=None, log=None,
-                    with_distributions: bool = True) -> BuildResult:
+                    with_distributions: bool = True, bits_per_matrix=None) -> BuildResult:
     """Apply condition cond_id in place to a model holding the restored FP16 weights.
 
     awq_scales: {(layer, group): FP32 distinct scales} at each block's bit width (Q2, Q3).
     zeros_per_matrix: {qualname: zeros} replacing sparsity * numel (unstructured pruning; required for P3).
-    bits_per_block: bit width of every block (required for Q3).
+    bits_per_block: bit width of every block (Q3 block design).
+    bits_per_matrix: {qualname: bit width} of every eligible projection (Q3 fold-group design); awq_scales then
+        holds each group's scales at the bit width of its unit.
     pristine: task1.model.Pristine, required for pruning score distributions.
     with_distributions: compute pruning score distributions (skipped only for development candidates).
     """
@@ -124,10 +128,15 @@ def build_condition(model, calib_seqs, cond_id: str, batch_size: int = C.CALIB_B
     if fam == "P3":
         assert zeros_per_matrix is not None, "P3 requires per-matrix zero counts"
     if fam == "Q3":
-        assert bits_per_block is not None and len(bits_per_block) == len(layers(model)), "Q3 requires bits per block"
-        assert set(bits_per_block) <= set(C.Q3_BITS), bits_per_block
+        assert (bits_per_block is None) != (bits_per_matrix is None), "Q3 requires bits per block or per matrix"
+        if bits_per_block is not None:
+            assert len(bits_per_block) == len(layers(model)), "Q3 requires bits per block"
+            assert set(bits_per_block) <= set(C.Q3_BITS), bits_per_block
+        else:
+            assert len(bits_per_matrix) == len(layers(model)) * len(C.ELIGIBLE), "Q3 requires bits per matrix"
+            assert set(bits_per_matrix.values()) <= set(C.Q3_BITS), sorted(set(bits_per_matrix.values()))
     else:
-        assert bits_per_block is None, "bits_per_block is only used by Q3"
+        assert bits_per_block is None and bits_per_matrix is None, "bit allocations are only used by Q3"
     if fam in PRUNE_FAMILIES:
         assert pristine is not None, "pruning requires the pristine snapshot for score distributions"
     geom = geometry(model.config)
@@ -181,15 +190,19 @@ def build_condition(model, calib_seqs, cond_id: str, batch_size: int = C.CALIB_B
                 res.payload.append({"qualname": qual, "kind": "mask", "shape": list(shape),
                                     "tensors": {"mask": pack_mask(keep)}, "mask_kept": int(keep.sum())})
         else:
-            b = int(bits_per_block[li]) if fam == "Q3" else spec["bits"]
+            if bits_per_matrix is not None:
+                b = {n: int(bits_per_matrix[recs[n]["qualname"]]) for n in C.ELIGIBLE}
+            else:
+                b = int(bits_per_block[li]) if fam == "Q3" else spec["bits"]
             bs = {g: awq_scales[(li, g)] for g in SCALE_GROUPS} if fam in AWQ_FAMILIES else None
             execw, E, extra, qres = quantize_block(block, W, b, bs, geom)
             for n in C.ELIGIBLE:
                 r = qres[n]
-                recs[n].update(bits=b, groups=int(r.scale.numel()), n_guarded_groups=r.n_guarded,
+                bn = b[n] if isinstance(b, dict) else b
+                recs[n].update(bits=bn, groups=int(r.scale.numel()), n_guarded_groups=r.n_guarded,
                                n_clipped_codes=r.n_clipped, n_one_sided_groups=r.n_one_sided)
                 res.payload.append({"qualname": recs[n]["qualname"], "kind": "quant", "shape": list(W[n].shape),
-                                    "bits": b, "tensors": pack_quantized(r)})
+                                    "bits": bn, "tensors": pack_quantized(r)})
         tm["construct_s"] += time.perf_counter() - t
 
         t = time.perf_counter()

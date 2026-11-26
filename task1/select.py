@@ -2,9 +2,12 @@
 
 Usage: python -m task1.select --kind p3 --target s50|s75 --probe DIR --calib-stats DIR --out DIR [--device cuda:0]
        python -m task1.select --kind q3 --target int4|int3 --probe DIR --calib-stats DIR --out DIR [--device cuda:0]
+       python -m task1.select --kind q3v2 --target int4|int3 --probe DIR [DIR ...] --calib-stats DIR --out DIR
        [--model-path PATH --limit-calib N --limit-dev N]   (tests only; refused for outputs under results/task1)
 Candidates: P3 = {S1, S2} x P3_LAMBDAS plus lambda 0 (reference, equal to P2); Q3 = {QS1, QS2} knapsack plus
-uniform (reference, equal to Q2). Every candidate is built from restore() and scored by its calibration and
+uniform (reference, equal to Q2); Q3 design v2 (q3v2) = {QS1v2, QS2v2} knapsack over fold-group units plus uniform,
+from one or more quant_v2 probe parts that together cover every unit exactly once with one FP16 reference value.
+Every candidate is built from restore() and scored by its calibration and
 development NLL; the winner follows config.SELECTION_CRITERION. Reads only the C4 calibration and development
 files; no held-out file can be opened while it runs (task1.data.forbid_held_out).
 """
@@ -27,16 +30,16 @@ OUTPUT_FILES = {
     "candidate_nll": "candidate_nll.jsonl.gz",
     "selected": "selected_allocation.json",
 }
-KIND_TARGETS = {"p3": C.P3_TARGETS, "q3": C.Q3_TARGETS}
-PROBE_KIND = {"p3": "prune", "q3": "quant"}
-MEASURES = {"p3": C.P3_MEASURES, "q3": C.Q3_MEASURES}
+KIND_TARGETS = {"p3": C.P3_TARGETS, "q3": C.Q3_TARGETS, "q3v2": C.Q3_TARGETS}
+PROBE_KIND = {"p3": "prune", "q3": "quant", "q3v2": "quant_v2"}
+MEASURES = {"p3": C.P3_MEASURES, "q3": C.Q3_MEASURES, "q3v2": C.Q3V2_MEASURES}
 
 
 def parse_args(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--kind", required=True, choices=sorted(KIND_TARGETS))
     ap.add_argument("--target", required=True)
-    ap.add_argument("--probe", required=True)
+    ap.add_argument("--probe", required=True, nargs="+", help="probe directory (q3v2: one or more parts)")
     ap.add_argument("--calib-stats", required=True)
     ap.add_argument("--out", required=True)
     runargs.add_test_args(ap)
@@ -76,6 +79,54 @@ def load_probe(probe_dir, kind: str, args, calib_prov: dict) -> tuple:
     return sens, prov
 
 
+def join_probe_parts(parts: list, matrices) -> tuple:
+    """Values per unit (unit order) from quant_v2 probe parts; asserts exact coverage and one FP16 reference."""
+    from . import q3v2
+
+    units = q3v2.units_of(matrices)
+    ids = [u["id"] for u in units]
+    seen = {}
+    refs = []
+    for k, (sens, _) in enumerate(parts):
+        if sens.get("design") != C.Q3V2_DESIGN or sens.get("unit") != C.Q3V2_UNIT:
+            raise SystemExit(f"probe part {k} is not a {C.Q3V2_DESIGN} probe")
+        if sens["n_units_total"] != len(units):
+            raise SystemExit(f"probe part {k} was made for {sens['n_units_total']} units, this model has {len(units)}")
+        refs.append(float(sens["fp16_calib_nll"]["mean_nll"]))
+        for j, u in enumerate(sens["units"]):
+            if u["id"] in seen:
+                raise SystemExit(f"unit {u['id']} is covered by probe parts {seen[u['id']][0]} and {k}")
+            seen[u["id"]] = (k, j)
+    missing = [i for i in ids if i not in seen]
+    extra = sorted(set(seen) - set(ids))
+    if missing or extra:
+        raise SystemExit(f"probe parts do not cover the {len(ids)} units exactly once: missing {missing}, unknown "
+                         f"{extra}")
+    spread = max(refs) - min(refs)
+    if spread > C.Q3V2_FP16_REF_TOL:
+        raise SystemExit(f"probe parts record different FP16 calibration NLL values {refs} (spread {spread})")
+    values = {}
+    for m in C.Q3V2_MEASURES:
+        values[m] = []
+        for i in ids:
+            k, j = seen[i]
+            v = parts[k][0]["values"][m]
+            values[m].append({b: float(v[str(b)][j]) for b in C.Q3V2_BITS})
+    return values, {"n_units": len(ids), "n_parts": len(parts), "fp16_calib_mean_nll": refs, "fp16_spread": spread,
+                    "part_of_unit": [seen[i][0] for i in ids],
+                    "block_ranges": [p[0]["block_range"] for p in parts]}
+
+
+def q3v2_candidates(values: dict, ref_bits: int, matrices) -> list:
+    from . import q3v2
+
+    out = [{"measure": None, "lambda": None, "reference": True, "alloc": q3v2.uniform(matrices, ref_bits)}]
+    for m in C.Q3V2_MEASURES:
+        out.append({"measure": m, "lambda": None, "reference": False,
+                    "alloc": q3v2.allocation(values[m], matrices, ref_bits)})
+    return out
+
+
 def p3_candidates(sens: dict, S: float, matrices) -> list:
     from . import allocate as A
     from .probe import level_key
@@ -101,6 +152,35 @@ def q3_candidates(sens: dict, ref_bits: int, matrices) -> list:
     return out
 
 
+def v2_scales(al: dict, scales: dict) -> dict:
+    """{(layer, group): scales at the bit width of the group's unit} for a v2 allocation."""
+    from . import q3v2
+
+    out = {}
+    for uid, b in zip(al["unit_ids"], al["bits"]):
+        li, unit = uid.split(".")
+        out[(int(li), q3v2.UNIT_GROUP[unit])] = scales[(int(li), q3v2.UNIT_GROUP[unit], int(b))]
+    return out
+
+
+def selected_v2(win, rows, cond, args, tgt, steps, info, lim, meta, mats) -> dict:
+    return {"eval_id": C.EVAL_ID, "design": C.Q3V2_DESIGN, "condition": cond, "kind": args.kind,
+            "target": args.target, "unit": C.Q3V2_UNIT, "n_units": len(win["per_unit"]["ids"]),
+            "n_blocks": len({m["layer"] for m in mats}), "rule": win["rule"], "measure": win["measure"],
+            "lambda": None, "candidate_id": win["candidate_id"], "per_unit": win["per_unit"],
+            "bits_histogram": win["bits_histogram"], "chunking": win["chunking"], "totals": win["totals"],
+            "development": win["development"], "calibration": win["calibration"],
+            "selection_criterion": C.Q3V2_SELECTION_CRITERION, "n_candidates": len(rows),
+            "n_reference_candidates": sum(r["reference"] for r in rows),
+            "collapsed_to_uniform": win["collapsed_to_uniform"],
+            "all_candidates_collapsed": all(r["collapsed_to_uniform"] for r in rows if not r["reference"]),
+            "inputs": steps["inputs"], "probe_union": steps["probe_union"], "model": info,
+            "model_path": args.model_path, "limits": lim["limits"], "code_commit": meta["git_commit"],
+            "code_dirty": meta["git_dirty"], "q3v2_settings": C.q3v2_settings(), "ref_bits": tgt["bits"],
+            "per_matrix_bits": win["per_matrix_bits"], "objective": win["objective"],
+            "objective_exact": win["objective_exact"]}
+
+
 def candidate_id(cond: str, c: dict) -> str:
     if c["reference"]:
         return f"{cond}.reference"
@@ -124,6 +204,8 @@ def choose(rows: list, kind: str) -> dict:
 def run(args):
     if args.target not in KIND_TARGETS[args.kind]:
         raise SystemExit(f"--target for {args.kind} must be one of {sorted(KIND_TARGETS[args.kind])}")
+    if args.kind != "q3v2" and len(args.probe) != 1:
+        raise SystemExit(f"--kind {args.kind} takes one probe directory")
     lim = runargs.check(args, [args.out])
 
     import torch
@@ -145,9 +227,11 @@ def run(args):
     cfg = {"entry_point": "task1.select", "kind": args.kind, "target": args.target, "target_spec": tgt,
            "condition": cond, "settings": C.settings_dict(), "alloc_settings": C.alloc_settings(),
            "device": args.device, "model_path": args.model_path, **lim, "output_files": OUTPUT_FILES,
-           "probe_dir": args.probe, "calib_stats_dir": args.calib_stats,
+           "probe_dir": args.probe if args.kind == "q3v2" else args.probe[0], "calib_stats_dir": args.calib_stats,
            "data_files": [file_info(SEQUENCE_FILES[s]) for s in ("c4_calibration", "c4_development")],
            "batch_size": C.CALIB_BATCH_SIZE}
+    if args.kind == "q3v2":
+        cfg.update(design=C.Q3V2_DESIGN, q3v2_settings=C.q3v2_settings())
     rec = RunRecorder(out / OUTPUT_FILES["run"], cfg)
     steps, timings = {}, {}
     try:
@@ -162,7 +246,11 @@ def run(args):
 
             load_run(args.calib_stats, args)
             calib_prov = provenance(args.calib_stats)
-            sens, probe_prov = load_probe(args.probe, args.kind, args, calib_prov)
+            if args.kind == "q3v2":
+                parts = [load_probe(d, args.kind, args, calib_prov) for d in args.probe]
+                probe_prov = [pp for _, pp in parts]
+            else:
+                sens, probe_prov = load_probe(args.probe[0], args.kind, args, calib_prov)
             steps["inputs"] = {"calib_stats": calib_prov, "probe": probe_prov}
             calib = read_sequences("c4_calibration", limit=args.limit_calib)
             devel = read_sequences("c4_development", limit=args.limit_dev)
@@ -178,6 +266,16 @@ def run(args):
             scales = {}
             if args.kind == "p3":
                 cands = p3_candidates(sens, tgt["sparsity"], mats)
+            elif args.kind == "q3v2":
+                values, steps["probe_union"] = join_probe_parts(parts, mats)
+                cands = q3v2_candidates(values, tgt["bits"], mats)
+                if full_model:
+                    assert cands[0]["alloc"]["budget"] == C.Q3_FULL_MODEL_BUDGET_BYTES[args.target]
+                    ch = cands[0]["alloc"]["chunking"]
+                    assert ch["full_model_expected"], ch
+                for b in C.Q3V2_BITS:
+                    sc, _ = load_awq_scales(args.calib_stats, b, args, dev)
+                    scales.update({(li, g, b): v for (li, g), v in sc.items()})
             else:
                 cands = q3_candidates(sens, tgt["bits"], mats)
                 if full_model:
@@ -200,6 +298,11 @@ def run(args):
                                           pristine=pristine, with_distributions=False)
                     assert sum(r["mask_zeros"] for r in res.records) == al["p2_total_zeros"]
                     assert {r["qualname"]: r["mask_zeros"] for r in res.records} == al["zeros"]
+                elif args.kind == "q3v2":
+                    aw = v2_scales(al, scales)
+                    res = build_condition(model, calib, cond, C.CALIB_BATCH_SIZE, awq_scales=aw,
+                                          bits_per_matrix=al["per_matrix_bits"], pristine=pristine)
+                    assert [r["bits"] for r in res.records] == list(al["per_matrix_bits"].values())
                 else:
                     bits = al["bits"]
                     aw = {(li, g): scales[(li, g, b)] for li, b in enumerate(bits) for g in SCALE_GROUPS}
@@ -230,6 +333,23 @@ def run(args):
                                per_matrix_zeros=al["zeros"], collapsed_to_uniform=al["collapsed_to_uniform"],
                                totals={"zeros": al["total_zeros"], "p2_zeros": al["p2_total_zeros"],
                                        "eligible_weights": al["eligible_weights"]})
+                elif args.kind == "q3v2":
+                    nb = storage.packed_quant_bytes(shapes, list(al["per_matrix_bits"].values()))
+                    assert nb == al["bytes"] <= al["budget"]
+                    row.update(design=C.Q3V2_DESIGN,
+                               per_unit={"ids": al["unit_ids"], "bits": al["bits"], "bytes": al["unit_bytes"],
+                                         "sensitivity": al.get("sensitivity")},
+                               bits_histogram=al["bits_histogram"], chunking=al["chunking"],
+                               per_matrix_bits=al["per_matrix_bits"], collapsed_to_uniform=al["collapsed_to_uniform"],
+                               objective=al.get("objective"), objective_exact=al.get("objective_exact"),
+                               dp_states_per_unit=al.get("dp_states_per_unit"),
+                               totals={"eligible_packed_bytes": nb, "budget_bytes": al["budget"],
+                                       "cost_units": al["cost_units"], "budget_units": al["budget_units"],
+                                       "ref_bits": al["ref_bits"], "non_eligible_params": counts["non_eligible"],
+                                       "whole_model_bytes": storage.whole_model_bytes(nb, counts["non_eligible"]),
+                                       "budget_whole_model_bytes": storage.whole_model_bytes(al["budget"],
+                                                                                             counts["non_eligible"]),
+                                       "bits_per_eligible_weight": storage.bits_per_eligible_weight(nb, shapes)})
                 else:
                     nb = storage.packed_quant_bytes(shapes, list(al["per_matrix_bits"].values()))
                     assert nb == al["bytes"] <= al["budget"]
@@ -256,7 +376,11 @@ def run(args):
             write_rows(out / OUTPUT_FILES["candidates"], rows)
             write_rows(out / OUTPUT_FILES["candidate_nll"], nll_rows)
             meta = rec.record["meta"]
-            sel = {"eval_id": C.EVAL_ID, "condition": cond, "kind": args.kind, "target": args.target,
+            if args.kind == "q3v2":
+                sel = selected_v2(win, rows, cond, args, tgt, steps, info, lim, meta, mats)
+            else:
+                sel = None
+            sel = sel or {"eval_id": C.EVAL_ID, "condition": cond, "kind": args.kind, "target": args.target,
                    "unit": C.ALLOC_UNIT, "n_blocks": A.n_blocks(mats), "rule": win["rule"],
                    "measure": win["measure"], "lambda": win["lambda"], "candidate_id": win["candidate_id"],
                    "per_block": win["per_block"], "totals": win["totals"],
@@ -270,6 +394,8 @@ def run(args):
                    "alloc_settings": C.alloc_settings()}
             if args.kind == "p3":
                 sel.update(sparsity=tgt["sparsity"], per_matrix_zeros=win["per_matrix_zeros"], shift=win["shift"])
+            elif args.kind == "q3v2":
+                pass
             else:
                 sel.update(ref_bits=tgt["bits"], per_matrix_bits=win["per_matrix_bits"],
                            objective=win["objective"])
