@@ -1,0 +1,364 @@
+{
+  "config": {
+    "alloc_settings": {
+      "owl_m": 5.0,
+      "p3_bisect_max_iters": 200,
+      "p3_bisect_tol": 1e-12,
+      "p3_lambdas": [
+        0.04,
+        0.08,
+        0.12,
+        0.16,
+        0.2
+      ],
+      "p3_measures": [
+        "S1",
+        "S2"
+      ],
+      "p3_reference_lambda": 0.0,
+      "p3_s_max": 0.85,
+      "p3_s_min": 0.1,
+      "p3_targets": {
+        "s50": {
+          "condition": "p3_s50",
+          "reference": "p2_s50",
+          "sparsity": 0.5
+        },
+        "s75": {
+          "condition": "p3_s75",
+          "reference": "p2_s75",
+          "sparsity": 0.75
+        }
+      },
+      "probe_bits": [
+        2,
+        3,
+        4,
+        8
+      ],
+      "probe_sparsities": [
+        0.5,
+        0.75
+      ],
+      "q3_full_model_budget_bytes": {
+        "int3": 515633664,
+        "int4": 680687616
+      },
+      "q3_measures": [
+        "QS1",
+        "QS2"
+      ],
+      "q3_targets": {
+        "int3": {
+          "bits": 3,
+          "condition": "q3_int3",
+          "reference": "q2_b3"
+        },
+        "int4": {
+          "bits": 4,
+          "condition": "q3_int4",
+          "reference": "q2_b4"
+        }
+      },
+      "selection_criterion": "lowest mean NLL on the C4 development sequences among non-reference candidates whose allocation differs from the reference (P2 per-matrix zeros, uniform Q2 bits); ties: smaller lambda, then measure order S1 before S2 (QS1 before QS2); references (P3 lambda 0, Q3 uniform) are never selected; only if every non-reference candidate equals the reference is the collapsed allocation used, flagged collapsed_to_uniform",
+      "unit": "block"
+    },
+    "batch_size": 8,
+    "calib_stats_dir": "results/task1/calib_stats",
+    "data_files": [
+      {
+        "content_sha256": "eaa0452a7b6830b665debecc5df6960876bc7d3ad89ced339bcfc85fa4db6fe3",
+        "file": "c4_calibration_locked.jsonl.gz",
+        "records": 128
+      }
+    ],
+    "definitions": {
+      "S1": "fraction of the block's Wanda scores |W_ij|*||X_j|| (dense calibration norms) over its seven projections greater than OWL_M times their mean (OWL outlier ratio); no forward pass",
+      "S2": "calibration mean NLL with only this block Wanda-pruned at S (dense calibration norms, per-row masks, other blocks dense) minus the FP16 calibration mean NLL"
+    },
+    "device": "cuda:0",
+    "entry_point": "task1.probe",
+    "kind": "prune",
+    "limited": false,
+    "limits": {
+      "calib": null,
+      "dev": null
+    },
+    "measures": [
+      "S1",
+      "S2"
+    ],
+    "model_path": null,
+    "output_files": {
+      "probe_calib_nll": "probe_calib_nll.jsonl.gz",
+      "probe_rows": "probe_rows.jsonl.gz",
+      "run": "run.json",
+      "sensitivity": "sensitivity.json"
+    },
+    "settings": {
+      "attn_implementation": "sdpa",
+      "batch_sizes": {
+        "calib_nll": 8,
+        "hellaswag": 32,
+        "lmeval_verify": 32,
+        "perplexity": 8
+      },
+      "bits": [
+        8,
+        4,
+        3
+      ],
+      "dtype": "float16",
+      "eligible": [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj"
+      ],
+      "eval_id": "t1-eval-v1",
+      "group_size": 128,
+      "latency": {
+        "decode_steps": 64,
+        "prefill_lengths": [
+          512,
+          2048
+        ],
+        "reps": 10,
+        "warmup": 3
+      },
+      "lmeval_acceptance_run": "softmax_dtype=float32",
+      "logprob_chunk": 128,
+      "model_id": "Qwen/Qwen2.5-1.5B",
+      "model_revision": "8faed761d45a263340a0528343f099c05c9a4323",
+      "q3_bits": [
+        2,
+        3,
+        4,
+        8
+      ],
+      "seed": 6304,
+      "sparsities": [
+        0.25,
+        0.5,
+        0.75
+      ]
+    },
+    "test_only": false
+  },
+  "elapsed_wall_s": 980.8815964329997,
+  "end_time": "2026-11-26T01:01:25.714677+00:00",
+  "eval_id": "t1-eval-v1",
+  "meta": {
+    "cuda_available": true,
+    "device_count": 1,
+    "device_names": [
+      "Tesla T4"
+    ],
+    "git_commit": "02f128b2dd9dc9057e8c6a47a4e8008eb9067cf0",
+    "git_dirty": false,
+    "hostname": "d4b399e31033",
+    "mps_available": false,
+    "package_versions": {
+      "accelerate": "1.16.0",
+      "datasets": "4.8.5",
+      "huggingface_hub": "0.36.2",
+      "lm_eval": "0.4.13",
+      "matplotlib": "3.10.0",
+      "numpy": "2.4.6",
+      "peft": "0.21.2",
+      "safetensors": "0.8.0",
+      "scipy": "1.16.3",
+      "tokenizers": "0.22.2",
+      "torch": "2.11.0+cu130",
+      "transformers": "4.57.1"
+    },
+    "platform": "Linux-6.18.55+-x86_64-with-glibc2.39",
+    "python_version": "3.13.16",
+    "torch_cuda_build": "13.0",
+    "torch_cudnn_build": 92700,
+    "torch_version": "2.11.0+cu130"
+  },
+  "model": {
+    "attn_implementation_effective": "sdpa",
+    "attn_implementation_requested": "sdpa",
+    "device": "cuda:0",
+    "model_class": "Qwen2ForCausalLM",
+    "model_id": "Qwen/Qwen2.5-1.5B",
+    "parameter_dtypes": [
+      "torch.float16"
+    ],
+    "requested_dtype": "float16",
+    "revision": "8faed761d45a263340a0528343f099c05c9a4323"
+  },
+  "peak_vram_allocated_bytes": {
+    "0": 3623464448
+  },
+  "peak_vram_reserved_bytes": {
+    "0": 4057989120
+  },
+  "start_time": "2026-11-26T00:45:04.903808+00:00",
+  "status": "ok",
+  "steps": {
+    "calib_stats_source": {
+      "awq_scales_sha256": "7fa30d763948c6b5c2f2e75f372250268bac7613a2c4ff0c68519282ff4631b5",
+      "awq_search_sha256": "96434243b7faefc92c74882809eb312ed09db350562d0a8f80f71b1b945d10ff",
+      "calib_git_commit": "02f128b2dd9dc9057e8c6a47a4e8008eb9067cf0",
+      "dense_stats_sha256": "60aa2ae00617c1429eaeb2f6f3f8ffcd0f514177dbfd3090306c5855cf69661c",
+      "dir": "results/task1/calib_stats",
+      "run_sha256": "381cf9a4467d03a9064802e4f036a594734075eb2c4d717eedfd9996ee9f7a46"
+    },
+    "effort": {
+      "S1": {
+        "block_forward_passes": 0,
+        "calibration_sequences_per_pass": 128,
+        "full_model_calibration_passes": 0,
+        "restores": 0,
+        "wall_s": 0.3899714179997318
+      },
+      "S2": {
+        "block_forward_passes": 0,
+        "calibration_sequences_per_pass": 128,
+        "full_model_calibration_passes": 56,
+        "restores": 56,
+        "wall_s": 947.87563628
+      },
+      "fp16_reference": {
+        "block_forward_passes": 0,
+        "calibration_sequences_per_pass": 128,
+        "full_model_calibration_passes": 1,
+        "wall_s": 14.738024477000181
+      }
+    },
+    "fp16_calib_nll": {
+      "N": 65408,
+      "batch_size": 8,
+      "eval_id": "t1-eval-v1",
+      "mean_nll": 2.6160733503131888,
+      "n_sequences": 128,
+      "nll_sum": 171112.12569728505,
+      "split": "c4_calibration"
+    },
+    "held_out_guard": {
+      "attempts": [],
+      "forbidden": [
+        "wikitext2_test_windows_locked.jsonl.gz",
+        "c4_validation_windows_locked.jsonl.gz",
+        "hellaswag_val_locked.jsonl.gz"
+      ],
+      "mechanism": "inside forbid_held_out(): locked_path refuses the held-out names, and a process audit hook refuses any open() of a path whose file name is a held-out name; attempted opens are recorded"
+    },
+    "peak_gpu_allocated_bytes": 3623464448,
+    "pristine_after": {
+      "tensors_verified": 338
+    },
+    "restore": {
+      "tensors_verified": 338
+    },
+    "sensitivity": {
+      "file": "sensitivity.json",
+      "sha256": "6841eb2285a074b9aedbc103104a84559a4c6069183006a7709b2f2a91f456ed",
+      "values": {
+        "S1": [
+          0.015665219945400034,
+          0.011629783138841474,
+          0.012723650251116072,
+          0.01050715085839023,
+          0.008348502364813113,
+          0.008946159640614059,
+          0.006993205607438288,
+          0.006305897603181898,
+          0.006636718408066351,
+          0.006430105000984769,
+          0.0070990554424894955,
+          0.007931492909663865,
+          0.008198543089110645,
+          0.007159876890209208,
+          0.00857627291639312,
+          0.008437490596824667,
+          0.009360711447665003,
+          0.009357698157387954,
+          0.009219257771467962,
+          0.009926355185628939,
+          0.009184423281031162,
+          0.009010186716288077,
+          0.00912772640794599,
+          0.008697702103302259,
+          0.007513521766128326,
+          0.007714728347393645,
+          0.008237737233565301,
+          0.010521640296743698
+        ],
+        "S2": {
+          "0.50": [
+            0.009618289620075604,
+            0.0036609749556473226,
+            0.01676949684978446,
+            0.0063909360076523924,
+            0.006357034717921373,
+            0.005950379825982122,
+            0.006454769592024956,
+            0.005445978595570278,
+            0.007435829975419139,
+            0.006066760323844456,
+            0.00499682718842509,
+            0.004814945950557981,
+            0.004963478974052027,
+            0.006002153406331701,
+            0.0037343582373043915,
+            0.004409564738159233,
+            0.0065020352919265,
+            0.006025978199182713,
+            0.0056576017188540995,
+            0.006315921585939854,
+            0.006674938352926318,
+            0.008005703118735497,
+            0.009074465335963566,
+            0.008539376175852986,
+            0.008884472920285269,
+            0.010270710522860771,
+            0.018060265886420623,
+            0.04397896341826657
+          ],
+          "0.75": [
+            0.5349284554823641,
+            0.03174828130294971,
+            0.05871570545586824,
+            0.03972323865679561,
+            0.04403158576547783,
+            0.03897176023361215,
+            0.03307699507216366,
+            0.030807022146059904,
+            0.031864442492492984,
+            0.029107934913306988,
+            0.024587602814282405,
+            0.027015366469199886,
+            0.021767341506374382,
+            0.027826038275735154,
+            0.01999376557811905,
+            0.024270289792503785,
+            0.024555032495903628,
+            0.028497550415632844,
+            0.027388202407934603,
+            0.0382219636497676,
+            0.03848233775236398,
+            0.04270385321143699,
+            0.045741840498132014,
+            0.04505612385992519,
+            0.04409169024250792,
+            0.04783881659142075,
+            0.07262351718288862,
+            0.265839668036834
+          ]
+        }
+      }
+    }
+  },
+  "timings_s": {
+    "fp16_calib_nll_s": 14.738024477000181,
+    "load_s": 16.996711822999714
+  },
+  "updated_time": "2026-11-26T01:01:25.715056+00:00"
+}
