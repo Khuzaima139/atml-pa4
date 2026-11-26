@@ -58,3 +58,30 @@ def test_code_cells_parse():
     for c in nbbuild.build(MD, {"COMMIT": "x"})["cells"]:
         if c["cell_type"] == "code":
             ast.parse("".join(c["source"]))
+
+
+def test_sections(tmp_path):
+    md = MD + """
+# Second title
+
+## Cell 1: Other
+
+```python
+# a comment line, not a heading
+y = 2
+```
+"""
+    secs = nbbuild.sections(md)
+    assert list(secs) == ["Title", "Second title"]
+    assert "a comment line" in secs["Second title"] and "Second title" not in secs["Title"]
+    nb = nbbuild.build(nbbuild.section(md, "Second title"), {})
+    assert [c["cell_type"] for c in nb["cells"]] == ["markdown", "markdown", "code"]
+    with pytest.raises(ValueError, match="no section"):
+        nbbuild.section(md, "Missing")
+    with pytest.raises(ValueError, match="repeated"):
+        nbbuild.sections(md + "\n# Title\n")
+    f = tmp_path / "c.md"
+    f.write_text(md)
+    out = tmp_path / "s.ipynb"
+    assert nbbuild.main(["--cells", str(f), "--out", str(out), "--section", "Second title"]) == 0
+    assert "y = 2" in "".join(json.loads(out.read_text())["cells"][2]["source"])

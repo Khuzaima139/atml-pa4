@@ -1,10 +1,12 @@
 """Build a Jupyter notebook from a cells markdown file.
 
-Usage: python -m common.nbbuild --cells FILE.md --out FILE.ipynb [--set NAME=VALUE ...]
+Usage: python -m common.nbbuild --cells FILE.md --out FILE.ipynb [--section TITLE] [--set NAME=VALUE ...]
 
 Format: text before the first "## Cell" heading becomes a markdown cell; every "## Cell ..." section becomes one
 markdown cell (heading and prose) followed by one code cell per ```python fenced block. {{NAME}} placeholders are
 replaced from --set; an unknown or unreplaced placeholder is an error. The output file must not exist.
+--section TITLE uses only the part of the file from the top-level heading line "# TITLE" (outside code blocks) to the
+next top-level heading; a missing or repeated title is an error.
 """
 import argparse
 import hashlib
@@ -60,6 +62,32 @@ def parse(md: str) -> list:
     return cells
 
 
+def sections(md: str) -> dict:
+    """{title: text} for every top-level "# " heading outside ```python blocks; text starts at the heading line."""
+    out, order, cur, in_code = {}, [], None, False
+    for line in md.split("\n"):
+        if in_code:
+            in_code = line.strip() != _FENCE_CLOSE
+        elif line.strip() == _FENCE_OPEN:
+            in_code = True
+        elif line.startswith("# "):
+            cur = line[2:].strip()
+            if cur in out:
+                raise ValueError(f"repeated section title {cur!r}")
+            out[cur] = []
+            order.append(cur)
+        if cur is not None:
+            out[cur].append(line)
+    return {t: "\n".join(out[t]).rstrip("\n") + "\n" for t in order}
+
+
+def section(md: str, title: str) -> str:
+    secs = sections(md)
+    if title not in secs:
+        raise ValueError(f"no section {title!r}; sections: {list(secs)}")
+    return secs[title]
+
+
 def substitute(text: str, values: dict) -> str:
     missing = sorted(set(_PH.findall(text)) - set(values))
     if missing:
@@ -87,6 +115,7 @@ def main(argv=None):
     ap.add_argument("--cells", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--set", action="append", default=[], metavar="NAME=VALUE")
+    ap.add_argument("--section", default=None, help="title of the top-level section to build")
     a = ap.parse_args(argv)
     values = {}
     for kv in a.set:
@@ -94,7 +123,10 @@ def main(argv=None):
         if not _PH.fullmatch("{{" + k + "}}"):
             ap.error(f"bad placeholder name {k!r}")
         values[k] = v
-    nb = build(Path(a.cells).read_text(encoding="utf-8"), values)
+    md = Path(a.cells).read_text(encoding="utf-8")
+    if a.section is not None:
+        md = section(md, a.section)
+    nb = build(md, values)
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     with open(out, "x", encoding="utf-8") as fh:
