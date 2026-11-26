@@ -12,6 +12,7 @@ file can be opened. The default runs every step.
 """
 import argparse
 import contextlib
+import os
 import sys
 import time
 import traceback
@@ -35,6 +36,7 @@ OUTPUT_FILES = {
     "lmeval_verify": "lmeval_verify.json",
 }
 STEPS = ("enumeration", "perplexity", "hellaswag", "calib_nll", "lmeval_verify", "resources", "storage")
+RECORDED_ENV = ("PYTORCH_CUDA_ALLOC_CONF",)
 RESOURCE_MODES = {"default": STEPS, "skip": tuple(x for x in STEPS if x != "resources"),
                   "only": ("enumeration", "resources", "storage")}
 
@@ -107,6 +109,7 @@ def run(args):
            "device": args.device, "model_path": args.model_path, **lim,
            "hellaswag_scope": C.CONDITIONS[CONDITION]["hellaswag"], "output_files": files,
            "resources_mode": mode, "steps_run": list(RESOURCE_MODES[mode]),
+           "env": {k: os.environ.get(k) for k in RECORDED_ENV},
            "data_files": [file_info(f) for f in (*WINDOW_FILES.values(), *SEQUENCE_FILES.values(), HELLASWAG_FILE)]}
     if mode == "only":
         cfg["data_files"] = [file_info(SEQUENCE_FILES["c4_calibration"])]
@@ -186,9 +189,10 @@ def run(args):
                     timings[f"calib_nll_{split}_s"] = time.perf_counter() - t
                     rec.update(steps=steps, timings_s=timings)
 
-                # lm_eval check on the first 512 IDs: acceptance on a float32 copy of the model, two informational
-                # runs on the FP16 model. Peak memory of this step alone: the CUDA peak statistics are reset at its
-                # start (the peak before the step is kept as peak_allocated_bytes_before_step).
+                # lm_eval check on the first 512 IDs: acceptance on a float32 copy of the model (the FP16 model waits
+                # on CPU meanwhile), two informational runs on the FP16 model. Peak memory of this step alone: the CUDA
+                # peak statistics are reset at its start (the peak before the step is kept as
+                # peak_allocated_bytes_before_step). Parameter dtypes, devices and fingerprints are checked afterwards.
                 t = time.perf_counter()
                 n_v = min(C.HELLASWAG_SUBSET_N, len(hs_rows))
                 pre_peak = None
@@ -197,6 +201,7 @@ def run(args):
                     pre_peak = torch.cuda.max_memory_allocated(dev)
                     torch.cuda.reset_peak_memory_stats(dev)
                 dtypes_before = sorted({str(p.dtype) for p in model.parameters()})
+                devices_before = sorted({str(p.device) for p in model.parameters()})
                 rep = verify(model, tok, hs_records[:n_v], hs_rows[:n_v])
                 if cuda:
                     torch.cuda.synchronize(dev)
@@ -206,6 +211,8 @@ def run(args):
                 write_json_new(out / files["lmeval_verify"], rep)
                 dtypes_after = sorted({str(p.dtype) for p in model.parameters()})
                 assert dtypes_after == dtypes_before, (dtypes_before, dtypes_after)
+                devices_after = sorted({str(p.device) for p in model.parameters()})
+                assert devices_after == devices_before, (devices_before, devices_after)
                 n_fp = pristine.verify(model)  # parameter fingerprints unchanged since load
                 steps["lmeval_verify"] = {"file": files["lmeval_verify"], "n_examples": n_v,
                                           "acceptance_run": rep["acceptance_run"], "acceptance": rep["acceptance"],
@@ -214,7 +221,9 @@ def run(args):
                                                    for k, v in rep["runs"].items()},
                                           "peak_allocated_bytes": peak_a, "peak_reserved_bytes": peak_r,
                                           "peak_allocated_bytes_before_step": pre_peak,
+                                          "batch_sizes": {k: v["batch_size"] for k, v in rep["runs"].items()},
                                           "fp16_model_after": {"parameter_dtypes": dtypes_after,
+                                                               "parameter_devices": devices_after,
                                                                "fingerprints_verified": n_fp}}
                 timings["lmeval_verify_s"] = time.perf_counter() - t
                 rec.update(steps=steps, timings_s=timings)

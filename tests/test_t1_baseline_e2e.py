@@ -17,7 +17,7 @@ LIM_W, LIM_H, LIM_C = 3, 6, 2
 TOP_KEYS = {"config", "meta", "start_time", "status", "elapsed_wall_s", "updated_time", "end_time", "model",
             "tokenizer", "eval_id", "timings_s", "steps", "acceptance"}
 CONFIG_KEYS = {"condition", "condition_spec", "settings", "device", "model_path", "limits", "limited",
-               "hellaswag_scope", "output_files", "data_files", "resources_mode", "steps_run"}
+               "hellaswag_scope", "output_files", "data_files", "resources_mode", "steps_run", "env"}
 STEP_KEYS = {"enumeration", "perplexity", "hellaswag", "calib_nll", "lmeval_verify", "resources", "storage",
              "pristine_after"}
 TIMING_KEYS = {"load_s", "enumeration_s", "ppl_wikitext2_test_s", "ppl_c4_validation_s", "hellaswag_s",
@@ -32,7 +32,10 @@ CAL_SUMMARY = {"eval_id", "split", "n_sequences", "N", "nll_sum", "mean_nll", "b
 CAL_ROW = {"eval_id", "split", "seq_index", "source_row", "token_offset", "nll_sum", "n_scored"}
 VERIFY_RUN = {"n_examples", "n_candidates", "max_abs_diff", "mean_abs_diff", "argmax_disagreements_acc",
               "argmax_disagreements_acc_norm", "lmeval_acc", "lmeval_acc_norm", "ours_acc", "ours_acc_norm",
-              "model_dtype", "softmax_dtype", "ours_from", "rule_check", "wall_s"}
+              "model_dtype", "softmax_dtype", "ours_from", "rule_check", "batch_size", "memory_projection", "wall_s"}
+VERIFY_FP32_EXTRA = {"ours_batch_size", "device", "loaded_model_offloaded_to"}
+MEM_KEYS = {"batch_size", "max_length", "vocab", "element_bytes", "projected_bytes", "device", "free_bytes",
+            "total_bytes"}
 RUNS = {"softmax_dtype=default", "softmax_dtype=float32", "fp32_model"}
 MEAS = {"what", "unit", "repetitions", "warmup", "times_ms", "median_ms", "min_ms", "max_ms",
         "peak_allocated_bytes", "peak_reserved_bytes", "peak_allocated_bytes_max", "peak_reserved_bytes_max"}
@@ -55,7 +58,15 @@ def test_lmeval_lines_on_pass(run_dir):
     from task1.verify_lmeval import LOG_PREFIX
 
     lines = [x for x in (run_dir.parent / "stdout.txt").read_text().splitlines() if x.startswith(LOG_PREFIX)]
-    assert len(lines) == 4, lines  # one per run and the verdict; no failure rows on PASS
+    # A memory line before each run (printed as the run starts), then one line per run and the verdict; no failure
+    # rows on PASS.
+    assert len(lines) == 7, lines
+    order = ["softmax_dtype=default", "softmax_dtype=float32", "fp32_model"]
+    bs = {n: C.LMEVAL_FP32_BATCH_SIZE if n == "fp32_model" else C.LMEVAL_BATCH_SIZE for n in order}
+    for i, name in enumerate(order):
+        assert lines[i].startswith(f"{LOG_PREFIX} memory before run {name}: projected logits+log_softmax bytes ")
+        assert f"(batch {bs[name]} x max length " in lines[i] and " free None of None bytes on cpu" in lines[i]
+        assert lines[3 + i].startswith(f"{LOG_PREFIX} run {name} (")
     for name in RUNS:
         line = [x for x in lines if f" run {name} (" in x]
         assert len(line) == 1 and all(k in line[0] for k in ("max_abs_diff=", "mean_abs_diff=", "disagreements acc=",
@@ -77,7 +88,8 @@ def test_forced_fail_prints_rows_and_exits_1(tiny_model_dir, tmp_path, monkeypat
                         "--no-resources"])
     assert rc == 1
     lines = [x for x in capsys.readouterr().out.splitlines() if x.startswith(V.LOG_PREFIX)]
-    assert sum(" run " in x for x in lines) == 3
+    assert sum(x.startswith(f"{V.LOG_PREFIX} run ") for x in lines) == 3
+    assert sum(x.startswith(f"{V.LOG_PREFIX} memory before run ") for x in lines) == 3
     assert any(x.startswith(f"{V.LOG_PREFIX} acceptance FAIL (run fp32_model;") for x in lines)
     diffs = [x for x in lines if " difference order=" in x]
     assert len(diffs) == min(V.N_LOG_ROWS, 4 * LIM_H)
@@ -100,6 +112,7 @@ def test_run_json_keys(run_dir):
     assert r["config"]["limited"] is True and r["config"]["condition"] == "fp16"
     assert r["config"]["hellaswag_scope"] == "full"
     assert r["config"]["settings"] == C.settings_dict()
+    assert r["config"]["env"] == {"PYTORCH_CUDA_ALLOC_CONF": os.environ.get("PYTORCH_CUDA_ALLOC_CONF")}
     assert len(r["config"]["data_files"]) == 5
     assert {"git_commit", "git_dirty", "package_versions", "torch_version"} <= set(r["meta"])
     assert r["meta"]["package_versions"]["lm_eval"] == "0.4.13"
@@ -134,17 +147,21 @@ def test_run_json_keys(run_dir):
     lv = s["lmeval_verify"]
     assert set(lv) == {"file", "n_examples", "acceptance_run", "acceptance", "acceptance_detail", "runs",
                        "peak_allocated_bytes", "peak_reserved_bytes", "peak_allocated_bytes_before_step",
-                       "fp16_model_after"}
+                       "batch_sizes", "fp16_model_after"}
+    assert lv["batch_sizes"] == {"softmax_dtype=default": C.LMEVAL_BATCH_SIZE,
+                                 "softmax_dtype=float32": C.LMEVAL_BATCH_SIZE, "fp32_model": C.LMEVAL_FP32_BATCH_SIZE}
     assert lv["n_examples"] == LIM_H and lv["acceptance_run"] == "fp32_model"
     assert lv["acceptance"] == r["acceptance"] == "PASS"
     assert lv["acceptance_detail"]["threshold_max_abs_diff"] == 2e-2
     assert lv["acceptance_detail"]["max_abs_diff"] == lv["runs"]["fp32_model"]["max_abs_diff"]
     assert lv["peak_allocated_bytes"] is None and lv["peak_allocated_bytes_before_step"] is None  # CPU
-    assert lv["fp16_model_after"] == {"parameter_dtypes": ["torch.float16"],
+    assert lv["fp16_model_after"] == {"parameter_dtypes": ["torch.float16"], "parameter_devices": ["cpu"],
                                       "fingerprints_verified": en["pristine_tensors_verified"]}
     assert set(lv["runs"]) == RUNS
     for name, run in lv["runs"].items():
-        assert set(run) == VERIFY_RUN and run["n_candidates"] == 4 * LIM_H
+        assert set(run) == VERIFY_RUN | (VERIFY_FP32_EXTRA if name == "fp32_model" else set())
+        assert run["n_candidates"] == 4 * LIM_H and set(run["memory_projection"]) == MEM_KEYS
+        assert run["batch_size"] == run["memory_projection"]["batch_size"] == lv["batch_sizes"][name]
         assert run["model_dtype"] == ("torch.float32" if name == "fp32_model" else "torch.float16")
         assert run["max_abs_diff"] < 0.5  # FP16 model on CPU; agreement is checked at FP32 in unit tests
     assert lv["runs"]["fp32_model"]["max_abs_diff"] < 1e-3
@@ -184,13 +201,15 @@ def test_per_example_files(run_dir):
         rows = read_jsonl(run_dir / f"calib_nll_{split}.jsonl.gz")
         assert len(rows) == LIM_C and all(set(x) == CAL_ROW for x in rows)
     rep = json.loads((run_dir / "lmeval_verify.json").read_text())
-    assert set(rep) == {"eval_id", "lm_eval_version", "batch_size", "prompt_format", "orders", "runs",
-                         "acceptance_run", "acceptance", "acceptance_detail"}
+    assert set(rep) == {"eval_id", "lm_eval_version", "batch_size", "fp32_batch_size", "prompt_format", "orders",
+                        "runs", "acceptance_run", "acceptance", "acceptance_detail"}
+    assert (rep["batch_size"], rep["fp32_batch_size"]) == (C.LMEVAL_BATCH_SIZE, C.LMEVAL_FP32_BATCH_SIZE)
     assert rep["acceptance"] == "PASS" and rep["acceptance_detail"]["result"] == "PASS"
     assert rep["acceptance_run"] == "fp32_model" and set(rep["runs"]) == RUNS
     assert rep["orders"] == list(range(LIM_H))
-    for run in rep["runs"].values():
-        assert set(run) == VERIFY_RUN | {"per_example"} and len(run["per_example"]) == LIM_H
+    for name, run in rep["runs"].items():
+        extra = VERIFY_FP32_EXTRA if name == "fp32_model" else set()
+        assert set(run) == VERIFY_RUN | extra | {"per_example"} and len(run["per_example"]) == LIM_H
         assert all(set(ex) == {"order", "ours_loglik", "lmeval_loglik", "max_abs_diff"} for ex in run["per_example"])
     assert [ex["ours_loglik"] for ex in rep["runs"]["softmax_dtype=default"]["per_example"]] == [x["loglik"] for x in hs]
     for p in run_dir.glob("*.gz"):

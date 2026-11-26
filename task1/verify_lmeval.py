@@ -6,10 +6,16 @@ Runs (each compares our summed continuation log likelihoods with HFLM on the sam
   softmax_dtype=default  the loaded FP16 model, lm_eval default log-softmax (model dtype); informational
   softmax_dtype=float32  the loaded FP16 model, lm_eval FP32 log-softmax; informational
   fp32_model             a deep copy of the loaded model cast to float32 on the same device: task1.evaluate.hellaswag
-                         and HFLM (FP32 log-softmax) both on that copy; the acceptance run (config.LMEVAL_ACCEPTANCE_RUN)
+                         and HFLM (FP32 log-softmax) both on that copy, both with batch size
+                         config.LMEVAL_FP32_BATCH_SIZE; the acceptance run (config.LMEVAL_ACCEPTANCE_RUN)
 On the FP16 model the two scorers batch and pad differently (our scorer passes an attention mask with padding, HFLM
-none), so FP16 attention kernels can differ between them; the FP32 copy tests the scoring logic itself. The FP32 copy
-is freed (and the CUDA cache emptied) before returning; the loaded model is not modified.
+none), so FP16 attention kernels can differ between them; the FP32 copy tests the scoring logic itself.
+For the fp32_model run the loaded model is moved to CPU first (CUDA cache emptied), so only the FP32 copy is on the
+device; afterwards the copy is freed, the cache emptied and the loaded model moved back to its device (also on error).
+The loaded model's values and dtypes are not modified.
+Before each lm_eval run one line (LOG_PREFIX) gives the projected bytes of its logits and log-softmax (batch x max
+request length x vocabulary x element bytes x 2) next to the free device memory; the same numbers are stored in the
+run as memory_projection.
 """
 import argparse
 import copy
@@ -119,61 +125,119 @@ def _param_dtype(model) -> str:
     return str(next(model.parameters()).dtype)
 
 
-def lmeval_run(model, tokenizer, records, ours_rows, batch_size: int, softmax_dtype, ours_from: str) -> dict:
-    """One HFLM pass compared with ours_rows; the acceptance rule is evaluated for it as well (rule_check)."""
+def _device(model):
+    return next(model.parameters()).device
+
+
+def memory_projection(model, tokenizer, records, batch_size: int, softmax_dtype) -> dict:
+    """Projected bytes of one lm_eval batch's logits and log-softmax and the free device memory.
+
+    projected = batch x max length x vocabulary x element bytes x 2, with max length the longest context +
+    continuation token count of the requests (an upper bound on HFLM's padded length) and element bytes the larger of
+    the model dtype and the log-softmax dtype. Free and total memory are torch.cuda.mem_get_info on a CUDA device,
+    None otherwise."""
+    import torch
+
+    from .evaluate import hellaswag_requests
+
+    reqs = hellaswag_requests(tokenizer, records)
+    max_len = max(len(c) + len(t) for ex in reqs for c, t in zip(ex["context_tokens"], ex["continuation_tokens"]))
+    out_emb = model.get_output_embeddings()
+    vocab = int(out_emb.weight.shape[0]) if out_emb is not None else int(model.config.vocab_size)
+    elem = next(model.parameters()).element_size()
+    if softmax_dtype is not None:
+        elem = max(elem, torch.empty((), dtype=getattr(torch, softmax_dtype)).element_size())
+    dev = _device(model)
+    free = total = None
+    if dev.type == "cuda":
+        free, total = torch.cuda.mem_get_info(dev)
+    return {"batch_size": batch_size, "max_length": max_len, "vocab": vocab, "element_bytes": elem,
+            "projected_bytes": batch_size * max_len * vocab * elem * 2, "device": str(dev),
+            "free_bytes": free, "total_bytes": total}
+
+
+def memory_line(name: str, m: dict) -> str:
+    return (f"{LOG_PREFIX} memory before run {name}: projected logits+log_softmax bytes {m['projected_bytes']} "
+            f"(batch {m['batch_size']} x max length {m['max_length']} x vocab {m['vocab']} x "
+            f"{m['element_bytes']} bytes x 2); free {m['free_bytes']} of {m['total_bytes']} bytes on {m['device']}")
+
+
+def lmeval_run(model, tokenizer, records, ours_rows, batch_size: int, softmax_dtype, ours_from: str,
+               name: str = None) -> dict:
+    """One HFLM pass compared with ours_rows; the acceptance rule is evaluated for it as well (rule_check). The memory
+    projection line is printed before the pass."""
+    mem = memory_projection(model, tokenizer, records, batch_size, softmax_dtype)
+    print(memory_line(name or run_name(softmax_dtype), mem), flush=True)
     t0 = time.perf_counter()
     lls = lmeval_loglikelihoods(model, tokenizer, records, batch_size, softmax_dtype=softmax_dtype)
     cmp = compare(ours_rows, lls)
     det = acceptance(ours_rows, cmp)
     cmp.update(model_dtype=_param_dtype(model), softmax_dtype=softmax_dtype or "default", ours_from=ours_from,
                rule_check={k: det[k] for k in ("result", "max_abs_diff_ok", "n_disagreements", "n_unexplained")},
-               wall_s=time.perf_counter() - t0)
+               batch_size=batch_size, memory_projection=mem, wall_s=time.perf_counter() - t0)
     return cmp
 
 
-def fp32_copy_run(model, tokenizer, records, batch_size: int) -> tuple:
-    """task1.evaluate.hellaswag and HFLM (FP32 log-softmax) on a float32 deep copy of model on the same device.
+def _empty_cache():
+    import torch
 
-    Returns (comparison, rows of task1.evaluate.hellaswag on the copy). The copy is deleted and the CUDA cache emptied
-    before returning, also on error."""
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+
+def fp32_copy_run(model, tokenizer, records, batch_size: int = C.LMEVAL_FP32_BATCH_SIZE) -> tuple:
+    """task1.evaluate.hellaswag and HFLM (FP32 log-softmax), both with batch_size, on a float32 deep copy of model
+    placed on model's device while model itself waits on CPU.
+
+    Returns (comparison, rows of task1.evaluate.hellaswag on the copy). The copy is deleted, the CUDA cache emptied and
+    model moved back to its device before returning, also on error."""
     import torch
 
     from .evaluate import hellaswag
 
     t0 = time.perf_counter()
+    dev = _device(model)
     m32 = None
+    model.to("cpu")
+    _empty_cache()
     try:
-        m32 = copy.deepcopy(model).to(torch.float32)
+        m32 = copy.deepcopy(model).to(device=dev, dtype=torch.float32)
         m32.eval()
-        rows32, _ = hellaswag(m32, tokenizer, records, scope=f"{FP32_RUN}_first{len(records)}")
+        rows32, _ = hellaswag(m32, tokenizer, records, scope=f"{FP32_RUN}_first{len(records)}",
+                              batch_size=batch_size)
         cmp = lmeval_run(m32, tokenizer, records, rows32, batch_size, "float32",
-                         ours_from="task1.evaluate.hellaswag on the float32 copy")
+                         ours_from="task1.evaluate.hellaswag on the float32 copy", name=FP32_RUN)
     finally:
         del m32
-        gc.collect()
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-    cmp["wall_s"] = time.perf_counter() - t0
+        _empty_cache()
+        model.to(dev)
+    cmp.update(ours_batch_size=batch_size, device=str(dev), loaded_model_offloaded_to="cpu",
+               wall_s=time.perf_counter() - t0)
     return cmp, rows32
 
 
 def verify(model, tokenizer, records, ours_rows, batch_size: int = C.LMEVAL_BATCH_SIZE,
-           softmax_dtypes=INFO_SOFTMAX_DTYPES, fp32_model: bool = True) -> dict:
-    """HFLM on the given model for each softmax dtype (None = lm_eval default, the model dtype) against ours_rows, then
-    (fp32_model) the FP32-copy run; the acceptance rule is applied to config.LMEVAL_ACCEPTANCE_RUN."""
+           softmax_dtypes=INFO_SOFTMAX_DTYPES, fp32_model: bool = True,
+           fp32_batch_size: int = C.LMEVAL_FP32_BATCH_SIZE) -> dict:
+    """HFLM on the given model for each softmax dtype (None = lm_eval default, the model dtype) with batch_size against
+    ours_rows, then (fp32_model) the FP32-copy run with fp32_batch_size for both scorers; the acceptance rule is applied
+    to config.LMEVAL_ACCEPTANCE_RUN. Each run records its batch size."""
     import lm_eval
 
     assert [r["order"] for r in ours_rows] == [r["order"] for r in records]
     report = {"eval_id": C.EVAL_ID, "lm_eval_version": lm_eval.__version__, "batch_size": batch_size,
+              "fp32_batch_size": fp32_batch_size,
               "prompt_format": HELLASWAG_PROMPT_FORMAT, "orders": [r["order"] for r in records], "runs": {}}
     rows_of = {}
     for sd in softmax_dtypes:
         name = run_name(sd)
         report["runs"][name] = lmeval_run(model, tokenizer, records, ours_rows, batch_size, sd,
-                                          ours_from="task1.evaluate.hellaswag on the loaded model")
+                                          ours_from="task1.evaluate.hellaswag on the loaded model", name=name)
         rows_of[name] = ours_rows
     if fp32_model:
-        report["runs"][FP32_RUN], rows_of[FP32_RUN] = fp32_copy_run(model, tokenizer, records, batch_size)
+        report["runs"][FP32_RUN], rows_of[FP32_RUN] = fp32_copy_run(
+            model, tokenizer, records, fp32_batch_size)
     assert C.LMEVAL_ACCEPTANCE_RUN in report["runs"], "acceptance run missing"
     report["acceptance_run"] = C.LMEVAL_ACCEPTANCE_RUN
     det = acceptance(rows_of[C.LMEVAL_ACCEPTANCE_RUN], report["runs"][C.LMEVAL_ACCEPTANCE_RUN])

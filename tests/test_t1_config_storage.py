@@ -29,7 +29,9 @@ def test_fixed_settings():
     assert C.ELIGIBLE == ("q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj")
     assert (C.SEED, C.GROUP_SIZE, C.DTYPE) == (6304, 128, "float16")
     assert C.SPARSITIES == (0.25, 0.50, 0.75) and C.BITS == (8, 4, 3) and C.Q3_BITS == (2, 3, 4, 8)
-    for b in (C.PPL_BATCH_SIZE, C.HELLASWAG_BATCH_SIZE, C.CALIB_BATCH_SIZE, C.LMEVAL_BATCH_SIZE):
+    assert C.LMEVAL_FP32_BATCH_SIZE == 8
+    for b in (C.PPL_BATCH_SIZE, C.HELLASWAG_BATCH_SIZE, C.CALIB_BATCH_SIZE, C.LMEVAL_BATCH_SIZE,
+              C.LMEVAL_FP32_BATCH_SIZE):
         assert isinstance(b, int) and b >= 1
     assert C.LATENCY_REPS >= 5
     assert C.LMEVAL_ACCEPTANCE_RUN == "fp32_model"

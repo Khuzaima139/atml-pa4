@@ -107,6 +107,7 @@ def test_preflight_and_smoke_jobs():
         assert a[a.index("--limit-hellaswag") + 1] == str(lim) and "--limit-windows" not in a
         assert by[n]["expect"]["hellaswag_n"] == lim
     for j in pf + sm:  # every command runs through the job wrapper with the job's output directory
+        assert j["env"] == K.JOB_ENV == {"PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"}
         a = j["cmd"]
         assert a[1:6] == ["-m", "task1.kaggle_run2", "job", "--out", j["out"]] and a[6] == "--"
         assert a[8:10] == ["-m", j["entry"]] and a[a.index("--out", 7) + 1] == j["out"]
@@ -511,6 +512,8 @@ def test_job_wrapper_exit_codes(tmp_path):
 
     ok = job(tmp_path / "a", "print('fine')")
     assert ok.returncode == 0 and ok.stdout == "fine\n"
+    env = job(tmp_path / "a2", "import os; print(os.environ['PYTORCH_CUDA_ALLOC_CONF'])")
+    assert env.returncode == 0 and env.stdout == "expandable_segments:True\n"
     d = tmp_path / "b"
     d.mkdir()
     (d / "run.json").write_text(json.dumps({"status": "acceptance_failed", "acceptance": "FAIL", "steps": {

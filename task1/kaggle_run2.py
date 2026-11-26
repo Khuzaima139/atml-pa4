@@ -31,10 +31,12 @@ Preflight: fp16 and q3_int3 (GPU 0), p3_s50 (GPU 1) with one window per suite an
 calibration sequence), --no-resources, under results_smoke/preflight/. Smoke: fp16 with the first 512 HellaSwag IDs
 (so its lm_eval check runs on the full 512 IDs) then the worst-case batches (GPU 0); the smoke condition with the
 first 100 HellaSwag IDs then its --resources-only run (GPU 1); under results_smoke/smoke/.
-Every job command runs through `job --out DIR -- CMD`: the command's output goes to the job log unchanged, signals are
-forwarded to it, its exit code is returned, and on a nonzero exit the status fields of DIR/run.json are printed (lines
-starting with STATUS_PREFIX). failure-lines prints, for every job that did not exit 0, the lines of its log that start
-with STATUS_PREFIX or the lm_eval check prefix (task1.verify_lmeval.LOG_PREFIX).
+Every job command runs through `job --out DIR -- CMD`: the command runs with JOB_ENV added to its environment
+(PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True; task1.baseline records it in config.env of its run.json and every
+job spec records it under env), its output goes to the job log unchanged, signals are forwarded to it, its exit code
+is returned, and on a nonzero exit the status fields of DIR/run.json are printed (lines starting with STATUS_PREFIX).
+failure-lines prints, for every job that did not exit 0, the lines of its log that start with STATUS_PREFIX or the
+lm_eval check prefix (task1.verify_lmeval.LOG_PREFIX).
 summary, check and zip report incomplete jobs and missing files instead of stopping; final returns 1 if any job is
 not ok, the check report is missing or lists problems, or the zip is missing.
 """
@@ -66,6 +68,7 @@ STAGGER_S = 60.0
 VRAM_LIMIT_BYTES = 14 * 2**30  # T4: 15 GiB per GPU
 STATUS_PREFIX = "[job status]"
 TRACEBACK_TAIL = 15
+JOB_ENV = {"PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"}
 ROOT_GLOBS = {"run1": "**/atml-pa4-t1-run1", "run1b": "**/atml-pa4-t1-run1b"}
 
 
@@ -214,7 +217,7 @@ def stage_jobs(stage: str, located: dict, results=None, status=None, run1_root=N
                      "artifacts": loc.get("dir") if cond and cond != "fp16" else None,
                      "manifest_sha256": loc.get("manifest_sha256") if cond and cond != "fp16" else None,
                      "run1": str(run1_dir(run1_root, cond)) if cond and cond != "fp16" else None,
-                     "cmd": cmd, "wait_for": list(wait_for), "expect": expect})
+                     "cmd": cmd, "env": dict(JOB_ENV), "wait_for": list(wait_for), "expect": expect})
 
     def evaluation(gpu, queue, cond, out, mode):
         if cond == "fp16":
@@ -643,13 +646,14 @@ def status_lines(out, code: int) -> list:
 
 
 def run_job(out, cmd: list) -> int:
-    """Run cmd (output inherited), forward SIGTERM/SIGINT/SIGHUP to it, print status_lines on a nonzero exit and return
-    its exit code (a child ended by signal k ends this process by the same signal)."""
+    """Run cmd (output inherited) with JOB_ENV added to its environment, forward SIGTERM/SIGINT/SIGHUP to it, print
+    status_lines on a nonzero exit and return its exit code (a child ended by signal k ends this process by the same
+    signal)."""
     import os
     import signal
     import subprocess
 
-    child = subprocess.Popen(cmd)
+    child = subprocess.Popen(cmd, env={**os.environ, **JOB_ENV})
 
     def forward(sig, _frame):
         try:

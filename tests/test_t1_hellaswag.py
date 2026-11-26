@@ -64,6 +64,96 @@ def test_verify_report(tiny_fp32, real_tokenizer, records):
         assert run["model_dtype"] == "torch.float32" and run["rule_check"]["result"] == "PASS"
         assert all(set(ex) == {"order", "ours_loglik", "lmeval_loglik", "max_abs_diff"} for ex in run["per_example"])
     assert rep["acceptance"] == "PASS" and rep["acceptance_detail"]["max_abs_diff"] == rep["runs"][FP32_RUN]["max_abs_diff"]
+    assert rep["batch_size"] == 4 and rep["fp32_batch_size"] == C.LMEVAL_FP32_BATCH_SIZE
+    assert {n: r["batch_size"] for n, r in rep["runs"].items()} == {
+        "softmax_dtype=default": 4, "softmax_dtype=float32": 4, FP32_RUN: C.LMEVAL_FP32_BATCH_SIZE}
+    assert rep["runs"][FP32_RUN]["ours_batch_size"] == C.LMEVAL_FP32_BATCH_SIZE
+
+
+def test_memory_projection_formula(tiny_fp32, real_tokenizer, records):
+    from task1.verify_lmeval import memory_line, memory_projection
+
+    reqs = E.hellaswag_requests(real_tokenizer, records)
+    max_len = max(len(c) + len(t) for ex in reqs for c, t in zip(ex["context_tokens"], ex["continuation_tokens"]))
+    vocab = tiny_fp32.get_output_embeddings().weight.shape[0]
+    m = memory_projection(tiny_fp32, real_tokenizer, records, 8, "float32")
+    assert (m["max_length"], m["vocab"], m["element_bytes"]) == (max_len, vocab, 4)
+    assert m["projected_bytes"] == 8 * max_len * vocab * 4 * 2
+    assert m["device"] == "cpu" and m["free_bytes"] is None and m["total_bytes"] is None
+    half = tiny_fp32.half()
+    try:
+        assert memory_projection(half, real_tokenizer, records, 8, None)["element_bytes"] == 2
+        assert memory_projection(half, real_tokenizer, records, 8, "float32")["element_bytes"] == 4
+    finally:
+        tiny_fp32.float()
+    line = memory_line("fp32_model", m)
+    assert line.startswith("[lm_eval check] memory before run fp32_model: projected logits+log_softmax bytes ")
+    assert f"(batch 8 x max length {max_len} x vocab {vocab} x 4 bytes x 2); free None of None bytes on cpu" in line
+
+
+def _spy_fp32_run(monkeypatch, model, fail=False):
+    """Record model.to calls and the batch sizes and model dtypes seen by both scorers in fp32_copy_run."""
+    from task1 import verify_lmeval as V
+
+    events = []
+    cls = type(model)
+    orig_to = cls.to
+
+    def to(self, *a, **k):  # class-level, so the deep copy does not inherit a bound spy
+        if self is model:
+            events.append(("to", str(a[0]) if a else str(k.get("device"))))
+        return orig_to(self, *a, **k)
+
+    monkeypatch.setattr(cls, "to", to)
+    orig_hs, orig_ll = E.hellaswag, V.lmeval_loglikelihoods
+
+    def hs(m, tok, recs, scope, batch_size=C.HELLASWAG_BATCH_SIZE, expected_n=None):
+        events.append(("ours", batch_size, str(next(m.parameters()).dtype)))
+        return orig_hs(m, tok, recs, scope, batch_size=batch_size, expected_n=expected_n)
+
+    def ll(m, tok, recs, batch_size, softmax_dtype=None):
+        events.append(("lmeval", batch_size, str(next(m.parameters()).dtype), softmax_dtype))
+        if fail:
+            raise RuntimeError("simulated out of memory")
+        return orig_ll(m, tok, recs, batch_size, softmax_dtype=softmax_dtype)
+
+    monkeypatch.setattr(E, "hellaswag", hs)
+    monkeypatch.setattr(V, "lmeval_loglikelihoods", ll)
+    return events
+
+
+def test_fp32_copy_run_offloads_loaded_model_and_uses_fp32_batch(tiny_model_dir, real_tokenizer, records,
+                                                                  monkeypatch):
+    """The loaded model goes to CPU before the copy is made and back to its device afterwards; both scorers on the
+    float32 copy use LMEVAL_FP32_BATCH_SIZE."""
+    from task1.model import Pristine, load_model
+    from task1.verify_lmeval import fp32_copy_run
+
+    model, _ = load_model("cpu", tiny_model_dir)
+    pristine = Pristine(model)
+    events = _spy_fp32_run(monkeypatch, model)
+    cmp, rows32 = fp32_copy_run(model, real_tokenizer, records)
+    b = C.LMEVAL_FP32_BATCH_SIZE
+    assert events == [("to", "cpu"), ("ours", b, "torch.float32"), ("lmeval", b, "torch.float32", "float32"),
+                      ("to", "cpu")]
+    assert cmp["batch_size"] == cmp["ours_batch_size"] == cmp["memory_projection"]["batch_size"] == b
+    assert cmp["device"] == "cpu" and cmp["loaded_model_offloaded_to"] == "cpu"
+    assert sorted({str(p.dtype) for p in model.parameters()}) == ["torch.float16"]
+    assert pristine.verify(model) == len(pristine.names) and len(rows32) == len(records)
+
+
+def test_fp32_copy_run_restores_loaded_model_on_error(tiny_model_dir, real_tokenizer, records, monkeypatch):
+    from task1.model import Pristine, load_model
+    from task1.verify_lmeval import fp32_copy_run
+
+    model, _ = load_model("cpu", tiny_model_dir)
+    pristine = Pristine(model)
+    events = _spy_fp32_run(monkeypatch, model, fail=True)
+    with pytest.raises(RuntimeError, match="simulated out of memory"):
+        fp32_copy_run(model, real_tokenizer, records)
+    assert events[0] == ("to", "cpu") and events[-1] == ("to", "cpu") and len(events) == 4
+    assert sorted({str(p.dtype) for p in model.parameters()}) == ["torch.float16"]
+    assert pristine.verify(model) == len(pristine.names)
 
 
 def test_fp32_copy_acceptance_leaves_fp16_model_unchanged(tiny_model_dir, real_tokenizer, records):
