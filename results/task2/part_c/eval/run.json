@@ -1,0 +1,2220 @@
+{
+  "concurrent_jobs": {
+    "alive_at_start": [],
+    "end": "2026-11-27T22:49:38.867288+00:00",
+    "gpu": "0",
+    "job": "kv_eval",
+    "method": "intervals written by the job wrapper into the status directory: start before this job's end and end after its start (or no end yet)",
+    "overlapping": [],
+    "overlapping_same_gpu": [],
+    "start": "2026-11-27T22:26:50.350936+00:00",
+    "status_dir": "notes/kaggle_status"
+  },
+  "config": {
+    "attn_implementation": "sdpa",
+    "data": {
+      "manifest_sha256": "6e2c12dae84805ed54666ff647a06e51d9412adde65729635ce07a0caa64fc13",
+      "path": "/kaggle/working/atml-pa4/external/atml-pa4-datasets/data/kv_retrieval/kv_retrieval_cases.jsonl.gz",
+      "rel": "data/kv_retrieval/kv_retrieval_cases.jsonl.gz",
+      "sha256": "6e2c12dae84805ed54666ff647a06e51d9412adde65729635ce07a0caa64fc13",
+      "sha256_decompressed": "e12679b6a07e03cb6330b4a5987bd149953e46907dd9a1ebaa4936cdfca2b1d9"
+    },
+    "device": "cuda:0",
+    "dtype": "float16",
+    "generation": {
+      "decoder": "argmax loop task2.kv_cache_ops.greedy_decode; the last generated token is not fed back",
+      "settings": {
+        "do_sample": false,
+        "eos_token_id": [
+          151645,
+          151643
+        ],
+        "max_new_tokens": 32,
+        "num_beams": 1,
+        "pad_token_id": 151643,
+        "repetition_penalty": 1.0,
+        "temperature": null,
+        "top_k": null,
+        "top_p": null
+      },
+      "stop": "EOS ids or max_new_tokens"
+    },
+    "limited": false,
+    "limits": {
+      "model_path": null,
+      "prompts": null
+    },
+    "method_order_rule": "task2.kv_cache_ops.METHODS rotated left by (prompt_index mod 6); prompt_index = rank of the id",
+    "methods": [
+      "fp16",
+      "sink_recent",
+      "question_aware",
+      "int4_token",
+      "int4_channel_k",
+      "hybrid"
+    ],
+    "mode": "eval",
+    "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+    "model_path": null,
+    "model_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+    "n_prompts": 180,
+    "npz_arrays": {
+      "context_len": "int32",
+      "evidence_positions": "int32",
+      "format_version": "int32",
+      "hybrid_fp16_positions": "int32",
+      "question_aware_positions": "int32",
+      "question_scores": "float16",
+      "sink_recent_positions": "int32",
+      "suffix_len": "int32",
+      "version_ascii": "uint8"
+    },
+    "npz_format_version": 1,
+    "output_files": {
+      "npz_dir": "npz",
+      "prompts": "prompt_rows.jsonl",
+      "qualitative_dir": "qualitative",
+      "rows": "eval_rows.jsonl",
+      "run": "run.json"
+    },
+    "prompt_format": "one user message with the supplied chat template (default system message), add_generation_prompt=True; context = tokens before the line QUESTION_BEGIN",
+    "prompt_ids": [
+      "KV-2048-end-0-00",
+      "KV-2048-end-0-01",
+      "KV-2048-end-0-02",
+      "KV-2048-end-0-03",
+      "KV-2048-end-0-04",
+      "KV-2048-end-0-05",
+      "KV-2048-end-0-06",
+      "KV-2048-end-0-07",
+      "KV-2048-end-0-08",
+      "KV-2048-end-0-09",
+      "KV-2048-end-2-00",
+      "KV-2048-end-2-01",
+      "KV-2048-end-2-02",
+      "KV-2048-end-2-03",
+      "KV-2048-end-2-04",
+      "KV-2048-end-2-05",
+      "KV-2048-end-2-06",
+      "KV-2048-end-2-07",
+      "KV-2048-end-2-08",
+      "KV-2048-end-2-09",
+      "KV-2048-end-8-00",
+      "KV-2048-end-8-01",
+      "KV-2048-end-8-02",
+      "KV-2048-end-8-03",
+      "KV-2048-end-8-04",
+      "KV-2048-end-8-05",
+      "KV-2048-end-8-06",
+      "KV-2048-end-8-07",
+      "KV-2048-end-8-08",
+      "KV-2048-end-8-09",
+      "KV-2048-middle-0-00",
+      "KV-2048-middle-0-01",
+      "KV-2048-middle-0-02",
+      "KV-2048-middle-0-03",
+      "KV-2048-middle-0-04",
+      "KV-2048-middle-0-05",
+      "KV-2048-middle-0-06",
+      "KV-2048-middle-0-07",
+      "KV-2048-middle-0-08",
+      "KV-2048-middle-0-09",
+      "KV-2048-middle-2-00",
+      "KV-2048-middle-2-01",
+      "KV-2048-middle-2-02",
+      "KV-2048-middle-2-03",
+      "KV-2048-middle-2-04",
+      "KV-2048-middle-2-05",
+      "KV-2048-middle-2-06",
+      "KV-2048-middle-2-07",
+      "KV-2048-middle-2-08",
+      "KV-2048-middle-2-09",
+      "KV-2048-middle-8-00",
+      "KV-2048-middle-8-01",
+      "KV-2048-middle-8-02",
+      "KV-2048-middle-8-03",
+      "KV-2048-middle-8-04",
+      "KV-2048-middle-8-05",
+      "KV-2048-middle-8-06",
+      "KV-2048-middle-8-07",
+      "KV-2048-middle-8-08",
+      "KV-2048-middle-8-09",
+      "KV-2048-start-0-00",
+      "KV-2048-start-0-01",
+      "KV-2048-start-0-02",
+      "KV-2048-start-0-03",
+      "KV-2048-start-0-04",
+      "KV-2048-start-0-05",
+      "KV-2048-start-0-06",
+      "KV-2048-start-0-07",
+      "KV-2048-start-0-08",
+      "KV-2048-start-0-09",
+      "KV-2048-start-2-00",
+      "KV-2048-start-2-01",
+      "KV-2048-start-2-02",
+      "KV-2048-start-2-03",
+      "KV-2048-start-2-04",
+      "KV-2048-start-2-05",
+      "KV-2048-start-2-06",
+      "KV-2048-start-2-07",
+      "KV-2048-start-2-08",
+      "KV-2048-start-2-09",
+      "KV-2048-start-8-00",
+      "KV-2048-start-8-01",
+      "KV-2048-start-8-02",
+      "KV-2048-start-8-03",
+      "KV-2048-start-8-04",
+      "KV-2048-start-8-05",
+      "KV-2048-start-8-06",
+      "KV-2048-start-8-07",
+      "KV-2048-start-8-08",
+      "KV-2048-start-8-09",
+      "KV-4096-end-0-00",
+      "KV-4096-end-0-01",
+      "KV-4096-end-0-02",
+      "KV-4096-end-0-03",
+      "KV-4096-end-0-04",
+      "KV-4096-end-0-05",
+      "KV-4096-end-0-06",
+      "KV-4096-end-0-07",
+      "KV-4096-end-0-08",
+      "KV-4096-end-0-09",
+      "KV-4096-end-2-00",
+      "KV-4096-end-2-01",
+      "KV-4096-end-2-02",
+      "KV-4096-end-2-03",
+      "KV-4096-end-2-04",
+      "KV-4096-end-2-05",
+      "KV-4096-end-2-06",
+      "KV-4096-end-2-07",
+      "KV-4096-end-2-08",
+      "KV-4096-end-2-09",
+      "KV-4096-end-8-00",
+      "KV-4096-end-8-01",
+      "KV-4096-end-8-02",
+      "KV-4096-end-8-03",
+      "KV-4096-end-8-04",
+      "KV-4096-end-8-05",
+      "KV-4096-end-8-06",
+      "KV-4096-end-8-07",
+      "KV-4096-end-8-08",
+      "KV-4096-end-8-09",
+      "KV-4096-middle-0-00",
+      "KV-4096-middle-0-01",
+      "KV-4096-middle-0-02",
+      "KV-4096-middle-0-03",
+      "KV-4096-middle-0-04",
+      "KV-4096-middle-0-05",
+      "KV-4096-middle-0-06",
+      "KV-4096-middle-0-07",
+      "KV-4096-middle-0-08",
+      "KV-4096-middle-0-09",
+      "KV-4096-middle-2-00",
+      "KV-4096-middle-2-01",
+      "KV-4096-middle-2-02",
+      "KV-4096-middle-2-03",
+      "KV-4096-middle-2-04",
+      "KV-4096-middle-2-05",
+      "KV-4096-middle-2-06",
+      "KV-4096-middle-2-07",
+      "KV-4096-middle-2-08",
+      "KV-4096-middle-2-09",
+      "KV-4096-middle-8-00",
+      "KV-4096-middle-8-01",
+      "KV-4096-middle-8-02",
+      "KV-4096-middle-8-03",
+      "KV-4096-middle-8-04",
+      "KV-4096-middle-8-05",
+      "KV-4096-middle-8-06",
+      "KV-4096-middle-8-07",
+      "KV-4096-middle-8-08",
+      "KV-4096-middle-8-09",
+      "KV-4096-start-0-00",
+      "KV-4096-start-0-01",
+      "KV-4096-start-0-02",
+      "KV-4096-start-0-03",
+      "KV-4096-start-0-04",
+      "KV-4096-start-0-05",
+      "KV-4096-start-0-06",
+      "KV-4096-start-0-07",
+      "KV-4096-start-0-08",
+      "KV-4096-start-0-09",
+      "KV-4096-start-2-00",
+      "KV-4096-start-2-01",
+      "KV-4096-start-2-02",
+      "KV-4096-start-2-03",
+      "KV-4096-start-2-04",
+      "KV-4096-start-2-05",
+      "KV-4096-start-2-06",
+      "KV-4096-start-2-07",
+      "KV-4096-start-2-08",
+      "KV-4096-start-2-09",
+      "KV-4096-start-8-00",
+      "KV-4096-start-8-01",
+      "KV-4096-start-8-02",
+      "KV-4096-start-8-03",
+      "KV-4096-start-8-04",
+      "KV-4096-start-8-05",
+      "KV-4096-start-8-06",
+      "KV-4096-start-8-07",
+      "KV-4096-start-8-08",
+      "KV-4096-start-8-09"
+    ],
+    "qualitative_ids": [
+      "KV-2048-start-8-00",
+      "KV-2048-middle-8-00",
+      "KV-2048-end-8-00",
+      "KV-4096-start-8-00",
+      "KV-4096-middle-8-00",
+      "KV-4096-end-8-00"
+    ],
+    "qualitative_window_tokens": 16,
+    "scorer": "task2-kv-scorer-v1: first match of (?<!\\d)\\d{5}(?!\\d) in the generated text equals the gold code; no match is incorrect and flagged",
+    "seed": 6304,
+    "teacher_forced_session_device": "cpu",
+    "version": "task2-part-c-v1"
+  },
+  "elapsed_wall_s": 1363.976343163,
+  "end_time": "2026-11-27T22:49:36.532679+00:00",
+  "environment": {
+    "cpu_threads": 2,
+    "cudnn_allow_tf32": true,
+    "cudnn_sdp_enabled": true,
+    "device": "cuda:0",
+    "env": {
+      "CUDA_VISIBLE_DEVICES": "0",
+      "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+    },
+    "flash_sdp_enabled": true,
+    "float32_matmul_precision": "highest",
+    "gpu_capability": [
+      7,
+      5
+    ],
+    "gpu_name": "Tesla T4",
+    "gpu_total_memory_bytes": 15636037632,
+    "math_sdp_enabled": true,
+    "matmul_allow_fp16_reduced_precision_reduction": true,
+    "matmul_allow_tf32": false,
+    "mem_efficient_sdp_enabled": true,
+    "sdpa_backends_enumerated": [
+      "MATH",
+      "FLASH_ATTENTION",
+      "EFFICIENT_ATTENTION",
+      "CUDNN_ATTENTION",
+      "OVERRIDEABLE"
+    ],
+    "seed": 6304
+  },
+  "kv_shape": {
+    "channels": 14336,
+    "head_dim": 128,
+    "n_kv_heads": 2,
+    "n_layers": 28
+  },
+  "meta": {
+    "cuda_available": true,
+    "device_count": 1,
+    "device_names": [
+      "Tesla T4"
+    ],
+    "git_commit": "137617531f0713046caa9373ef3b24368e274ba7",
+    "git_dirty": false,
+    "hostname": "78b8dbe4b483",
+    "mps_available": false,
+    "package_versions": {
+      "accelerate": "1.16.0",
+      "datasets": "4.8.5",
+      "huggingface_hub": "0.36.2",
+      "lm_eval": "0.4.13",
+      "matplotlib": "3.10.0",
+      "numpy": "2.4.6",
+      "peft": "0.21.2",
+      "safetensors": "0.8.0",
+      "scipy": "1.16.3",
+      "tokenizers": "0.22.2",
+      "torch": "2.11.0+cu130",
+      "transformers": "4.57.1"
+    },
+    "platform": "Linux-6.18.55+-x86_64-with-glibc2.39",
+    "python_version": "3.13.16",
+    "torch_cuda_build": "13.0",
+    "torch_cudnn_build": 92700,
+    "torch_version": "2.11.0+cu130"
+  },
+  "model": {
+    "attn_implementation_requested": "sdpa",
+    "device": "cuda:0",
+    "model_class": "Qwen2ForCausalLM",
+    "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+    "model_path": null,
+    "parameter_dtypes": [
+      "torch.float16"
+    ],
+    "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+  },
+  "model_facts": {
+    "attn_implementation_effective": "sdpa",
+    "head_dim": 128,
+    "hidden_size": 1536,
+    "model_generation_config_file_values": {
+      "bos_token_id": 151643,
+      "do_sample": true,
+      "eos_token_id": [
+        151645,
+        151643
+      ],
+      "pad_token_id": 151643,
+      "repetition_penalty": 1.1,
+      "temperature": 0.7,
+      "top_k": 20,
+      "top_p": 0.8,
+      "transformers_version": "4.57.1"
+    },
+    "num_attention_heads": 12,
+    "num_hidden_layers": 28,
+    "num_key_value_heads": 2,
+    "parameter_dtypes": [
+      "torch.float16"
+    ],
+    "rope_theta": 1000000.0,
+    "vocab_size": 151936
+  },
+  "peak_vram_allocated_bytes": {
+    "0": 3667382784
+  },
+  "peak_vram_reserved_bytes": {
+    "0": 6780092416
+  },
+  "prompts_done": 180,
+  "row_files": {
+    "prompts": {
+      "n_rows": 180,
+      "path": "prompt_rows.jsonl.gz",
+      "sha256": "e0b6b3167a3ca8ff2d7692d95f26e954e3fb73fbc2a9faad7db5d1bbc051baa8",
+      "sha256_decompressed": "13abf31431f9a0d1d1e0b4e6c91bdd8e0740bbee3e13f95413dc93dda174b607"
+    },
+    "rows": {
+      "n_rows": 1080,
+      "path": "eval_rows.jsonl.gz",
+      "sha256": "5a8463e67b5762629b903c8e87a306e1fee4ce00eb00474313b195d50b2daf20",
+      "sha256_decompressed": "0c2457ce070fceced9073cbc636b3aec28383d9f43b34e88f759e3af07267be9"
+    }
+  },
+  "start_time": "2026-11-27T22:26:52.591324+00:00",
+  "status": "ok",
+  "step": "done",
+  "summary": {
+    "fp16_accuracy_by_cell": {
+      "2048-end-0": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "2048-end-2": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "2048-end-8": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "2048-middle-0": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "2048-middle-2": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "2048-middle-8": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "2048-start-0": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "2048-start-2": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "2048-start-8": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "4096-end-0": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "4096-end-2": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "4096-end-8": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "4096-middle-0": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "4096-middle-2": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "4096-middle-8": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "4096-start-0": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "4096-start-2": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      },
+      "4096-start-8": {
+        "accuracy": 1.0,
+        "n": 10,
+        "n_correct": 10
+      }
+    },
+    "method_orders": {
+      "KV-2048-end-0-00": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-2048-end-0-01": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-2048-end-0-02": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-2048-end-0-03": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-2048-end-0-04": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-2048-end-0-05": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-2048-end-0-06": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-2048-end-0-07": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-2048-end-0-08": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-2048-end-0-09": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-2048-end-2-00": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-2048-end-2-01": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-2048-end-2-02": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-2048-end-2-03": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-2048-end-2-04": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-2048-end-2-05": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-2048-end-2-06": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-2048-end-2-07": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-2048-end-2-08": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-2048-end-2-09": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-2048-end-8-00": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-2048-end-8-01": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-2048-end-8-02": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-2048-end-8-03": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-2048-end-8-04": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-2048-end-8-05": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-2048-end-8-06": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-2048-end-8-07": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-2048-end-8-08": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-2048-end-8-09": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-2048-middle-0-00": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-2048-middle-0-01": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-2048-middle-0-02": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-2048-middle-0-03": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-2048-middle-0-04": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-2048-middle-0-05": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-2048-middle-0-06": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-2048-middle-0-07": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-2048-middle-0-08": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-2048-middle-0-09": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-2048-middle-2-00": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-2048-middle-2-01": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-2048-middle-2-02": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-2048-middle-2-03": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-2048-middle-2-04": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-2048-middle-2-05": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-2048-middle-2-06": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-2048-middle-2-07": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-2048-middle-2-08": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-2048-middle-2-09": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-2048-middle-8-00": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-2048-middle-8-01": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-2048-middle-8-02": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-2048-middle-8-03": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-2048-middle-8-04": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-2048-middle-8-05": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-2048-middle-8-06": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-2048-middle-8-07": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-2048-middle-8-08": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-2048-middle-8-09": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-2048-start-0-00": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-2048-start-0-01": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-2048-start-0-02": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-2048-start-0-03": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-2048-start-0-04": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-2048-start-0-05": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-2048-start-0-06": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-2048-start-0-07": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-2048-start-0-08": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-2048-start-0-09": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-2048-start-2-00": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-2048-start-2-01": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-2048-start-2-02": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-2048-start-2-03": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-2048-start-2-04": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-2048-start-2-05": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-2048-start-2-06": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-2048-start-2-07": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-2048-start-2-08": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-2048-start-2-09": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-2048-start-8-00": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-2048-start-8-01": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-2048-start-8-02": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-2048-start-8-03": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-2048-start-8-04": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-2048-start-8-05": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-2048-start-8-06": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-2048-start-8-07": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-2048-start-8-08": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-2048-start-8-09": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-4096-end-0-00": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-4096-end-0-01": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-4096-end-0-02": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-4096-end-0-03": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-4096-end-0-04": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-4096-end-0-05": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-4096-end-0-06": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-4096-end-0-07": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-4096-end-0-08": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-4096-end-0-09": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-4096-end-2-00": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-4096-end-2-01": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-4096-end-2-02": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-4096-end-2-03": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-4096-end-2-04": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-4096-end-2-05": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-4096-end-2-06": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-4096-end-2-07": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-4096-end-2-08": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-4096-end-2-09": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-4096-end-8-00": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-4096-end-8-01": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-4096-end-8-02": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-4096-end-8-03": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-4096-end-8-04": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-4096-end-8-05": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-4096-end-8-06": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-4096-end-8-07": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-4096-end-8-08": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-4096-end-8-09": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-4096-middle-0-00": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-4096-middle-0-01": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-4096-middle-0-02": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-4096-middle-0-03": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-4096-middle-0-04": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-4096-middle-0-05": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-4096-middle-0-06": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-4096-middle-0-07": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-4096-middle-0-08": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-4096-middle-0-09": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-4096-middle-2-00": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-4096-middle-2-01": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-4096-middle-2-02": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-4096-middle-2-03": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-4096-middle-2-04": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-4096-middle-2-05": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-4096-middle-2-06": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-4096-middle-2-07": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-4096-middle-2-08": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-4096-middle-2-09": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-4096-middle-8-00": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-4096-middle-8-01": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-4096-middle-8-02": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-4096-middle-8-03": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-4096-middle-8-04": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-4096-middle-8-05": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-4096-middle-8-06": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-4096-middle-8-07": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-4096-middle-8-08": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-4096-middle-8-09": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-4096-start-0-00": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-4096-start-0-01": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-4096-start-0-02": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-4096-start-0-03": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-4096-start-0-04": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-4096-start-0-05": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-4096-start-0-06": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-4096-start-0-07": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-4096-start-0-08": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-4096-start-0-09": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-4096-start-2-00": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-4096-start-2-01": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-4096-start-2-02": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-4096-start-2-03": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-4096-start-2-04": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-4096-start-2-05": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-4096-start-2-06": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-4096-start-2-07": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-4096-start-2-08": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-4096-start-2-09": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-4096-start-8-00": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-4096-start-8-01": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-4096-start-8-02": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-4096-start-8-03": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ],
+      "KV-4096-start-8-04": [
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid"
+      ],
+      "KV-4096-start-8-05": [
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16"
+      ],
+      "KV-4096-start-8-06": [
+        "question_aware",
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent"
+      ],
+      "KV-4096-start-8-07": [
+        "int4_token",
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware"
+      ],
+      "KV-4096-start-8-08": [
+        "int4_channel_k",
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token"
+      ],
+      "KV-4096-start-8-09": [
+        "hybrid",
+        "fp16",
+        "sink_recent",
+        "question_aware",
+        "int4_token",
+        "int4_channel_k"
+      ]
+    },
+    "n_rows": 1080,
+    "per_method": {
+      "fp16": {
+        "accuracy": 1.0,
+        "mean_answer_nll": 0.0009969453592930221,
+        "mean_kl_post_prefill": 0.0,
+        "mean_kl_teacher_forced": 0.0,
+        "mean_realized_fraction": 1.0,
+        "n": 180,
+        "n_correct": 180,
+        "n_hit_max_new_tokens": 0,
+        "n_no_match": 0,
+        "n_positions_preserved": 180
+      },
+      "hybrid": {
+        "accuracy": 0.9888888888888889,
+        "mean_answer_nll": 0.015030308396186834,
+        "mean_kl_post_prefill": 0.013565289186388125,
+        "mean_kl_teacher_forced": 0.013586611976246053,
+        "mean_realized_fraction": 0.27809607851573337,
+        "n": 180,
+        "n_correct": 178,
+        "n_hit_max_new_tokens": 0,
+        "n_no_match": 0,
+        "n_positions_preserved": 180
+      },
+      "int4_channel_k": {
+        "accuracy": 1.0,
+        "mean_answer_nll": 0.0017044013945754462,
+        "mean_kl_post_prefill": 0.00263483470288419,
+        "mean_kl_teacher_forced": 0.0005283294578223124,
+        "mean_realized_fraction": 0.2869479513549166,
+        "n": 180,
+        "n_correct": 180,
+        "n_hit_max_new_tokens": 0,
+        "n_no_match": 0,
+        "n_positions_preserved": 180
+      },
+      "int4_token": {
+        "accuracy": 0.0,
+        "mean_answer_nll": 4.411340516143375,
+        "mean_kl_post_prefill": 5.597588295406766,
+        "mean_kl_teacher_forced": 4.409427362018161,
+        "mean_realized_fraction": 0.2869479513549166,
+        "n": 180,
+        "n_correct": 0,
+        "n_hit_max_new_tokens": 180,
+        "n_no_match": 170,
+        "n_positions_preserved": 180
+      },
+      "question_aware": {
+        "accuracy": 1.0,
+        "mean_answer_nll": 0.0008266567321799003,
+        "mean_kl_post_prefill": 0.001189433127516774,
+        "mean_kl_teacher_forced": 0.00023911255852466538,
+        "mean_realized_fraction": 0.28670181648775966,
+        "n": 180,
+        "n_correct": 180,
+        "n_hit_max_new_tokens": 0,
+        "n_no_match": 0,
+        "n_positions_preserved": 180
+      },
+      "sink_recent": {
+        "accuracy": 0.3333333333333333,
+        "mean_answer_nll": 1.8328090900560408,
+        "mean_kl_post_prefill": 2.0975857700990876,
+        "mean_kl_teacher_forced": 1.8301098115142345,
+        "mean_realized_fraction": 0.28666190443821987,
+        "n": 180,
+        "n_correct": 60,
+        "n_hit_max_new_tokens": 0,
+        "n_no_match": 2,
+        "n_positions_preserved": 180
+      }
+    }
+  },
+  "timing": {
+    "load_s": 12.434390692999841,
+    "prompt_s": {
+      "KV-2048-end-0-00": 5.754559409000194,
+      "KV-2048-end-0-01": 5.484939680000025,
+      "KV-2048-end-0-02": 5.464764988999832,
+      "KV-2048-end-0-03": 5.410097337000025,
+      "KV-2048-end-0-04": 5.510235252000257,
+      "KV-2048-end-0-05": 5.393479338000361,
+      "KV-2048-end-0-06": 5.437810388999878,
+      "KV-2048-end-0-07": 5.525368671999786,
+      "KV-2048-end-0-08": 5.449863171999823,
+      "KV-2048-end-0-09": 5.381270579000102,
+      "KV-2048-end-2-00": 5.384375139999975,
+      "KV-2048-end-2-01": 5.5303025200000775,
+      "KV-2048-end-2-02": 5.400094708999859,
+      "KV-2048-end-2-03": 5.405087298000126,
+      "KV-2048-end-2-04": 5.578661047999958,
+      "KV-2048-end-2-05": 5.414644744999805,
+      "KV-2048-end-2-06": 5.522018341999683,
+      "KV-2048-end-2-07": 5.394799463999789,
+      "KV-2048-end-2-08": 5.447437552999872,
+      "KV-2048-end-2-09": 5.493354684000224,
+      "KV-2048-end-8-00": 5.589653597000051,
+      "KV-2048-end-8-01": 5.669844827999896,
+      "KV-2048-end-8-02": 5.66076493599985,
+      "KV-2048-end-8-03": 5.697688029999881,
+      "KV-2048-end-8-04": 5.62906877999967,
+      "KV-2048-end-8-05": 5.645084850999865,
+      "KV-2048-end-8-06": 5.63308148599981,
+      "KV-2048-end-8-07": 5.665271226000186,
+      "KV-2048-end-8-08": 5.651593219000006,
+      "KV-2048-end-8-09": 5.5847141839999495,
+      "KV-2048-middle-0-00": 5.645090026000162,
+      "KV-2048-middle-0-01": 5.547023311999965,
+      "KV-2048-middle-0-02": 5.571151832999931,
+      "KV-2048-middle-0-03": 5.549456287000339,
+      "KV-2048-middle-0-04": 5.510667327000192,
+      "KV-2048-middle-0-05": 5.6264388679996955,
+      "KV-2048-middle-0-06": 5.585836364999977,
+      "KV-2048-middle-0-07": 5.50922985499983,
+      "KV-2048-middle-0-08": 5.560226064999824,
+      "KV-2048-middle-0-09": 5.62740295499998,
+      "KV-2048-middle-2-00": 5.58072195900013,
+      "KV-2048-middle-2-01": 5.617636908999884,
+      "KV-2048-middle-2-02": 5.5640549430004285,
+      "KV-2048-middle-2-03": 5.449448974000006,
+      "KV-2048-middle-2-04": 5.456149864000054,
+      "KV-2048-middle-2-05": 5.402388847000111,
+      "KV-2048-middle-2-06": 5.402596028000062,
+      "KV-2048-middle-2-07": 5.4859134140001515,
+      "KV-2048-middle-2-08": 5.489336258000094,
+      "KV-2048-middle-2-09": 5.524318224000126,
+      "KV-2048-middle-8-00": 5.700902423000116,
+      "KV-2048-middle-8-01": 5.455358563999653,
+      "KV-2048-middle-8-02": 5.635560912000074,
+      "KV-2048-middle-8-03": 5.553396200999941,
+      "KV-2048-middle-8-04": 5.5739191999996365,
+      "KV-2048-middle-8-05": 5.926689643999907,
+      "KV-2048-middle-8-06": 5.716962104999766,
+      "KV-2048-middle-8-07": 5.7355633980000675,
+      "KV-2048-middle-8-08": 5.644376558000204,
+      "KV-2048-middle-8-09": 5.549471312999685,
+      "KV-2048-start-0-00": 5.60738237600026,
+      "KV-2048-start-0-01": 5.7168687779999345,
+      "KV-2048-start-0-02": 5.649938006999946,
+      "KV-2048-start-0-03": 5.510943921000035,
+      "KV-2048-start-0-04": 5.583099126999969,
+      "KV-2048-start-0-05": 5.596368980000079,
+      "KV-2048-start-0-06": 5.573389669000335,
+      "KV-2048-start-0-07": 5.5814030370002,
+      "KV-2048-start-0-08": 5.653297729999849,
+      "KV-2048-start-0-09": 5.714121230999808,
+      "KV-2048-start-2-00": 5.569678271000157,
+      "KV-2048-start-2-01": 5.721946290999767,
+      "KV-2048-start-2-02": 5.5362985289998505,
+      "KV-2048-start-2-03": 5.569444327999918,
+      "KV-2048-start-2-04": 5.637126404000355,
+      "KV-2048-start-2-05": 5.61226759300007,
+      "KV-2048-start-2-06": 5.6764340730001095,
+      "KV-2048-start-2-07": 5.55824596399998,
+      "KV-2048-start-2-08": 5.651309365000088,
+      "KV-2048-start-2-09": 5.555583169000329,
+      "KV-2048-start-8-00": 5.663170103999619,
+      "KV-2048-start-8-01": 5.6334771920001,
+      "KV-2048-start-8-02": 5.736267182999654,
+      "KV-2048-start-8-03": 5.621260720999999,
+      "KV-2048-start-8-04": 5.543764563999957,
+      "KV-2048-start-8-05": 5.717908080000143,
+      "KV-2048-start-8-06": 5.545984391000275,
+      "KV-2048-start-8-07": 5.537783322999985,
+      "KV-2048-start-8-08": 5.5938854649998575,
+      "KV-2048-start-8-09": 5.62831518799976,
+      "KV-4096-end-0-00": 9.51029068400021,
+      "KV-4096-end-0-01": 9.480013323000094,
+      "KV-4096-end-0-02": 9.353715136999654,
+      "KV-4096-end-0-03": 9.353558799999973,
+      "KV-4096-end-0-04": 9.450141610000173,
+      "KV-4096-end-0-05": 9.492681581000397,
+      "KV-4096-end-0-06": 9.413580742999784,
+      "KV-4096-end-0-07": 9.47575384699985,
+      "KV-4096-end-0-08": 9.477153100000123,
+      "KV-4096-end-0-09": 9.505476047999764,
+      "KV-4096-end-2-00": 9.473052963999635,
+      "KV-4096-end-2-01": 9.478851510999903,
+      "KV-4096-end-2-02": 9.53814168000008,
+      "KV-4096-end-2-03": 9.449295923000136,
+      "KV-4096-end-2-04": 9.548772986000131,
+      "KV-4096-end-2-05": 9.561164899999767,
+      "KV-4096-end-2-06": 9.504304421999677,
+      "KV-4096-end-2-07": 9.440163748000032,
+      "KV-4096-end-2-08": 9.44825595400016,
+      "KV-4096-end-2-09": 9.42657707799981,
+      "KV-4096-end-8-00": 9.34663404999992,
+      "KV-4096-end-8-01": 9.411717800000133,
+      "KV-4096-end-8-02": 9.330177480999737,
+      "KV-4096-end-8-03": 9.388565604000178,
+      "KV-4096-end-8-04": 9.305494668999927,
+      "KV-4096-end-8-05": 9.508642031999898,
+      "KV-4096-end-8-06": 9.341948134000177,
+      "KV-4096-end-8-07": 9.339535259000058,
+      "KV-4096-end-8-08": 9.341948284999944,
+      "KV-4096-end-8-09": 9.398873399999957,
+      "KV-4096-middle-0-00": 9.528053305999947,
+      "KV-4096-middle-0-01": 9.500281202000224,
+      "KV-4096-middle-0-02": 9.45970177800018,
+      "KV-4096-middle-0-03": 9.50759389399991,
+      "KV-4096-middle-0-04": 9.532508080999833,
+      "KV-4096-middle-0-05": 9.49296035899988,
+      "KV-4096-middle-0-06": 9.503090976999829,
+      "KV-4096-middle-0-07": 9.397870148000038,
+      "KV-4096-middle-0-08": 9.462718661000054,
+      "KV-4096-middle-0-09": 9.519073208999998,
+      "KV-4096-middle-2-00": 9.477466773999822,
+      "KV-4096-middle-2-01": 9.510646198999893,
+      "KV-4096-middle-2-02": 9.485942183000134,
+      "KV-4096-middle-2-03": 9.472961778999888,
+      "KV-4096-middle-2-04": 9.455552164999972,
+      "KV-4096-middle-2-05": 9.459222472999954,
+      "KV-4096-middle-2-06": 9.492725629000233,
+      "KV-4096-middle-2-07": 9.483880308000153,
+      "KV-4096-middle-2-08": 9.476783525999963,
+      "KV-4096-middle-2-09": 9.416207196999949,
+      "KV-4096-middle-8-00": 9.418338749000213,
+      "KV-4096-middle-8-01": 9.246878061000189,
+      "KV-4096-middle-8-02": 9.302244284000153,
+      "KV-4096-middle-8-03": 9.342521602000033,
+      "KV-4096-middle-8-04": 9.389467010999851,
+      "KV-4096-middle-8-05": 9.423675115999686,
+      "KV-4096-middle-8-06": 9.367539419999957,
+      "KV-4096-middle-8-07": 9.347975550000228,
+      "KV-4096-middle-8-08": 9.45002625899997,
+      "KV-4096-middle-8-09": 9.333037234999665,
+      "KV-4096-start-0-00": 9.455742584999825,
+      "KV-4096-start-0-01": 9.446899085000041,
+      "KV-4096-start-0-02": 9.427301938000255,
+      "KV-4096-start-0-03": 9.387902736999877,
+      "KV-4096-start-0-04": 9.43375491200004,
+      "KV-4096-start-0-05": 9.505359419999877,
+      "KV-4096-start-0-06": 9.485084686999926,
+      "KV-4096-start-0-07": 9.457475560000148,
+      "KV-4096-start-0-08": 9.515699209999639,
+      "KV-4096-start-0-09": 9.42606674200033,
+      "KV-4096-start-2-00": 9.337846006999825,
+      "KV-4096-start-2-01": 9.478456800999993,
+      "KV-4096-start-2-02": 9.477094846,
+      "KV-4096-start-2-03": 9.466058496999722,
+      "KV-4096-start-2-04": 9.488384360000055,
+      "KV-4096-start-2-05": 9.433304227000008,
+      "KV-4096-start-2-06": 9.400073898999835,
+      "KV-4096-start-2-07": 9.4952558519999,
+      "KV-4096-start-2-08": 9.27546036900003,
+      "KV-4096-start-2-09": 9.30083644699971,
+      "KV-4096-start-8-00": 9.301743220999924,
+      "KV-4096-start-8-01": 9.33674146500016,
+      "KV-4096-start-8-02": 9.368008763999569,
+      "KV-4096-start-8-03": 9.399503157000254,
+      "KV-4096-start-8-04": 9.398914852999951,
+      "KV-4096-start-8-05": 9.352028788000098,
+      "KV-4096-start-8-06": 9.45877089700025,
+      "KV-4096-start-8-07": 9.33181863899972,
+      "KV-4096-start-8-08": 9.369921194000199,
+      "KV-4096-start-8-09": 9.391057345999798
+    }
+  },
+  "tokenizer": {
+    "chat_template_sha256": "cd8e9439f0570856fd70470bf8889ebd8b5d1107207f67a5efb46e342330527f",
+    "eos_ids_used": [
+      151645,
+      151643
+    ],
+    "eos_token": "<|im_end|>",
+    "files_sha256": {
+      "merges.txt": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "tokenizer.json": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+      "tokenizer_config.json": "5b5d4f65d0acd3b2d56a35b56d374a36cbc1c8fa5cf3b3febbbfabf22f359583",
+      "vocab.json": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+    },
+    "pad_token": "<|endoftext|>",
+    "tokenizer_class": "Qwen2TokenizerFast"
+  },
+  "updated_time": "2026-11-27T22:49:36.533068+00:00"
+}

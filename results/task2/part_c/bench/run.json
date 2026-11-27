@@ -1,0 +1,815 @@
+{
+  "block_orders": {
+    "L2048_B1": [
+      {
+        "block": 0,
+        "kind": "warmup",
+        "order": [
+          "int4_token",
+          "int4_channel_k",
+          "hybrid",
+          "fp16"
+        ]
+      },
+      {
+        "block": 1,
+        "kind": "warmup",
+        "order": [
+          "int4_channel_k",
+          "hybrid",
+          "fp16",
+          "int4_token"
+        ]
+      },
+      {
+        "block": 2,
+        "kind": "warmup",
+        "order": [
+          "hybrid",
+          "fp16",
+          "int4_token",
+          "int4_channel_k"
+        ]
+      },
+      {
+        "block": 3,
+        "kind": "timed",
+        "order": [
+          "fp16",
+          "int4_token",
+          "int4_channel_k",
+          "hybrid"
+        ]
+      },
+      {
+        "block": 4,
+        "kind": "timed",
+        "order": [
+          "int4_token",
+          "int4_channel_k",
+          "hybrid",
+          "fp16"
+        ]
+      },
+      {
+        "block": 5,
+        "kind": "timed",
+        "order": [
+          "int4_channel_k",
+          "hybrid",
+          "fp16",
+          "int4_token"
+        ]
+      },
+      {
+        "block": 6,
+        "kind": "timed",
+        "order": [
+          "hybrid",
+          "fp16",
+          "int4_token",
+          "int4_channel_k"
+        ]
+      },
+      {
+        "block": 7,
+        "kind": "timed",
+        "order": [
+          "fp16",
+          "int4_token",
+          "int4_channel_k",
+          "hybrid"
+        ]
+      },
+      {
+        "block": 8,
+        "kind": "timed",
+        "order": [
+          "int4_token",
+          "int4_channel_k",
+          "hybrid",
+          "fp16"
+        ]
+      },
+      {
+        "block": 9,
+        "kind": "timed",
+        "order": [
+          "int4_channel_k",
+          "hybrid",
+          "fp16",
+          "int4_token"
+        ]
+      },
+      {
+        "block": 10,
+        "kind": "timed",
+        "order": [
+          "hybrid",
+          "fp16",
+          "int4_token",
+          "int4_channel_k"
+        ]
+      },
+      {
+        "block": 11,
+        "kind": "timed",
+        "order": [
+          "fp16",
+          "int4_token",
+          "int4_channel_k",
+          "hybrid"
+        ]
+      },
+      {
+        "block": 12,
+        "kind": "timed",
+        "order": [
+          "int4_token",
+          "int4_channel_k",
+          "hybrid",
+          "fp16"
+        ]
+      }
+    ],
+    "L2048_B8": [
+      {
+        "block": 0,
+        "kind": "warmup",
+        "order": [
+          "int4_token",
+          "int4_channel_k",
+          "hybrid",
+          "fp16"
+        ]
+      },
+      {
+        "block": 1,
+        "kind": "warmup",
+        "order": [
+          "int4_channel_k",
+          "hybrid",
+          "fp16",
+          "int4_token"
+        ]
+      },
+      {
+        "block": 2,
+        "kind": "warmup",
+        "order": [
+          "hybrid",
+          "fp16",
+          "int4_token",
+          "int4_channel_k"
+        ]
+      },
+      {
+        "block": 3,
+        "kind": "timed",
+        "order": [
+          "fp16",
+          "int4_token",
+          "int4_channel_k",
+          "hybrid"
+        ]
+      },
+      {
+        "block": 4,
+        "kind": "timed",
+        "order": [
+          "int4_token",
+          "int4_channel_k",
+          "hybrid",
+          "fp16"
+        ]
+      },
+      {
+        "block": 5,
+        "kind": "timed",
+        "order": [
+          "int4_channel_k",
+          "hybrid",
+          "fp16",
+          "int4_token"
+        ]
+      },
+      {
+        "block": 6,
+        "kind": "timed",
+        "order": [
+          "hybrid",
+          "fp16",
+          "int4_token",
+          "int4_channel_k"
+        ]
+      },
+      {
+        "block": 7,
+        "kind": "timed",
+        "order": [
+          "fp16",
+          "int4_token",
+          "int4_channel_k",
+          "hybrid"
+        ]
+      },
+      {
+        "block": 8,
+        "kind": "timed",
+        "order": [
+          "int4_token",
+          "int4_channel_k",
+          "hybrid",
+          "fp16"
+        ]
+      },
+      {
+        "block": 9,
+        "kind": "timed",
+        "order": [
+          "int4_channel_k",
+          "hybrid",
+          "fp16",
+          "int4_token"
+        ]
+      },
+      {
+        "block": 10,
+        "kind": "timed",
+        "order": [
+          "hybrid",
+          "fp16",
+          "int4_token",
+          "int4_channel_k"
+        ]
+      },
+      {
+        "block": 11,
+        "kind": "timed",
+        "order": [
+          "fp16",
+          "int4_token",
+          "int4_channel_k",
+          "hybrid"
+        ]
+      },
+      {
+        "block": 12,
+        "kind": "timed",
+        "order": [
+          "int4_token",
+          "int4_channel_k",
+          "hybrid",
+          "fp16"
+        ]
+      }
+    ],
+    "L4096_B1": [
+      {
+        "block": 0,
+        "kind": "warmup",
+        "order": [
+          "int4_token",
+          "int4_channel_k",
+          "hybrid",
+          "fp16"
+        ]
+      },
+      {
+        "block": 1,
+        "kind": "warmup",
+        "order": [
+          "int4_channel_k",
+          "hybrid",
+          "fp16",
+          "int4_token"
+        ]
+      },
+      {
+        "block": 2,
+        "kind": "warmup",
+        "order": [
+          "hybrid",
+          "fp16",
+          "int4_token",
+          "int4_channel_k"
+        ]
+      },
+      {
+        "block": 3,
+        "kind": "timed",
+        "order": [
+          "fp16",
+          "int4_token",
+          "int4_channel_k",
+          "hybrid"
+        ]
+      },
+      {
+        "block": 4,
+        "kind": "timed",
+        "order": [
+          "int4_token",
+          "int4_channel_k",
+          "hybrid",
+          "fp16"
+        ]
+      },
+      {
+        "block": 5,
+        "kind": "timed",
+        "order": [
+          "int4_channel_k",
+          "hybrid",
+          "fp16",
+          "int4_token"
+        ]
+      },
+      {
+        "block": 6,
+        "kind": "timed",
+        "order": [
+          "hybrid",
+          "fp16",
+          "int4_token",
+          "int4_channel_k"
+        ]
+      },
+      {
+        "block": 7,
+        "kind": "timed",
+        "order": [
+          "fp16",
+          "int4_token",
+          "int4_channel_k",
+          "hybrid"
+        ]
+      },
+      {
+        "block": 8,
+        "kind": "timed",
+        "order": [
+          "int4_token",
+          "int4_channel_k",
+          "hybrid",
+          "fp16"
+        ]
+      },
+      {
+        "block": 9,
+        "kind": "timed",
+        "order": [
+          "int4_channel_k",
+          "hybrid",
+          "fp16",
+          "int4_token"
+        ]
+      },
+      {
+        "block": 10,
+        "kind": "timed",
+        "order": [
+          "hybrid",
+          "fp16",
+          "int4_token",
+          "int4_channel_k"
+        ]
+      },
+      {
+        "block": 11,
+        "kind": "timed",
+        "order": [
+          "fp16",
+          "int4_token",
+          "int4_channel_k",
+          "hybrid"
+        ]
+      },
+      {
+        "block": 12,
+        "kind": "timed",
+        "order": [
+          "int4_token",
+          "int4_channel_k",
+          "hybrid",
+          "fp16"
+        ]
+      }
+    ],
+    "L4096_B8": [
+      {
+        "block": 0,
+        "kind": "warmup",
+        "order": [
+          "int4_token",
+          "int4_channel_k",
+          "hybrid",
+          "fp16"
+        ]
+      },
+      {
+        "block": 1,
+        "kind": "warmup",
+        "order": [
+          "int4_channel_k",
+          "hybrid",
+          "fp16",
+          "int4_token"
+        ]
+      },
+      {
+        "block": 2,
+        "kind": "warmup",
+        "order": [
+          "hybrid",
+          "fp16",
+          "int4_token",
+          "int4_channel_k"
+        ]
+      },
+      {
+        "block": 3,
+        "kind": "timed",
+        "order": [
+          "fp16",
+          "int4_token",
+          "int4_channel_k",
+          "hybrid"
+        ]
+      },
+      {
+        "block": 4,
+        "kind": "timed",
+        "order": [
+          "int4_token",
+          "int4_channel_k",
+          "hybrid",
+          "fp16"
+        ]
+      },
+      {
+        "block": 5,
+        "kind": "timed",
+        "order": [
+          "int4_channel_k",
+          "hybrid",
+          "fp16",
+          "int4_token"
+        ]
+      },
+      {
+        "block": 6,
+        "kind": "timed",
+        "order": [
+          "hybrid",
+          "fp16",
+          "int4_token",
+          "int4_channel_k"
+        ]
+      },
+      {
+        "block": 7,
+        "kind": "timed",
+        "order": [
+          "fp16",
+          "int4_token",
+          "int4_channel_k",
+          "hybrid"
+        ]
+      },
+      {
+        "block": 8,
+        "kind": "timed",
+        "order": [
+          "int4_token",
+          "int4_channel_k",
+          "hybrid",
+          "fp16"
+        ]
+      },
+      {
+        "block": 9,
+        "kind": "timed",
+        "order": [
+          "int4_channel_k",
+          "hybrid",
+          "fp16",
+          "int4_token"
+        ]
+      },
+      {
+        "block": 10,
+        "kind": "timed",
+        "order": [
+          "hybrid",
+          "fp16",
+          "int4_token",
+          "int4_channel_k"
+        ]
+      },
+      {
+        "block": 11,
+        "kind": "timed",
+        "order": [
+          "fp16",
+          "int4_token",
+          "int4_channel_k",
+          "hybrid"
+        ]
+      },
+      {
+        "block": 12,
+        "kind": "timed",
+        "order": [
+          "int4_token",
+          "int4_channel_k",
+          "hybrid",
+          "fp16"
+        ]
+      }
+    ]
+  },
+  "concurrent_jobs": {
+    "alive_at_start": [],
+    "end": "2026-11-27T22:51:26.161747+00:00",
+    "gpu": "0",
+    "job": "kv_bench",
+    "method": "intervals written by the job wrapper into the status directory: start before this job's end and end after its start (or no end yet)",
+    "overlapping": [],
+    "overlapping_same_gpu": [],
+    "start": "2026-11-27T22:49:39.021257+00:00",
+    "status_dir": "notes/kaggle_status"
+  },
+  "config": {
+    "attn_implementation": "sdpa",
+    "batches": [
+      1,
+      8
+    ],
+    "configs": [
+      "int4_token",
+      "int4_channel_k",
+      "hybrid"
+    ],
+    "data": {
+      "manifest_sha256": "6e2c12dae84805ed54666ff647a06e51d9412adde65729635ce07a0caa64fc13",
+      "path": "/kaggle/working/atml-pa4/external/atml-pa4-datasets/data/kv_retrieval/kv_retrieval_cases.jsonl.gz",
+      "rel": "data/kv_retrieval/kv_retrieval_cases.jsonl.gz",
+      "sha256": "6e2c12dae84805ed54666ff647a06e51d9412adde65729635ce07a0caa64fc13",
+      "sha256_decompressed": "e12679b6a07e03cb6330b4a5987bd149953e46907dd9a1ebaa4936cdfca2b1d9"
+    },
+    "device": "cuda:0",
+    "dtype": "float16",
+    "generation": {
+      "note": "one model step per repetition on a fixed input token; no token is generated or sampled",
+      "settings": null
+    },
+    "limited": false,
+    "limits": {
+      "configs": null,
+      "model_path": null,
+      "prompts": null,
+      "reps": null,
+      "shapes": null
+    },
+    "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+    "model_path": null,
+    "model_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+    "order_rule": "configurations (int4_token, int4_channel_k, hybrid, fp16) rotated left by the block index; warmup blocks are numbered first",
+    "output_files": {
+      "rows": "bench_rows.jsonl",
+      "run": "run.json"
+    },
+    "phases": {
+      "fp16": [
+        "decode_step"
+      ],
+      "hybrid": [
+        "select",
+        "pack",
+        "unpack_dequant",
+        "decode_step"
+      ],
+      "int4_channel_k": [
+        "pack",
+        "unpack_dequant",
+        "decode_step"
+      ],
+      "int4_token": [
+        "pack",
+        "unpack_dequant",
+        "decode_step"
+      ]
+    },
+    "prompt_ids_per_level": {
+      "2048": [
+        "KV-2048-end-0-00",
+        "KV-2048-end-0-01",
+        "KV-2048-end-0-02",
+        "KV-2048-end-0-03",
+        "KV-2048-end-0-04",
+        "KV-2048-end-0-05",
+        "KV-2048-end-0-06",
+        "KV-2048-end-0-07"
+      ],
+      "4096": [
+        "KV-4096-end-0-00",
+        "KV-4096-end-0-01",
+        "KV-4096-end-0-02",
+        "KV-4096-end-0-03",
+        "KV-4096-end-0-04",
+        "KV-4096-end-0-05",
+        "KV-4096-end-0-06",
+        "KV-4096-end-0-07"
+      ]
+    },
+    "reference": "fp16",
+    "repetitions": 10,
+    "scorer": "task2-kv-scorer-v1: first match of (?<!\\d)\\d{5}(?!\\d) in the generated text equals the gold code; no match is incorrect and flagged",
+    "seed": 6304,
+    "shapes": [
+      [
+        2048,
+        1
+      ],
+      [
+        2048,
+        8
+      ],
+      [
+        4096,
+        1
+      ],
+      [
+        4096,
+        8
+      ]
+    ],
+    "statuses": [
+      "ok",
+      "oom",
+      "unsupported"
+    ],
+    "timing": "CUDA events around each synchronized call (perf_counter on CPU), milliseconds",
+    "truncate": {
+      "2048": 2048,
+      "4096": 4096
+    },
+    "version": "task2-part-c-v1",
+    "warmup": 3
+  },
+  "elapsed_wall_s": 102.82416957199985,
+  "end_time": "2026-11-27T22:51:23.828896+00:00",
+  "environment": {
+    "cpu_threads": 2,
+    "cudnn_allow_tf32": true,
+    "cudnn_sdp_enabled": true,
+    "device": "cuda:0",
+    "env": {
+      "CUDA_VISIBLE_DEVICES": "0",
+      "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+    },
+    "flash_sdp_enabled": true,
+    "float32_matmul_precision": "highest",
+    "gpu_capability": [
+      7,
+      5
+    ],
+    "gpu_name": "Tesla T4",
+    "gpu_total_memory_bytes": 15636037632,
+    "math_sdp_enabled": true,
+    "matmul_allow_fp16_reduced_precision_reduction": true,
+    "matmul_allow_tf32": false,
+    "mem_efficient_sdp_enabled": true,
+    "sdpa_backends_enumerated": [
+      "MATH",
+      "FLASH_ATTENTION",
+      "EFFICIENT_ATTENTION",
+      "CUDNN_ATTENTION",
+      "OVERRIDEABLE"
+    ],
+    "seed": 6304
+  },
+  "kv_shape": {
+    "channels": 14336,
+    "head_dim": 128,
+    "n_kv_heads": 2,
+    "n_layers": 28
+  },
+  "meta": {
+    "cuda_available": true,
+    "device_count": 1,
+    "device_names": [
+      "Tesla T4"
+    ],
+    "git_commit": "137617531f0713046caa9373ef3b24368e274ba7",
+    "git_dirty": false,
+    "hostname": "78b8dbe4b483",
+    "mps_available": false,
+    "package_versions": {
+      "accelerate": "1.16.0",
+      "datasets": "4.8.5",
+      "huggingface_hub": "0.36.2",
+      "lm_eval": "0.4.13",
+      "matplotlib": "3.10.0",
+      "numpy": "2.4.6",
+      "peft": "0.21.2",
+      "safetensors": "0.8.0",
+      "scipy": "1.16.3",
+      "tokenizers": "0.22.2",
+      "torch": "2.11.0+cu130",
+      "transformers": "4.57.1"
+    },
+    "platform": "Linux-6.18.55+-x86_64-with-glibc2.39",
+    "python_version": "3.13.16",
+    "torch_cuda_build": "13.0",
+    "torch_cudnn_build": 92700,
+    "torch_version": "2.11.0+cu130"
+  },
+  "model": {
+    "attn_implementation_requested": "sdpa",
+    "device": "cuda:0",
+    "model_class": "Qwen2ForCausalLM",
+    "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+    "model_path": null,
+    "parameter_dtypes": [
+      "torch.float16"
+    ],
+    "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+  },
+  "model_facts": {
+    "attn_implementation_effective": "sdpa",
+    "head_dim": 128,
+    "hidden_size": 1536,
+    "model_generation_config_file_values": {
+      "bos_token_id": 151643,
+      "do_sample": true,
+      "eos_token_id": [
+        151645,
+        151643
+      ],
+      "pad_token_id": 151643,
+      "repetition_penalty": 1.1,
+      "temperature": 0.7,
+      "top_k": 20,
+      "top_p": 0.8,
+      "transformers_version": "4.57.1"
+    },
+    "num_attention_heads": 12,
+    "num_hidden_layers": 28,
+    "num_key_value_heads": 2,
+    "parameter_dtypes": [
+      "torch.float16"
+    ],
+    "rope_theta": 1000000.0,
+    "vocab_size": 151936
+  },
+  "n_rows": 16,
+  "peak_vram_allocated_bytes": {
+    "0": 7528580608
+  },
+  "peak_vram_reserved_bytes": {
+    "0": 8384413696
+  },
+  "row_files": {
+    "rows": {
+      "n_rows": 16,
+      "path": "bench_rows.jsonl.gz",
+      "sha256": "1e6a50e8df4349b2319eae5966aa8097f08d58167fd16d53572612b8fe002804",
+      "sha256_decompressed": "dfa33442509336298f50237ca44b5ef793e3ba00184533101b4def9addea5904"
+    }
+  },
+  "start_time": "2026-11-27T22:49:41.037101+00:00",
+  "status": "ok",
+  "step": "done",
+  "timing": {
+    "level_caches_s": {
+      "2048": 10.272073850000197,
+      "4096": 32.590466467000624
+    },
+    "load_s": 12.041828256999906,
+    "shape_s": {
+      "L2048_B1": 4.537184153999988,
+      "L2048_B8": 12.829232739999497,
+      "L4096_B1": 4.830366852999759,
+      "L4096_B8": 24.861381891999372
+    }
+  },
+  "tokenizer": {
+    "chat_template_sha256": "cd8e9439f0570856fd70470bf8889ebd8b5d1107207f67a5efb46e342330527f",
+    "eos_ids_used": [
+      151645,
+      151643
+    ],
+    "eos_token": "<|im_end|>",
+    "files_sha256": {
+      "merges.txt": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "tokenizer.json": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+      "tokenizer_config.json": "5b5d4f65d0acd3b2d56a35b56d374a36cbc1c8fa5cf3b3febbbfabf22f359583",
+      "vocab.json": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+    },
+    "pad_token": "<|endoftext|>",
+    "tokenizer_class": "Qwen2TokenizerFast"
+  },
+  "updated_time": "2026-11-27T22:51:23.829251+00:00"
+}
