@@ -125,4 +125,9 @@ F5. Both INT4 layouts have identical byte counts by construction.
 
 ## Amendments
 
-None yet.
+AM1 (2026-11-27, applied before any Part A result existed). A2 reference for FP16 rows. For every FP16 row of
+`python -m task2.part_a verify` (accuracy, extreme-score and masked-row rows), the primary reference is dense
+attention in FP32 computed on the FP16 inputs cast to FP32, and for gradients on the FP16 upstream gradient cast to
+FP32, so FP16 input rounding is not counted as attention error. The comparison against dense FP32 on the original
+FP32 inputs is kept for FP16 rows as a second set of error columns prefixed `vs_fp32_inputs_`. FP32 rows are
+unchanged. Each row records its reference in `reference_inputs`; the result version is `task2-part-a-v2`.

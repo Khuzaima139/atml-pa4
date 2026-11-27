@@ -17,7 +17,8 @@ WARM, TIMED = 1, 2
 TOP_KEYS = {"config", "meta", "start_time", "status", "elapsed_wall_s", "updated_time", "end_time", "environment",
             "status_counts", "implementation_orders", "n_rows", "step"}
 CONFIG_COMMON = {"version", "mode", "device", "B", "H", "d", "seed", "lengths", "dtypes", "limits", "limited",
-                 "projection_limit_gib", "output_files", "reference", "score_scaling", "input_generation", "impls"}
+                 "projection_limit_gib", "output_files", "reference", "reference_inputs", "secondary_error_prefix",
+                 "score_scaling", "input_generation", "impls"}
 CONFIG_VERIFY = CONFIG_COMMON | {"verify_tiles", "edge_L", "edge_causality_t", "extreme_targets", "masked_row"}
 CONFIG_BENCH = CONFIG_COMMON | {"bench_tile", "passes", "warmup", "repetitions", "forward_pass_note", "order_rule"}
 ENV_KEYS = {"device", "env", "matmul_allow_tf32", "cudnn_allow_tf32", "float32_matmul_precision",
@@ -27,15 +28,16 @@ ENV_KEYS = {"device", "env", "matmul_allow_tf32", "cudnn_allow_tf32", "float32_m
 META_KEYS = {"git_commit", "git_dirty", "torch_version", "package_versions", "device_names", "cuda_available"}
 SPEC_KEYS = {"impl", "label", "tile", "backend_forced"}
 ERR_KEYS = {f"{n}_{s}" for n in ("out", "dq", "dk", "dv") for s in ("max_abs_err", "mean_abs_err", "finite")}
+SEC_KEYS = {f"vs_fp32_inputs_{n}_{s}" for n in ("out", "dq", "dk", "dv") for s in ("max_abs_err", "mean_abs_err")}
 ACC_KEYS = {"version", "kind", "L", "dtype", "status", "error", "wall_s", "peak_allocated_bytes",
-            "peak_reserved_bytes"} | SPEC_KEYS
-REF_KEYS = {"version", "kind", "L", "dtype", "status", "error", "dense_projected_peak_bytes", "peak_allocated_bytes",
-            "peak_reserved_bytes"}
+            "peak_reserved_bytes", "reference_inputs"} | SPEC_KEYS
+REF_KEYS = {"version", "kind", "L", "dtype", "for_rows_dtype", "reference_inputs", "status", "error",
+            "dense_projected_peak_bytes", "peak_allocated_bytes", "peak_reserved_bytes"}
 CAUSAL_KEYS = {"version", "kind", "L", "dtype", "t", "status", "bitwise_equal_upto_t", "max_abs_change_upto_t",
                "max_abs_change_after_t", "required_bitwise"} | SPEC_KEYS
 EXTREME_KEYS = {"version", "kind", "L", "dtype", "status", "error", "target_max_abs_score", "q_scale_factor",
-                "achieved_max_abs_score", "q_cast_finite"} | SPEC_KEYS
-MASKED_KEYS = {"version", "kind", "L", "dtype", "status", "error", "masked_row"} | SPEC_KEYS
+                "achieved_max_abs_score", "q_cast_finite", "reference_inputs"} | SPEC_KEYS
+MASKED_KEYS = {"version", "kind", "L", "dtype", "status", "error", "masked_row", "reference_inputs"} | SPEC_KEYS
 MASKED_OK_KEYS = {"row_out_max_abs", "row_out_nan_count", "row_dq_max_abs", "row_dq_nan_count", "out_all_finite",
                   "grads_all_finite", "other_rows_max_abs_err", "matches_documented_zero_row"}
 BENCH_KEYS = {"version", "kind", "L", "dtype", "pass", "order_position", "status", "error",
@@ -102,15 +104,17 @@ def test_verify_outputs(verify_dir):
     assert run["config"]["edge_L"] == 100
 
     refs = [r for r in rows if r["kind"] == "reference"]
-    assert [r["L"] for r in refs] == list(VERIFY_LENGTHS)
-    assert all(set(r) == REF_KEYS and r["status"] == "ok" for r in refs)
+    assert [(r["L"], r["for_rows_dtype"]) for r in refs] == [(L, d) for L in VERIFY_LENGTHS for d in ("fp32", "fp16")]
+    assert all(set(r) == REF_KEYS and r["status"] == "ok" and r["dtype"] == "fp32" for r in refs)
+    assert all(r["reference_inputs"] == part_a.REFERENCE_INPUTS[r["for_rows_dtype"]] for r in refs)
 
     acc = [r for r in rows if r["kind"] == "accuracy"]
     assert len(acc) == len(VERIFY_LENGTHS) * 2 * n_specs
     for r in acc:
         assert r["status"] in part_a.STATUSES
+        assert r["reference_inputs"] == part_a.REFERENCE_INPUTS[r["dtype"]]
         if r["status"] == "ok":
-            assert set(r) == ACC_KEYS | ERR_KEYS
+            assert set(r) == ACC_KEYS | ERR_KEYS | (SEC_KEYS if r["dtype"] == "fp16" else set())
             assert r["out_finite"] and r["dq_finite"] and r["dk_finite"] and r["dv_finite"]
             if r["dtype"] == "fp32":
                 assert r["out_max_abs_err"] < 1e-5 and r["dq_max_abs_err"] < 1e-5
@@ -124,6 +128,9 @@ def test_verify_outputs(verify_dir):
             "sdpa_MATH"} <= labels_ok
     dense32 = [r for r in acc if r["label"] == "dense" and r["dtype"] == "fp32"]
     assert all(r["out_max_abs_err"] == 0 for r in dense32)
+    acc16 = [r for r in acc if r["dtype"] == "fp16" and r["status"] == "ok"]
+    assert any(r["out_max_abs_err"] != r["vs_fp32_inputs_out_max_abs_err"] for r in acc16)
+    assert all(r["vs_fp32_inputs_out_max_abs_err"] < 1e-2 for r in acc16)
 
     caus = [r for r in rows if r["kind"] == "edge_causality"]
     assert caus and all(set(r) == CAUSAL_KEYS for r in caus)
@@ -134,8 +141,9 @@ def test_verify_outputs(verify_dir):
     ext = [r for r in rows if r["kind"] == "edge_extreme"]
     assert {r["target_max_abs_score"] for r in ext} == set(part_a.EXTREME_TARGETS)
     for r in ext:
+        assert r["reference_inputs"] == part_a.REFERENCE_INPUTS[r["dtype"]]
         if r["status"] == "ok":
-            assert set(r) == EXTREME_KEYS | ERR_KEYS
+            assert set(r) == EXTREME_KEYS | ERR_KEYS | (SEC_KEYS if r["dtype"] == "fp16" else set())
             assert r["out_finite"] and r["dq_finite"]
         else:
             assert set(r) == EXTREME_KEYS
@@ -144,7 +152,8 @@ def test_verify_outputs(verify_dir):
     assert len(masked) == 2 * n_specs
     for r in masked:
         if r["status"] == "ok":
-            assert set(r) == MASKED_KEYS | MASKED_OK_KEYS
+            extra = {"vs_fp32_inputs_other_rows_max_abs_err"} if r["dtype"] == "fp16" else set()
+            assert set(r) == MASKED_KEYS | MASKED_OK_KEYS | extra
             if r["impl"] in ("dense", "tiled"):
                 assert r["matches_documented_zero_row"] is True
         else:
@@ -179,6 +188,46 @@ def test_bench_outputs(bench_dir):
         assert set(t) == TABLE_KEYS
         assert set(t["default"]) == {"aten_ops", "cuda_kernels", "inferred_backend"}
         assert set(t["forced"]) == set(run["environment"]["sdpa_backends_enumerated"])
+
+
+def test_reference_inputs_per_dtype():
+    inp = part_a.make_inputs(16)
+    assert part_a.reference_inputs(inp, "fp32") is inp
+    r16 = part_a.reference_inputs(inp, "fp16")
+    for n in ("q", "k", "v", "g"):
+        assert r16[n].dtype == part_a.torch.float32
+        assert part_a.torch.equal(r16[n], inp[n].half().float())
+        assert not part_a.torch.equal(r16[n], inp[n])
+    for n in ("pk", "pv"):
+        assert r16[n] is inp[n]
+
+
+def test_fp16_primary_reference_excludes_input_rounding(tmp_path, monkeypatch):
+    """An implementation that computes FP32 dense attention on its FP16 inputs and rounds the result to FP16: its
+    primary output error equals the output rounding against the FP16-cast reference, and its vs_fp32_inputs_ error
+    equals the distance of the same output from the FP32-input reference."""
+    real = part_a.run_spec
+    torch = part_a.torch
+
+    def exact_on_inputs(spec, q, k, v, mask=None):
+        if spec["label"] != "tiled_32x32" or q.dtype != torch.float16:
+            return real(spec, q, k, v, mask=mask)
+        return part_a.ops.dense_causal(q.float(), k.float(), v.float(), mask=mask).half()
+
+    monkeypatch.setattr(part_a, "run_spec", exact_on_inputs)
+    out = tmp_path / "exact"
+    assert part_a.main(["verify", "--device", "cpu", "--out", str(out), "--limit-lengths", "64"]) == 0
+    rows = [r for r in read_jsonl(out / "verify_rows.jsonl")
+            if r["kind"] == "accuracy" and r["label"] == "tiled_32x32" and r["dtype"] == "fp16"]
+    assert len(rows) == 1
+    r = rows[0]
+    inp = part_a.make_inputs(64)
+    ref16 = part_a.fwd_bwd(part_a.spec_dense(), part_a.reference_inputs(inp, "fp16"), torch.float32, "cpu")[0]
+    ref32 = part_a.fwd_bwd(part_a.spec_dense(), inp, torch.float32, "cpu")[0]
+    mine = ref16.half().float()
+    assert r["out_max_abs_err"] == float((mine - ref16).abs().max())
+    assert r["vs_fp32_inputs_out_max_abs_err"] == float((mine - ref32).abs().max())
+    assert r["vs_fp32_inputs_out_mean_abs_err"] > r["out_mean_abs_err"]
 
 
 def test_skipped_projection_rows(tmp_path):

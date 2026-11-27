@@ -7,9 +7,12 @@ Test-only options (refused for any output under results/task2):
        --limit-reps WARMUP,TIMED    replace the 3 warmup and 10 timed repetitions (bench)
        --limit-projection-gib X     replace the 14 GiB dense projection limit
 
-verify: for every L, dtype and implementation, output and gradient (dq, dk, dv) errors against dense attention in
-FP32 on the FP32 inputs, plus edge cases at L = 256 (causality under perturbation of future keys and values, extreme
-scores, a fully masked row). bench: latency and peak memory for forward-only and forward-plus-backward passes, and a
+verify: for every L, dtype and implementation, output and gradient (dq, dk, dv) errors against a dense FP32 reference,
+plus edge cases at L = 256 (causality under perturbation of future keys and values, extreme scores, a fully masked
+row). Reference per row dtype: FP32 rows use dense attention in FP32 on the FP32 inputs; FP16 rows use dense attention
+in FP32 on the FP16 inputs cast back to FP32 (and the FP16 upstream gradient cast to FP32), so FP16 input rounding is
+not counted as attention error. FP16 rows also carry the comparison against the FP32-input reference in columns
+prefixed vs_fp32_inputs_. bench: latency and peak memory for forward-only and forward-plus-backward passes, and a
 backend table from profiler operator names and forced-backend support.
 
 Outputs under --out: run.json, verify_rows.jsonl (verify) or bench_rows.jsonl and backend_table.jsonl (bench), and
@@ -33,7 +36,7 @@ from common.seeding import seed_everything
 from . import attention_ops as ops
 from .rows import RowWriter
 
-VERSION = "task2-part-a-v1"
+VERSION = "task2-part-a-v2"
 REAL_ROOT = RESULTS_DIR / "task2"
 
 B, H, D = 2, 4, 64
@@ -49,6 +52,9 @@ EDGE_L = 256
 EXTREME_TARGETS = (1e3, 1e4)
 PASSES = ("forward", "forward_backward")
 STATUSES = ("ok", "skipped_projected", "oom", "unsupported", "no_reference")
+REFERENCE_INPUTS = {"fp32": "fp32_inputs", "fp16": "fp16_inputs_cast_to_fp32"}
+SECONDARY_PREFIX = "vs_fp32_inputs_"
+CAST_NAMES = ("q", "k", "v", "g")
 RECORDED_ENV = ("PYTORCH_CUDA_ALLOC_CONF", "CUDA_VISIBLE_DEVICES")
 
 OUTPUT_FILES = {
@@ -112,6 +118,20 @@ def make_inputs(L: int) -> dict:
     return {n: torch.randn(shape, generator=gen, dtype=torch.float32) for n in names}
 
 
+def reference_inputs(inp: dict, dtype_name: str) -> dict:
+    """Inputs of the dense FP32 reference for rows of one dtype: the FP32 inputs themselves for FP32 rows; for FP16 rows,
+    q, k, v and the upstream gradient g rounded to FP16 and cast back to FP32 (pk, pv unchanged)."""
+    if dtype_name == "fp32":
+        return inp
+    dtype = DTYPES[dtype_name]
+    return {n: (t.to(dtype).to(torch.float32) if n in CAST_NAMES else t) for n, t in inp.items()}
+
+
+def cast_round(t, dtype_name: str):
+    """A tensor rounded to the row dtype and cast back to FP32 (identity for FP32)."""
+    return t if dtype_name == "fp32" else t.to(DTYPES[dtype_name]).to(torch.float32)
+
+
 def is_cuda(device) -> bool:
     return torch.device(device).type == "cuda"
 
@@ -168,6 +188,21 @@ def error_fields(out, grads, ref) -> dict:
     return row
 
 
+def secondary_error_fields(out, grads, ref) -> dict:
+    """Max and mean absolute errors against the FP32-input reference, prefixed vs_fp32_inputs_ (FP16 rows only)."""
+    full = error_fields(out, grads, ref)
+    return {SECONDARY_PREFIX + k: v for k, v in full.items() if not k.endswith("_finite")}
+
+
+def all_error_fields(out, grads, refs: dict, dtype_name: str) -> dict:
+    """Primary errors against the reference of the row dtype; FP16 rows add the FP32-input comparison."""
+    row = {"reference_inputs": REFERENCE_INPUTS[dtype_name],
+           **error_fields(out, grads, refs[dtype_name])}
+    if dtype_name != "fp32":
+        row.update(secondary_error_fields(out, grads, refs["fp32"]))
+    return row
+
+
 def projected(L, dtype_name):
     return ops.dense_projected_peak_bytes(B, H, L, D, ELEM_BYTES[dtype_name])
 
@@ -213,29 +248,41 @@ def _attempt(spec, dtype_name, L, limit_gib, fn, device):
 def verify_accuracy(writer, lengths, device, limit_gib, counts):
     for L in lengths:
         inp = make_inputs(L)
-        mem_reset(device)
-        status, ref, extra = _attempt(spec_dense(), "fp32", L, limit_gib,
-                                      lambda: fwd_bwd(spec_dense(), inp, torch.float32, device), device)
-        writer.write({"version": VERSION, "kind": "reference", "L": L, "dtype": "fp32", "status": status,
-                      "dense_projected_peak_bytes": projected(L, "fp32"), **mem_peak(device), **extra})
-        counts[status] = counts.get(status, 0) + 1
+        refs, ref_status = {}, {}
+        for ref_dtype in ("fp32", "fp16"):
+            r_inp = reference_inputs(inp, ref_dtype)
+            mem_reset(device)
+            status, ref, extra = _attempt(spec_dense(), "fp32", L, limit_gib,
+                                          lambda: fwd_bwd(spec_dense(), r_inp, torch.float32, device), device)
+            writer.write({"version": VERSION, "kind": "reference", "L": L, "dtype": "fp32",
+                          "for_rows_dtype": ref_dtype, "reference_inputs": REFERENCE_INPUTS[ref_dtype],
+                          "status": status, "dense_projected_peak_bytes": projected(L, "fp32"), **mem_peak(device),
+                          **extra})
+            counts[status] = counts.get(status, 0) + 1
+            refs[ref_dtype], ref_status[ref_dtype] = ref, status
+            del r_inp, ref
         for dtype_name, dtype in DTYPES.items():
+            needed = ("fp32",) if dtype_name == "fp32" else (dtype_name, "fp32")
+            missing = [n for n in needed if refs[n] is None]
             for spec in verify_specs():
                 row = {"version": VERSION, "kind": "accuracy", "L": L, "dtype": dtype_name, **spec_fields(spec)}
-                if ref is None:
-                    row.update(status="no_reference", error=f"dense FP32 reference {status}")
+                if missing:
+                    row.update(status="no_reference", reference_inputs=REFERENCE_INPUTS[dtype_name],
+                               error="; ".join(f"dense FP32 reference on {REFERENCE_INPUTS[n]} {ref_status[n]}"
+                                               for n in missing))
                 else:
                     mem_reset(device)
                     t0 = time.perf_counter()
                     st, res, ex = _attempt(spec, dtype_name, L, limit_gib,
                                            lambda: fwd_bwd(spec, inp, dtype, device), device)
                     row.update(status=st, wall_s=time.perf_counter() - t0, **mem_peak(device), **ex)
+                    row["reference_inputs"] = REFERENCE_INPUTS[dtype_name]
                     if res is not None:
-                        row.update(error_fields(res[0], res[1], ref))
+                        row.update(all_error_fields(res[0], res[1], refs, dtype_name))
                     del res
                 counts[row["status"]] = counts.get(row["status"], 0) + 1
                 writer.write(row)
-        del ref, inp
+        del refs, inp
         cleanup(device)
 
 
@@ -280,7 +327,8 @@ def verify_extreme(writer, L, device, counts):
     for target in EXTREME_TARGETS:
         factor = target / s_max
         q_ext = inp["q"] * factor
-        ref = fwd_bwd(spec_dense(), inp, torch.float32, device, q_override=q_ext)
+        refs = {d: fwd_bwd(spec_dense(), reference_inputs(inp, d), torch.float32, device,
+                           q_override=cast_round(q_ext, d)) for d in DTYPES}
         for dtype_name, dtype in DTYPES.items():
             q_cast = q_ext.to(dtype)
             with torch.no_grad():
@@ -293,9 +341,9 @@ def verify_extreme(writer, L, device, counts):
                        "q_cast_finite": bool(torch.isfinite(q_cast).all())}
                 st, res, ex = _attempt(spec, dtype_name, L, float("inf"),
                                        lambda: fwd_bwd(spec, inp, dtype, device, q_override=q_ext), device)
-                row.update(status=st, **ex)
+                row.update(status=st, reference_inputs=REFERENCE_INPUTS[dtype_name], **ex)
                 if res is not None:
-                    row.update(error_fields(res[0], res[1], ref))
+                    row.update(all_error_fields(res[0], res[1], refs, dtype_name))
                 counts[st] = counts.get(st, 0) + 1
                 writer.write(row)
 
@@ -308,18 +356,18 @@ def verify_masked_row(writer, L, device, counts):
     mask = torch.ones(L, L, dtype=torch.bool)
     mask[r] = False
     mask = mask.to(device)
-    ref = fwd_bwd(spec_dense(), inp, torch.float32, device, mask=mask)
+    refs = {d: fwd_bwd(spec_dense(), reference_inputs(inp, d), torch.float32, device, mask=mask) for d in DTYPES}
     keep = torch.ones(L, dtype=torch.bool, device=device)
     keep[r] = False
     for dtype_name, dtype in DTYPES.items():
         for spec in verify_specs():
             row = {"version": VERSION, "kind": "edge_masked_row", "L": L, "dtype": dtype_name, **spec_fields(spec),
-                   "masked_row": r}
+                   "masked_row": r, "reference_inputs": REFERENCE_INPUTS[dtype_name]}
             try:
                 out, grads = fwd_bwd(spec, inp, dtype, device, mask=mask)
                 dq = grads[0]
                 row_out = out[:, :, r].float()
-                others = (out[:, :, keep].float() - ref[0][:, :, keep]).abs()
+                others = (out[:, :, keep].float() - refs[dtype_name][0][:, :, keep]).abs()
                 documented = bool((row_out == 0).all() and (dq[:, :, r] == 0).all()
                                   and all(torch.isfinite(t).all() for t in (out, *grads)))
                 row.update(status="ok", error=None,
@@ -331,6 +379,9 @@ def verify_masked_row(writer, L, device, counts):
                            grads_all_finite=bool(all(torch.isfinite(gr).all() for gr in grads)),
                            other_rows_max_abs_err=float(others.max()),
                            matches_documented_zero_row=documented)
+                if dtype_name != "fp32":
+                    others32 = (out[:, :, keep].float() - refs["fp32"][0][:, :, keep]).abs()
+                    row[SECONDARY_PREFIX + "other_rows_max_abs_err"] = float(others32.max())
             except torch.cuda.OutOfMemoryError:
                 raise
             except RuntimeError as exc:
@@ -530,7 +581,10 @@ def main(argv=None):
         "version": VERSION, "mode": args.mode, "device": str(device), "B": B, "H": H, "d": D, "seed": SEED,
         "lengths": list(lengths), "dtypes": list(DTYPES), "limits": chk["limits"], "limited": chk["limited"],
         "projection_limit_gib": chk["projection_limit_gib"], "output_files": files,
-        "reference": "dense_causal in FP32 on the FP32 inputs, fixed upstream gradient",
+        "reference": "dense_causal in FP32 with the fixed upstream gradient; FP32 rows: on the FP32 inputs; FP16 rows: "
+                     "on q, k, v and the upstream gradient rounded to FP16 and cast to FP32. FP16 rows also carry "
+                     "errors against the FP32-input reference in columns prefixed vs_fp32_inputs_",
+        "reference_inputs": REFERENCE_INPUTS, "secondary_error_prefix": SECONDARY_PREFIX,
         "score_scaling": ops.SCORE_SCALE_NOTE,
         "input_generation": "torch.randn on CPU from one generator seeded 6304 per L, order q, k, v, g, pk, pv; "
                             "FP16 inputs cast from the FP32 draws",
