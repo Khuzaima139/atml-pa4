@@ -236,3 +236,43 @@ F8. The FP16 reference has zero KL by definition.
 F9. Full-prompt prefill is identical across methods, so eviction cannot lower prefill peak memory (manual line 543:
     "Eviction after a full prefill does not reduce the peak memory consumed during that prefill").
 F10. Dequantizing before SDPA does not lower allocated memory during attention.
+
+AM3 (2026-11-28, applied before any B3 code or result existed). B3 intervention, development-selection rule and
+prediction (fills B10). Manual line 478-480: "Choose one intervention motivated by the observed results ... or a
+justified curriculum that changes the ratio of reachable and unreachable queries"; line 480-481: "Train it at K = 16
+for all three required seeds, using the same 4,500 updates and within 5% of the baseline trainable parameter count.
+Keep final-test sets unchanged"; line 482-483: "State a prediction before evaluation, and report the intervention's
+extra persistent state, the number of attended positions or state dimensions, and its development-selection rule."
+
+AM3.1 Intervention: a near-to-mixed curriculum on the local_dilated mechanism at K 16 (run name
+    local_dilated_curriculum_K16_s<seed>). Batch u (1-based) of 32 holds n_near(u) = round(32 f(u)) sequences from
+    the seed's near K16 training stream and the other 32 - n_near(u) from its mixed K16 stream, near rows first; each
+    stream is consumed in index order from the start of the seed's B1 index range
+    [(seed - 6304) * 144000, (seed - 6303) * 144000), so no index is used twice and both streams stay inside that range.
+    f(u) = 1 for u <= 1000, f(u) = (2000 - u) / 1000 for 1000 < u < 2000, f(u) = 0 for u >= 2000. round is
+    round-half-to-even on the exact rational value (no tie occurs at 4,500 updates). Over 4,500 updates the run consumes
+    47,984 near and 96,016 mixed sequences. f(u), n_near(u) and the near and mixed index ranges of every update are
+    recorded. Both streams pass the generator validate() and filler checks and the disjointness check against the
+    committed held-out hash list before training.
+AM3.2 Motivation, from the B1/B2 development curves only (own cell, development accuracy on distance < 64 at the
+    checkpoints): every near-trained window and dense run (window near K 4, 8, 16; dense near K 16) reached >= 0.997 by
+    update 1000 on all seeds; dense mixed K 16 crossed 0.5 between updates 1000 and 2000 (seed 6304 by 1500, seeds 6305
+    and 6306 by 2000); window mixed K 16, local_dilated mixed K 16 and two of the three linear mixed K 16 runs (seeds
+    6304 and 6306) stayed between 0.04 and 0.09 at every checkpoint, around the 1/K = 0.0625 plateau, with mean training
+    loss over the last 200 updates of 3.88-3.89 (window), 3.21-3.27 (local_dilated) and 2.81 (linear) against
+    ln 16 = 2.77 and ln 64 = 4.16. Reading: K 16 queries are learned from near-only batches but not from mixed batches
+    by the restricted mechanisms, so the curriculum starts local_dilated where the restricted mechanisms learned and
+    then moves to the mixed ratio of reachable and unreachable queries.
+AM3.3 Development-selection rule: the intervention and its schedule were chosen from the B1/B2 development learning
+    curves (AM3.2) and fixed in this amendment before any B3 run; no B3 setting is selected on any data, and no B3
+    checkpoint is chosen (the update-4500 model is the B3 model).
+AM3.4 Everything else as B1/B2: architecture and 462,336 trainable parameters (0% change), optimizer, learning-rate
+    schedule, gradient clipping, 4,500 updates, seeds 6304, 6305, 6306, checkpoint evaluations on the development set
+    at the B4 updates, test sets evaluated only at update 4500 and unchanged, learned flag by B6 on the mixed K 16 cell
+    (the regime of the final batches and of the comparator). Extra persistent state: none. Attended positions: as
+    local_dilated (two heads per block on the preceding 64 positions, two heads at offsets {0, 4, ..., 252}).
+    Comparator: local_dilated mixed K 16 (B2 runs, same seeds).
+AM3.5 Prediction B3-H: local_dilated_curriculum learns (B6) on at least 2 of 3 seeds; its mixed K 16 test accuracy is
+    more than 30 points above the comparator's (seed means; B8 applies); its far K 16 test accuracy is above 0.5 (seed
+    mean). Rival R1: it learns near queries but far K 16 accuracy stays near 1/K. Rival R2: it stays flat (development
+    accuracy near 1/K at every checkpoint).
