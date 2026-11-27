@@ -335,5 +335,19 @@ class PackedKVCache:
             self.tail_positions = self.tail_positions[n:]
         return n_groups
 
-    def clone(self) -> "PackedKVCache":
-        return copy.deepcopy(self)
+    def clone(self, device=None) -> "PackedKVCache":
+        """Deep copy; with a device, every tensor is copied to that device (no copy is made on the source device)."""
+        if device is None:
+            return copy.deepcopy(self)
+
+        def mv(t):
+            return None if t is None else t.to(device, copy=True)
+
+        def mvq(qb):
+            return None if qb is None else QuantBlock(qb.layout, qb.bits, mv(qb.payload), mv(qb.scale), mv(qb.offset))
+
+        layers = [PackedLayer(mvq(lay.k_q), mvq(lay.v_q), mv(lay.k_fp), mv(lay.v_fp), mv(lay.k_tail), mv(lay.v_tail))
+                  for lay in self.layers]
+        return PackedKVCache(self.method, self.context_len, layers, mv(self.q_positions), mv(self.fp_positions),
+                             mv(self.tail_positions), mv(self.indices), self.k_layout, self.bits, self.quantize_tail,
+                             dict(self.context_bytes))

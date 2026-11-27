@@ -187,24 +187,32 @@ class CacheSession:
         self.next_pos += q
         return out.logits[0].float()
 
-    def clone(self) -> "CacheSession":
+    def clone(self, device=None) -> "CacheSession":
+        """Copy of the session; with a device, every tensor is copied to that device (no copy on the source device),
+        so a copy parked on the CPU adds nothing to GPU memory until it is cloned back."""
         from transformers import DynamicCache
 
         cache = DynamicCache(config=self.model.config)
         for i, layer in enumerate(self.cache.layers):
-            cache.update(layer.keys.clone(), layer.values.clone(), i)
-        return CacheSession(self.model, self.packed.clone(), cache, self.next_pos, self.rebuilds)
+            if device is None:
+                cache.update(layer.keys.clone(), layer.values.clone(), i)
+            else:
+                cache.update(layer.keys.to(device, copy=True), layer.values.to(device, copy=True), i)
+        return CacheSession(self.model, self.packed.clone(device), cache, self.next_pos, self.rebuilds)
 
 
 @torch.no_grad()
 def greedy_decode(session: CacheSession, first_logits: torch.Tensor, max_new_tokens: int = MAX_NEW_TOKENS,
-                  eos_ids=EOS_IDS) -> dict:
+                  eos_ids=EOS_IDS, collect_logits: bool = False) -> dict:
     """Greedy decoding (argmax, no repetition penalty) until an EOS id or max_new_tokens; the last generated token is
-    not fed back."""
+    not fed back. With collect_logits, the FP32 logits of every step ([n_tokens, V]) are returned under "logits"."""
     dev = session.packed.layers[0].k_tail.device
     eos = set(int(e) for e in eos_ids)
     tokens, logits, stop = [], first_logits, "max_new_tokens"
+    kept = []
     while True:
+        if collect_logits:
+            kept.append(logits)
         tok = int(torch.argmax(logits))
         tokens.append(tok)
         if tok in eos:
@@ -213,7 +221,10 @@ def greedy_decode(session: CacheSession, first_logits: torch.Tensor, max_new_tok
         if len(tokens) >= max_new_tokens:
             break
         logits = session.forward(torch.tensor([[tok]], device=dev))[-1]
-    return {"tokens": tokens, "stop": stop}
+    out = {"tokens": tokens, "stop": stop}
+    if collect_logits:
+        out["logits"] = torch.stack(kept)
+    return out
 
 
 @torch.no_grad()
@@ -245,17 +256,27 @@ class MethodRun:
     seconds: dict = field(default_factory=dict)
     peak_bytes: int | None = None
     tail_rebuilds: int = 0
+    start_allocated_bytes: int | None = None
+    step_logits: torch.Tensor | None = None  # [n_tokens, V] FP32 when collected
+    final_positions: torch.Tensor | None = None  # absolute positions of the physical entries after decoding (CPU)
+    physical_len: int = 0
+    next_pos: int = 0
 
 
 @torch.no_grad()
 def run_method(model, shape: KB.KVShape, prefill: Prefill, input_ids: torch.Tensor, method: str,
                scores: torch.Tensor | None = None, max_new_tokens: int = MAX_NEW_TOKENS, eos_ids=EOS_IDS,
-               suffix_logits_all: bool = False):
+               suffix_logits_all: bool = False, collect_logits: bool = False, tf_device=None):
     """Compress, re-run the suffix and decode one method. Returns (MethodRun, post-suffix session copy for the
-    teacher-forced pass, suffix logits [S, V] if suffix_logits_all else None)."""
+    teacher-forced pass, suffix logits [S, V] if suffix_logits_all else None).
+
+    The session copy is made on tf_device when given (for example the CPU, so it holds no GPU memory during decoding;
+    clone it back to the model device before the teacher-forced pass). The peak memory covers compression through
+    decoding; start_allocated_bytes is the allocated memory when the method starts (prefill tensors still held)."""
     dev = input_ids.device
     L = prefill.context_len
     _reset_peak(dev)
+    start_alloc = int(torch.cuda.memory_allocated(dev)) if torch.device(dev).type == "cuda" else None
     keys = [k[:, :, :L] for k in prefill.keys]
     values = [v[:, :, :L] for v in prefill.values]
     with _Timer(dev) as t_c:
@@ -266,13 +287,15 @@ def run_method(model, shape: KB.KVShape, prefill: Prefill, input_ids: torch.Tens
         session = CacheSession.start(model, packed, keys[0].dtype)
         suffix_logits = session.forward(input_ids[:, L:], logits_to_keep=0 if suffix_logits_all else 1)
     first = suffix_logits[-1]
-    tf_session = session.clone()
+    tf_session = session.clone(tf_device)
     with _Timer(dev) as t_d:
-        gen = greedy_decode(session, first, max_new_tokens, eos_ids)
+        gen = greedy_decode(session, first, max_new_tokens, eos_ids, collect_logits)
     run = MethodRun(
         method=method, info=info, first_logits=first, tokens=gen["tokens"], stop=gen["stop"],
         context_bytes=context_bytes, live_bytes=packed.nbytes(), n_appended=packed.n_appended, recon=recon,
         seconds={"compression": t_c.seconds, "suffix": t_s.seconds, "decode": t_d.seconds},
-        peak_bytes=_peak(dev), tail_rebuilds=session.rebuilds,
+        peak_bytes=_peak(dev), tail_rebuilds=session.rebuilds, start_allocated_bytes=start_alloc,
+        step_logits=gen.get("logits"), final_positions=packed.positions().cpu(), physical_len=session.physical_len,
+        next_pos=session.next_pos,
     )
     return run, tf_session, (suffix_logits if suffix_logits_all else None)
