@@ -5,6 +5,8 @@ Test-only options (refused for any output under results/task2):
        --limit-prompts N | ID,ID,...   the first N prompt ids, or the listed ids
        --model-path DIR                a local model directory instead of the locked checkpoint
        --limit-reps WARMUP,TIMED       replace the 3 warmup and 10 timed repetitions
+       --limit-shapes L:B,...          only these (L, batch) shapes (levels without a listed shape are not prefilled)
+       --limit-configs C,...           only these configurations (the fp16 reference always runs)
 
 Caches. For each context level (2048 and 4096 nominal tokens) the first 8 prompt ids (sorted) are prefilled in FP16
 and the context cache is truncated to L = 2048 or L = 4096 tokens. Batch 1 uses the first of them, batch 8 all 8
@@ -26,7 +28,8 @@ task2.kv_budget formulas times the batch size. Peak allocated and reserved memor
 configuration run and the maximum over timed blocks is kept. A configuration that runs out of memory (status oom) or
 raises NotImplementedError (status unsupported) is recorded with its error text and skipped for the remaining blocks.
 
-Outputs under --out: run.json, bench_rows.jsonl.gz (one row per L, batch and configuration).
+Outputs under --out: run.json, bench_rows.jsonl.gz (one row per L, batch and configuration). run.json "timing" holds
+the wall seconds of model loading, of building each level's caches and of each (L, batch) shape.
 """
 from __future__ import annotations
 
@@ -264,7 +267,8 @@ def model_step(model, cache, tok, L):
 
 
 @torch.no_grad()
-def bench_shape(model, shape, sel: list, L: int, device, warmup: int, reps: int) -> tuple[list, list]:
+def bench_shape(model, shape, sel: list, L: int, device, warmup: int, reps: int,
+                configs=ALL_CONFIGS) -> tuple[list, list]:
     """Every configuration at one (L, batch). Returns (rows, block orders)."""
     B = len(sel)
     keys = [torch.cat([c["keys"][i] for c in sel], dim=0) for i in range(shape.n_layers)]
@@ -273,12 +277,12 @@ def bench_shape(model, shape, sel: list, L: int, device, warmup: int, reps: int)
     tok = torch.tensor([[c["next_token"]] for c in sel], dtype=torch.long, device=device)
     scores = [c["scores"] for c in sel]
     state = {c: {"status": "ok", "error": None, "times": {p: [] for p in PHASES[c]}, "peak_allocated": None,
-                 "peak_reserved": None, "bytes": None, "recon": None} for c in ALL_CONFIGS}
+                 "peak_reserved": None, "bytes": None, "recon": None} for c in configs}
     hyb = formula_bytes("hybrid", shape, L)
     caches = {}
     orders = []
     for block in range(warmup + reps):
-        order = rotate(ALL_CONFIGS, block)
+        order = rotate(list(configs), block)
         is_timed = block >= warmup
         orders.append({"block": block, "kind": "timed" if is_timed else "warmup", "order": order})
         for cfg in order:
@@ -340,7 +344,7 @@ def bench_shape(model, shape, sel: list, L: int, device, warmup: int, reps: int)
     rows = []
     ids = [c["id"] for c in sel]
     m16 = KB.m16(shape, L)
-    for cfg in ALL_CONFIGS:
+    for cfg in configs:
         st = state[cfg]
         fb = formula_bytes(cfg, shape, L)
         b = st["bytes"]
@@ -372,18 +376,49 @@ def parse_args(argv=None):
     ap.add_argument("--limit-prompts", default=None, help="N or ID,ID,... (tests only)")
     ap.add_argument("--model-path", default=None, help="local model directory (tests only)")
     ap.add_argument("--limit-reps", default=None, help="WARMUP,TIMED (tests only)")
+    ap.add_argument("--limit-shapes", default=None, help="L:B,... (tests only)")
+    ap.add_argument("--limit-configs", default=None, help="C,... (tests only)")
     return ap.parse_args(argv)
+
+
+def parse_shapes(spec):
+    """All (L, batch) shapes in run order, or the listed subset (refusing unknown shapes)."""
+    full = [(TRUNCATE[lv], B) for lv in KR.LEVELS for B in BATCHES]
+    if spec is None:
+        return full
+    want = set()
+    for x in spec.split(","):
+        a, b = x.split(":")
+        want.add((int(a), int(b)))
+    bad = sorted(want - set(full))
+    if bad or not want:
+        raise SystemExit(f"--limit-shapes: unknown shapes {bad}; known {full}")
+    return [x for x in full if x in want]
+
+
+def parse_configs(spec):
+    """Configurations in run order, the fp16 reference last."""
+    if spec is None:
+        return ALL_CONFIGS
+    want = {x.strip() for x in spec.split(",") if x.strip()}
+    bad = sorted(want - set(CONFIGS))
+    if bad or not want:
+        raise SystemExit(f"--limit-configs: unknown configurations {bad}; known {list(CONFIGS)}")
+    return tuple(c for c in CONFIGS if c in want) + (REFERENCE,)
 
 
 def main(argv=None):
     args = parse_args(argv)
-    limits = {"prompts": args.limit_prompts, "model_path": args.model_path, "reps": args.limit_reps}
+    limits = {"prompts": args.limit_prompts, "model_path": args.model_path, "reps": args.limit_reps,
+              "shapes": args.limit_shapes, "configs": args.limit_configs}
     limited = KR.check_out(args.out, limits)
     warmup, reps = WARMUP, REPS
     if args.limit_reps is not None:
         warmup, reps = (int(x) for x in args.limit_reps.split(","))
         if warmup < 0 or reps < 1:
             raise SystemExit("--limit-reps needs WARMUP >= 0 and TIMED >= 1")
+    shapes = parse_shapes(args.limit_shapes)
+    configs = parse_configs(args.limit_configs)
     out = Path(args.out)
     device = torch.device(args.device)
     if KR.is_cuda(device):
@@ -396,7 +431,8 @@ def main(argv=None):
         "model_id": KR.MODEL_ID if args.model_path is None else None,
         "model_revision": KR.locked_revision() if args.model_path is None else None, "model_path": args.model_path,
         "dtype": "float16", "attn_implementation": KR.ATTN_IMPLEMENTATION, "limits": limits, "limited": limited,
-        "output_files": OUTPUT_FILES, "data": KR.data_record(), "configs": list(CONFIGS), "reference": REFERENCE,
+        "output_files": OUTPUT_FILES, "data": KR.data_record(), "configs": [c for c in configs if c != REFERENCE],
+        "reference": REFERENCE, "shapes": [list(x) for x in shapes],
         "batches": list(BATCHES), "truncate": {str(k): v for k, v in TRUNCATE.items()}, "warmup": warmup,
         "repetitions": reps, "phases": {k: list(v) for k, v in PHASES.items()}, "order_rule": ORDER_RULE,
         "prompt_ids_per_level": {str(k): [c["id"] for c in v] for k, v in per_level.items()},
@@ -408,36 +444,44 @@ def main(argv=None):
     out.mkdir(parents=True)
     rec = RunRecorder(out / OUTPUT_FILES["run"], config)
     orders, n_rows = {}, 0
+    timing = {"load_s": None, "level_caches_s": {}, "shape_s": {}}
     try:
         rec.update(environment=KR.environment(device), step="loading")
+        t_load = time.perf_counter()
         tokenizer = KR.load_tokenizer(args.model_path)
         model, info = KR.load_model(device, args.model_path)
         model_facts = KR.check_model(model)
         shape = KB.KVShape.from_config(model.config)
+        timing["load_s"] = time.perf_counter() - t_load
         rec.update(model=info, model_facts=model_facts, kv_shape=vars(shape) | {"channels": shape.channels},
-                   tokenizer=KR.tokenizer_meta(tokenizer, args.model_path), step="loaded")
+                   tokenizer=KR.tokenizer_meta(tokenizer, args.model_path), timing=timing, step="loaded")
         plain = out / OUTPUT_FILES["rows"]
         with RowWriter(plain) as writer:
             for level in KR.LEVELS:
                 lv_cases = per_level[level]
-                if not lv_cases:
-                    continue
                 L = TRUNCATE[level]
+                batches = [B for (LL, B) in shapes if LL == L]
+                if not lv_cases or not batches:
+                    continue
+                t0 = time.perf_counter()
                 caches = level_caches(model, tokenizer, lv_cases, L, device)
-                for B in BATCHES:
+                timing["level_caches_s"][str(L)] = time.perf_counter() - t0
+                for B in batches:
+                    t0 = time.perf_counter()
                     sel = [caches[i % len(caches)] for i in range(B)]
-                    rows, blk = bench_shape(model, shape, sel, L, device, warmup, reps)
+                    rows, blk = bench_shape(model, shape, sel, L, device, warmup, reps, configs)
                     orders[f"L{L}_B{B}"] = blk
+                    timing["shape_s"][f"L{L}_B{B}"] = time.perf_counter() - t0
                     for r in rows:
                         writer.write(r)
                     n_rows += len(rows)
-                    rec.update(step=f"L{L}_B{B}", block_orders=orders, n_rows=n_rows)
+                    rec.update(step=f"L{L}_B{B}", block_orders=orders, n_rows=n_rows, timing=timing)
                 del caches
                 _cleanup(device)
         row_files = {"rows": KR.finalize_rows(plain)}
-        rec.finish("ok", block_orders=orders, n_rows=n_rows, row_files=row_files, step="done")
+        rec.finish("ok", block_orders=orders, n_rows=n_rows, row_files=row_files, timing=timing, step="done")
     except BaseException as exc:
-        rec.finish("failed", block_orders=orders, n_rows=n_rows, error=f"{type(exc).__name__}: {exc}",
+        rec.finish("failed", block_orders=orders, n_rows=n_rows, timing=timing, error=f"{type(exc).__name__}: {exc}",
                    traceback=traceback.format_exc())
         raise
     print(f"bench done: {out} rows {n_rows}")

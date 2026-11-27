@@ -29,7 +29,7 @@ REPS = (1, 2)
 ENV = dict(os.environ, PYTHONUNBUFFERED="1", HF_HUB_OFFLINE="1")
 
 RUN_TOP = {"config", "meta", "start_time", "status", "elapsed_wall_s", "updated_time", "end_time", "environment",
-           "kv_shape", "model", "model_facts", "row_files", "step", "tokenizer"}
+           "kv_shape", "model", "model_facts", "row_files", "step", "tokenizer", "timing"}
 COMMON_CONFIG = {"version", "scorer", "device", "model_id", "model_revision", "model_path", "dtype",
                  "attn_implementation", "limits", "limited", "output_files", "data", "seed", "generation"}
 EVAL_COMMON_CONFIG = COMMON_CONFIG | {"mode", "n_prompts", "prompt_ids", "methods", "prompt_format",
@@ -37,7 +37,7 @@ EVAL_COMMON_CONFIG = COMMON_CONFIG | {"mode", "n_prompts", "prompt_ids", "method
 VALIDATE_CONFIG = EVAL_COMMON_CONFIG | {"cell_prompt_ids", "reference"}
 EVAL_CONFIG = EVAL_COMMON_CONFIG | {"method_order_rule", "qualitative_ids", "npz_arrays", "npz_format_version",
                                     "qualitative_window_tokens"}
-BENCH_CONFIG = COMMON_CONFIG | {"configs", "reference", "batches", "truncate", "warmup", "repetitions", "phases",
+BENCH_CONFIG = COMMON_CONFIG | {"configs", "reference", "shapes", "batches", "truncate", "warmup", "repetitions", "phases",
                                 "order_rule", "prompt_ids_per_level", "statuses", "timing"}
 VALIDATE_ROW = {"version", "scorer", "id", "prompt_index", "target_tokens", "position", "distractors", "context_len",
                 "suffix_len", "total_len", "generate_token_ids", "pipeline_token_ids", "tokens_identical",
@@ -157,6 +157,7 @@ def _check_run(run, config_keys, extra_top=()):
     for k in ("transformers", "torch", "tokenizers", "huggingface_hub", "numpy"):
         assert run["meta"]["package_versions"][k]
     assert {"gpu_name", "gpu_capability", "seed"} <= set(run["environment"])
+    assert run["timing"]["load_s"] > 0
 
 
 def _check_row_file(root, info, name):
@@ -289,7 +290,8 @@ def test_refuses_existing_out(tmp_path, entry):
 
 @pytest.mark.parametrize("entry,opt", [("validate", ["--limit-prompts", "2"]), ("eval", ["--limit-prompts", "2"]),
                                        ("eval", ["--model-path", "x"]), ("bench", ["--limit-prompts", "2"]),
-                                       ("bench", ["--limit-reps", "1,1"])])
+                                       ("bench", ["--limit-reps", "1,1"]), ("bench", ["--limit-shapes", "4096:8"]),
+                                       ("bench", ["--limit-configs", "hybrid"])])
 def test_refuses_limits_under_results(entry, opt):
     out = RESULTS_DIR / "task2" / "kv_refusal_check_never_created"
     main, mode = (BN.main, []) if entry == "bench" else (EV.main, ["--mode", entry])
@@ -380,6 +382,7 @@ def test_validate_outputs(validate_dir, cases):
     assert _files(root) == ["full_forward_rows.jsonl.gz", "run.json", "validate_rows.jsonl.gz"]
     run = json.loads((root / "run.json").read_text())
     _check_run(run, VALIDATE_CONFIG, extra_top=("summary", "prompts_done", "effective_generation_config"))
+    assert sorted(run["timing"]["prompt_s"]) == sorted(PROMPTS) and all(v > 0 for v in run["timing"]["prompt_s"].values())
     c = run["config"]
     assert c["mode"] == "validate" and c["prompt_ids"] == sorted(PROMPTS) and c["cell_prompt_ids"] == sorted(PROMPTS)
     assert c["generation"]["settings"] == KR.GREEDY
@@ -427,6 +430,7 @@ def test_eval_outputs(eval_dir, tokenizer, cases):
     assert _files(root) == expected
     run = json.loads((root / "run.json").read_text())
     _check_run(run, EVAL_CONFIG, extra_top=("summary", "prompts_done"))
+    assert sorted(run["timing"]["prompt_s"]) == sorted(PROMPTS) and all(v > 0 for v in run["timing"]["prompt_s"].values())
     assert run["config"]["qualitative_ids"] == QUAL
     _check_row_file(root, run["row_files"]["rows"], "eval_rows.jsonl.gz")
     _check_row_file(root, run["row_files"]["prompts"], "prompt_rows.jsonl.gz")
@@ -520,6 +524,9 @@ def test_bench_outputs(bench_dir):
     c = run["config"]
     assert (c["warmup"], c["repetitions"]) == REPS and c["batches"] == [1, 8]
     assert c["prompt_ids_per_level"] == {"2048": sorted(PROMPTS[:2]), "4096": [PROMPTS[2]]}
+    assert c["configs"] == list(BN.CONFIGS) and c["shapes"] == [[2048, 1], [2048, 8], [4096, 1], [4096, 8]]
+    assert set(run["timing"]["level_caches_s"]) == {"2048", "4096"}
+    assert set(run["timing"]["shape_s"]) == {"L2048_B1", "L2048_B8", "L4096_B1", "L4096_B8"}
     _check_row_file(root, run["row_files"]["rows"], "bench_rows.jsonl.gz")
     rows = _rows(root / "bench_rows.jsonl.gz")
     assert len(rows) == run["n_rows"] == 16
@@ -547,3 +554,21 @@ def test_bench_outputs(bench_dir):
     for blocks in run["block_orders"].values():
         assert [b["kind"] for b in blocks] == ["warmup"] * REPS[0] + ["timed"] * REPS[1]
         assert [b["order"] for b in blocks] == [BN.rotate(BN.ALL_CONFIGS, i) for i in range(sum(REPS))]
+
+
+def test_bench_shape_and_config_limits(tmp_path, tiny_dir):
+    """--limit-shapes runs only the listed shapes (and prefills only their level); --limit-configs keeps the fp16
+    reference."""
+    out = _run("task2.kv_bench", tmp_path / "b", "--limit-prompts", LIMIT, "--model-path", str(tiny_dir),
+               "--limit-reps", "0,1", "--limit-shapes", "4096:8", "--limit-configs", "hybrid")
+    run = json.loads((out / "run.json").read_text())
+    rows = _rows(out / "bench_rows.jsonl.gz")
+    assert [(r["L"], r["batch"], r["config"]) for r in rows] == [(4096, 8, "hybrid"), (4096, 8, "fp16")]
+    assert all(r["status"] == "ok" for r in rows)
+    assert run["config"]["configs"] == ["hybrid"] and run["config"]["shapes"] == [[4096, 8]]
+    assert run["config"]["limits"]["shapes"] == "4096:8" and run["config"]["limits"]["configs"] == "hybrid"
+    assert set(run["timing"]["level_caches_s"]) == {"4096"} and set(run["timing"]["shape_s"]) == {"L4096_B8"}
+    assert [b["order"] for b in run["block_orders"]["L4096_B8"]] == [["hybrid", "fp16"]]
+    for bad in (["--limit-shapes", "1024:8"], ["--limit-configs", "int8"]):
+        with pytest.raises(SystemExit):
+            BN.main(["--out", str(tmp_path / "x"), "--device", "cpu", "--limit-prompts", "1", *bad])

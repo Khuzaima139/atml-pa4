@@ -24,13 +24,15 @@ Outputs under --out:
   validate: run.json, validate_rows.jsonl.gz (one row per prompt), full_forward_rows.jsonl.gz (one row per cell)
   eval:     run.json, eval_rows.jsonl.gz (one row per prompt and method), prompt_rows.jsonl.gz (one row per prompt),
             npz/<id>.npz (question scores, evidence positions, retained FP16 positions), qualitative/<id>.txt
-Row files are written as plain JSONL while running and compressed when the run finishes.
+Row files are written as plain JSONL while running and compressed when the run finishes. run.json "timing" holds the
+wall seconds of model loading and of each prompt (by id).
 """
 from __future__ import annotations
 
 import argparse
 import statistics
 import sys
+import time
 import traceback
 from collections import defaultdict
 from pathlib import Path
@@ -183,11 +185,12 @@ def eviction_check(model, shape, prefill, ids, scores, method) -> dict:
             "finite": bool(torch.isfinite(suffix).all() and torch.isfinite(ref).all())}
 
 
-def run_validate(model, tokenizer, shape, cases, device, writers, rec) -> dict:
+def run_validate(model, tokenizer, shape, cases, device, writers, rec, timing) -> dict:
     gc = generation_config()
     cell_ids = set(KR.first_per_cell(cases))
     rows, ff_rows = [], []
     for idx, case in enumerate(cases):
+        t_prompt = time.perf_counter()
         inputs, gold = KR.prepare_prompt(tokenizer, case)
         ids = inputs.ids_tensor(device)
         L = inputs.context_len
@@ -233,7 +236,8 @@ def run_validate(model, tokenizer, shape, cases, device, writers, rec) -> dict:
             ff_rows.append(ff)
             del direct, split, pipe, scores
         del prefill, run, tf, ref
-        rec.update(step="validate", prompts_done=idx + 1)
+        timing["prompt_s"][inputs.id] = time.perf_counter() - t_prompt
+        rec.update(step="validate", prompts_done=idx + 1, timing=timing)
     return validate_summary(rows, ff_rows)
 
 
@@ -408,11 +412,12 @@ def npz_arrays(inputs, gold, gen) -> dict:
             "version_ascii": np.frombuffer(VERSION.encode("ascii"), dtype=np.uint8).copy()}
 
 
-def run_eval(model, tokenizer, shape, cases, device, out, files, writers, rec) -> dict:
+def run_eval(model, tokenizer, shape, cases, device, out, files, writers, rec, timing) -> dict:
     qual_ids = set(KR.qualitative_ids(cases))
     orders = {}
     summary_rows = []
     for idx, case in enumerate(cases):
+        t_prompt = time.perf_counter()
         inputs, gold = KR.prepare_prompt(tokenizer, case)
         order = method_order(idx)
         orders[inputs.id] = order
@@ -442,7 +447,8 @@ def run_eval(model, tokenizer, shape, cases, device, out, files, writers, rec) -
             "fp16_correct": rows["fp16"]["correct"], "npz": npz_name, "qualitative": qual_name,
         })
         del gen, tf, runs, pre
-        rec.update(step="eval", prompts_done=idx + 1)
+        timing["prompt_s"][inputs.id] = time.perf_counter() - t_prompt
+        rec.update(step="eval", prompts_done=idx + 1, timing=timing)
     return {"method_orders": orders, **eval_summary(summary_rows)}
 
 
@@ -517,30 +523,33 @@ def main(argv=None):
                       npz_format_version=NPZ_FORMAT_VERSION, qualitative_window_tokens=QUAL_WINDOW)
     out.mkdir(parents=True)
     rec = RunRecorder(out / files["run"], config)
+    timing = {"load_s": None, "prompt_s": {}}
     try:
         rec.update(environment=KR.environment(device), step="loading")
+        t_load = time.perf_counter()
         tokenizer = KR.load_tokenizer(args.model_path)
         model, info = KR.load_model(device, args.model_path)
         model_facts = KR.check_model(model)
         shape = KB.KVShape.from_config(model.config)
+        timing["load_s"] = time.perf_counter() - t_load
         extra = {}
         if args.mode == "validate":
             extra["effective_generation_config"] = effective_generation_config(model, generation_config())
         rec.update(model=info, model_facts=model_facts, kv_shape=vars(shape) | {"channels": shape.channels},
-                   tokenizer=KR.tokenizer_meta(tokenizer, args.model_path), step="loaded", **extra)
+                   tokenizer=KR.tokenizer_meta(tokenizer, args.model_path), timing=timing, step="loaded", **extra)
         plain = {k: out / files[k] for k in ("rows", "full_forward", "prompts") if k in files}
         with RowWriter(plain["rows"]) as w_rows:
             second_key = "full_forward" if args.mode == "validate" else "prompts"
             with RowWriter(plain[second_key]) as w_second:
                 writers = {"rows": w_rows, second_key: w_second}
                 if args.mode == "validate":
-                    summary = run_validate(model, tokenizer, shape, cases, device, writers, rec)
+                    summary = run_validate(model, tokenizer, shape, cases, device, writers, rec, timing)
                 else:
-                    summary = run_eval(model, tokenizer, shape, cases, device, out, files, writers, rec)
+                    summary = run_eval(model, tokenizer, shape, cases, device, out, files, writers, rec, timing)
         row_files = {k: KR.finalize_rows(p) for k, p in plain.items()}
-        rec.finish("ok", summary=summary, row_files=row_files, step="done")
+        rec.finish("ok", summary=summary, row_files=row_files, timing=timing, step="done")
     except BaseException as exc:
-        rec.finish("failed", error=f"{type(exc).__name__}: {exc}", traceback=traceback.format_exc())
+        rec.finish("failed", timing=timing, error=f"{type(exc).__name__}: {exc}", traceback=traceback.format_exc())
         raise
     print(f"{args.mode} done: {out}")
     return 0
