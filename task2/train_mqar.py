@@ -300,6 +300,7 @@ def _run(args, chk, out, rec, model, device, warmup, checkpoints, start, stop, c
 
     train_s, peak_train, peak_eval, eval_s = 0.0, 0, 0, 0.0
     curve = []
+    eval_timings = {"dev_checkpoints": {}, "test": {}}
     if is_cuda(device):
         cleanup(device)
         torch.cuda.reset_peak_memory_stats(device)
@@ -338,7 +339,9 @@ def _run(args, chk, out, rec, model, device, warmup, checkpoints, start, stop, c
                                "K": dev[c]["K"], "regime": dev[c]["regime"], "mask_condition": "native", **s})
                     point["cells"][c] = {"accuracy": s["accuracy"], "loss": s["loss"]}
                 curve.append(point)
-                eval_s += time.perf_counter() - t_e
+                dt_e = time.perf_counter() - t_e
+                eval_timings["dev_checkpoints"][str(u)] = dt_e
+                eval_s += dt_e
                 if is_cuda(device):
                     peak_eval = max(peak_eval, torch.cuda.max_memory_allocated(device))
                     torch.cuda.reset_peak_memory_stats(device)
@@ -361,7 +364,9 @@ def _run(args, chk, out, rec, model, device, warmup, checkpoints, start, stop, c
     t_e = time.perf_counter()
     test_parts, test_summary, test_pooled = [], {}, {}
     for cond in conditions:
+        t_c = time.perf_counter()
         res = {c: eval_cell(model, test[c], device, cond) for c in D.cell_order()}
+        eval_timings["test"][cond] = time.perf_counter() - t_c
         test_summary[cond] = {c: summarize(test[c], res[c]) for c in D.cell_order()}
         test_pooled[cond] = pooled_bins(test, res)
         test_parts += [Q.cell_columns(test[c], res[c], cond) for c in D.cell_order()]
@@ -378,6 +383,9 @@ def _run(args, chk, out, rec, model, device, warmup, checkpoints, start, stop, c
         "train_wall_s": train_s, "train_wall_note": "sum of CUDA-synchronized update times; evaluation, logging "
                                                     "and checkpoint writing excluded",
         "mean_ms_per_update": 1000.0 * train_s / n_updates, "eval_wall_s": eval_s,
+        "eval_timings_s": eval_timings,
+        "eval_timings_note": "wall seconds of each development checkpoint evaluation (all 9 cells) and of each test "
+                             "mask condition (all 9 cells, summaries included)",
         "peak_allocated_bytes_train": peak_train if is_cuda(device) else None,
         "peak_allocated_bytes_eval": peak_eval if is_cuda(device) else None,
         "parameter_count": M.count_params(model),

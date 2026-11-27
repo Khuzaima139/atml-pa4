@@ -23,7 +23,7 @@ RUNS = {"dense": ("4", "near", "6305"), "window": ("4", "near", "6305"), "local_
 TOP_KEYS = {"config", "meta", "start_time", "status", "elapsed_wall_s", "updated_time", "end_time", "environment",
             "step", "generator", "dev_file_opens", "test_file_opens", "stream", "dev_curve", "updates_done", "train_wall_s", "learned",
             "test_summary", "test_pooled_bins", "test_opened_after_update", "train_wall_note", "mean_ms_per_update",
-            "eval_wall_s", "peak_allocated_bytes_train", "peak_allocated_bytes_eval", "parameter_count", "n_rows",
+            "eval_wall_s", "eval_timings_s", "eval_timings_note", "peak_allocated_bytes_train", "peak_allocated_bytes_eval", "parameter_count", "n_rows",
             "checkpoint_sha256", "dev_eval_sequences_per_cell", "test_eval_sequences_per_cell"}
 CONFIG_KEYS = {"version", "scorer", "mechanism", "K", "regime", "seed", "device", "dtype", "cache_dir", "limits",
                "limited", "output_files", "updates", "batch", "train_index_range", "optimizer", "schedule",
@@ -67,6 +67,10 @@ def test_train_outputs(train_dirs, mech):
     run = json.loads((out / "run.json").read_text())
     assert set(run) == TOP_KEYS
     assert run["status"] == "ok" and run["step"] == "done"
+    et = run["eval_timings_s"]
+    assert sorted(et["dev_checkpoints"], key=int) == [str(c) for c in CHECKPOINTS]
+    assert set(et["test"]) == set(["native", "window64"] if mech == "dense" else ["native"])
+    assert all(v >= 0 for v in [*et["dev_checkpoints"].values(), *et["test"].values()])
     cfg = run["config"]
     assert set(cfg) == CONFIG_KEYS
     assert (cfg["version"], cfg["mechanism"], cfg["K"], cfg["regime"], cfg["seed"]) == (TR.VERSION, mech, K,
