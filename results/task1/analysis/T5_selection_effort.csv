@@ -1,0 +1,20 @@
+stage,part,measure,wall_s,full_model_calibration_passes,block_forward_passes,restores,calibration_sequences_per_pass,n_candidates
+probe_prune,all,S1,0.3899714179997318,0,0,0,128,
+probe_prune,all,S2,947.87563628,56,0,56,128,
+probe_prune,all,fp16_reference,14.738024477000181,1,0,,128,
+probe_quant,all,QS1,2462.969352017,112,0,112,128,
+probe_quant,all,QS2,529.3954729390002,0,112,0,128,
+probe_quant,all,fp16_reference,19.998214343999734,1,0,,128,
+probe_quant_v2,blocks_00_13,QS1v2,3828.4748303670003,224,0,224,128,
+probe_quant_v2,blocks_00_13,QS2v2,218.14954746600006,0,56,0,128,
+probe_quant_v2,blocks_00_13,fp16_reference,16.04450289700003,1,0,,128,
+probe_quant_v2,blocks_14_27,QS1v2,3944.096247747,224,0,224,128,
+probe_quant_v2,blocks_14_27,QS2v2,220.6105384330001,0,70,0,128,
+probe_quant_v2,blocks_14_27,fp16_reference,14.28508237799997,1,0,,128,
+select_p3_s50,all,selection (candidate builds and NLL),1704.860674683,,,,,11
+select_p3_s75,all,selection (candidate builds and NLL),1697.1794745570005,,,,,11
+select_q3v2_int4,all,selection (candidate builds and NLL),475.40795285900003,,,,,3
+select_q3v2_int3,all,selection (candidate builds and NLL),475.7413104369998,,,,,3
+select_q3_int4,all,selection (candidate builds and NLL),567.0063792740002,,,,,3
+select_q3_int3,all,selection (candidate builds and NLL),560.8510221400002,,,,,3
+calib_stats,all,AWQ scale search and dense statistics,1394.887033488,,,,,

@@ -1,0 +1,81 @@
+{
+  "config": {
+    "analysis_id": "t1-analysis-v1",
+    "args": {
+      "allow_uncommitted": false,
+      "expect_hellaswag_full": 2000,
+      "expect_hellaswag_subset": 512,
+      "expect_tokens": 50000,
+      "hellaswag_file": null,
+      "no_figures": false,
+      "out": "results/task1/analysis",
+      "results": "/Users/khuzaimairshad/atml-pa4/results/task1"
+    },
+    "entry_point": "task1.analysis",
+    "expect": {
+      "hellaswag_full": 2000,
+      "hellaswag_subset": 512,
+      "n_tokens": 50000
+    }
+  },
+  "elapsed_wall_s": 0.9812298330070917,
+  "end_time": "2026-11-27T10:49:20.168106+00:00",
+  "hellaswag_text": "locked file (task1.data.read_hellaswag)",
+  "inputs_committed": {
+    "head": "409eee0008db2191a6a49737eba15ae73b156fea",
+    "identical_to_head": true,
+    "n_files": 184,
+    "tracked": true
+  },
+  "meta": {
+    "cuda_available": false,
+    "device_count": 0,
+    "device_names": [],
+    "git_commit": "409eee0008db2191a6a49737eba15ae73b156fea",
+    "git_dirty": false,
+    "hostname": "Khuzaimas-MacBook-Pro.local",
+    "mps_available": true,
+    "package_versions": {
+      "accelerate": "1.16.0",
+      "datasets": "4.8.5",
+      "huggingface_hub": "0.36.2",
+      "lm_eval": "0.4.13",
+      "matplotlib": "3.11.2",
+      "numpy": "2.4.6",
+      "peft": null,
+      "safetensors": "0.8.0",
+      "scipy": "1.17.1",
+      "tokenizers": "0.22.2",
+      "torch": "2.15.0",
+      "transformers": "4.57.1"
+    },
+    "platform": "macOS-27.2.1-arm64-arm-64bit",
+    "python_version": "3.11.18",
+    "torch_cuda_build": null,
+    "torch_cudnn_build": null,
+    "torch_version": "2.15.0"
+  },
+  "n_inputs": 184,
+  "outputs": [
+    "D_block_sensitivity_rank_correlations.csv",
+    "D_block_sensitivity_ranks.csv",
+    "F1_quality_vs_resource.pdf",
+    "F2_p3_allocation.pdf",
+    "F3_q3_allocation.pdf",
+    "F4_calibration_vs_heldout.pdf",
+    "F5_magnitude_vs_wanda.pdf",
+    "T1_quality.csv",
+    "T2_resources.csv",
+    "T3_bootstrap.csv",
+    "T4_matched_budget.csv",
+    "T5_candidates.csv",
+    "T5_selection_effort.csv",
+    "T6_dev_to_test.csv",
+    "qualitative.jsonl",
+    "qualitative.txt",
+    "summary.json"
+  ],
+  "start_time": "2026-11-27T10:49:20.167716+00:00",
+  "status": "ok",
+  "updated_time": "2026-11-27T10:49:20.168134+00:00"
+}

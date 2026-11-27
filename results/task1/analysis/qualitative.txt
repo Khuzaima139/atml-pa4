@@ -1,0 +1,130 @@
+HellaSwag qualitative cases (acc_norm).
+Fixed before run 2: over the HellaSwag IDs in manifest order and the 10 full-set conditions, using acc_norm: (1) first 2 IDs where fp16 is correct and p2_s50 is wrong; (2) first 2 IDs where fp16 is correct, q2_b3 is wrong and q3_int3 is correct; (3) first 2 IDs where all 10 conditions are correct; (4) first ID where fp16 is wrong and any compressed condition is correct.
+Scores: summed log likelihood of each ending (nats) / per-character score (log likelihood divided by ending length in characters); * marks the acc_norm prediction.
+
+=== Rule fp16_correct_p2_s50_wrong: first 2 IDs where fp16 is correct and p2_s50 is wrong
+ID order 0 (source row 1), label 3
+Context: Clean and jerk: A lady walks to a barbell. She bends down and grabs the pole. The lady
+  [0] swings and lands in her arms.
+  [1] pulls the barbell forward.
+  [2] pulls a rope attached to the barbell.
+  [3] (label) stands and lifts the weight over her head.
+        FP16 pred 3 correct |   -28.564/-0.9850  |   -13.110/-0.5042  |   -17.333/-0.4685  |   -14.675/-0.3494*
+      P1 50% pred 3 correct |   -31.068/-1.0713  |   -25.640/-0.9861  |   -29.853/-0.8068  |   -32.594/-0.7761*
+      P2 50% pred 2 wrong   |   -24.329/-0.8389  |   -11.881/-0.4570  |   -14.303/-0.3866* |   -21.655/-0.5156 
+      P3 50% pred 1 wrong   |   -24.701/-0.8518  |   -11.898/-0.4576* |   -16.949/-0.4581  |   -20.469/-0.4874 
+       Q1 4b pred 3 correct |   -28.886/-0.9961  |   -12.907/-0.4964  |   -17.035/-0.4604  |   -17.304/-0.4120*
+       Q1 3b pred 3 correct |   -29.933/-1.0322  |   -15.905/-0.6117  |   -23.797/-0.6432  |   -20.892/-0.4974*
+       Q2 4b pred 3 correct |   -28.681/-0.9890  |   -15.213/-0.5851  |   -17.588/-0.4754  |   -14.037/-0.3342*
+       Q2 3b pred 2 wrong   |   -26.998/-0.9310  |   -11.602/-0.4462  |   -14.978/-0.4048* |   -18.192/-0.4331 
+     Q3 INT4 pred 3 correct |   -29.313/-1.0108  |   -15.215/-0.5852  |   -17.623/-0.4763  |   -13.707/-0.3264*
+     Q3 INT3 pred 2 wrong   |   -27.848/-0.9603  |   -13.014/-0.5005  |   -15.327/-0.4143* |   -22.390/-0.5331 
+
+=== Rule fp16_correct_p2_s50_wrong: first 2 IDs where fp16 is correct and p2_s50 is wrong
+ID order 16 (source row 87), label 0
+Context: Clean and jerk: A man in a blue shirt and shorts lifts a large weight over his head. Another man is filming it. The same man comes back and lifts the weight over his head again. He
+  [0] (label) drops it on the ground and walks away.
+  [1] again lifts the weight over his head.
+  [2] drops it and runs towards the camera.
+  [3] drops it onto the floor where it gets stuck.
+        FP16 pred 0 correct |   -12.157/-0.3199* |   -13.062/-0.3530  |   -16.672/-0.4506  |   -26.851/-0.6102 
+      P1 50% pred 1 wrong   |   -31.965/-0.8412  |   -18.995/-0.5134* |   -34.526/-0.9331  |   -46.746/-1.0624 
+      P2 50% pred 1 wrong   |   -14.964/-0.3938  |   -10.212/-0.2760* |   -18.286/-0.4942  |   -30.331/-0.6893 
+      P3 50% pred 1 wrong   |   -15.317/-0.4031  |   -10.360/-0.2800* |   -18.571/-0.5019  |   -29.921/-0.6800 
+       Q1 4b pred 0 correct |   -12.697/-0.3341* |   -13.956/-0.3772  |   -16.443/-0.4444  |   -27.175/-0.6176 
+       Q1 3b pred 1 wrong   |   -15.337/-0.4036  |   -13.244/-0.3579* |   -21.125/-0.5709  |   -26.020/-0.5914 
+       Q2 4b pred 0 correct |   -11.998/-0.3157* |   -13.450/-0.3635  |   -15.845/-0.4282  |   -29.593/-0.6726 
+       Q2 3b pred 1 wrong   |   -14.704/-0.3869  |   -12.233/-0.3306* |   -17.982/-0.4860  |   -31.630/-0.7189 
+     Q3 INT4 pred 0 correct |   -12.320/-0.3242* |   -13.261/-0.3584  |   -16.058/-0.4340  |   -29.125/-0.6619 
+     Q3 INT3 pred 1 wrong   |   -17.877/-0.4704  |   -12.631/-0.3414* |   -19.995/-0.5404  |   -30.745/-0.6987 
+
+=== Rule fp16_correct_q2_b3_wrong_q3_int3_correct: first 2 IDs where fp16 is correct, q2_b3 is wrong and q3_int3 is correct
+ID order 69 (source row 318), label 1
+Context: Horseback riding: In between interviews they show the duggar mom and the little girl getting instructions about their horse and then getting on their horses and riding on them in an enclosed area. The red and white tlc logo
+  [0] appears on screen and all the cheerleaders begin to perform and the video overlays the footage of the cheerleaders dancing on horses all over the arena.
+  [1] (label) remains on the bottom right area of the screen the whole time.
+  [2] appears on screen with pictures of the horses inside and out.
+  [3] appears and the couple horses are shown individually, in different amounts, in different locations, and then slides down to the bottom on the table where a sign informs viewers how they should get on the horse to prepare for a ride in the saddle and the camera shakes in disbelief and disbelief.
+        FP16 pred 1 correct |   -89.797/-0.5908  |   -30.553/-0.4928* |   -31.788/-0.5211  |  -206.039/-0.6984 
+      P1 50% pred 1 correct |  -140.920/-0.9271  |   -51.031/-0.8231* |   -59.204/-0.9706  |  -279.388/-0.9471 
+      P2 50% pred 2 wrong   |   -91.799/-0.6039  |   -37.516/-0.6051  |   -34.848/-0.5713* |  -207.345/-0.7029 
+      P3 50% pred 2 wrong   |   -92.720/-0.6100  |   -37.528/-0.6053  |   -34.443/-0.5646* |  -206.730/-0.7008 
+       Q1 4b pred 1 correct |   -92.457/-0.6083  |   -31.339/-0.5055* |   -32.105/-0.5263  |  -206.081/-0.6986 
+       Q1 3b pred 2 wrong   |  -110.281/-0.7255  |   -42.704/-0.6888  |   -37.941/-0.6220* |  -221.982/-0.7525 
+       Q2 4b pred 2 wrong   |   -90.282/-0.5940  |   -31.369/-0.5060  |   -30.270/-0.4962* |  -207.947/-0.7049 
+       Q2 3b pred 2 wrong   |  -102.510/-0.6744  |   -35.374/-0.5706  |   -33.725/-0.5529* |  -214.439/-0.7269 
+     Q3 INT4 pred 2 wrong   |   -90.675/-0.5965  |   -31.495/-0.5080  |   -30.876/-0.5062* |  -207.349/-0.7029 
+     Q3 INT3 pred 1 correct |   -95.715/-0.6297  |   -36.856/-0.5944* |   -36.628/-0.6005  |  -218.905/-0.7421 
+
+=== Rule fp16_correct_q2_b3_wrong_q3_int3_correct: first 2 IDs where fp16 is correct, q2_b3 is wrong and q3_int3 is correct
+ID order 107 (source row 470), label 3
+Context: Carving jack-o-lanterns: The man goes into the living room and comes back and carves the pumpkin. The man goes to the sink then leaves the room and comes back. The man
+  [0] blows bread then continues working in the living room.
+  [1] pierces the pumpkin a second time and sits on the couch.
+  [2] shows another pumpkin and puts wax on it then cleans it and puts more wax on it.
+  [3] (label) finishes carving and walks away.
+        FP16 pred 3 correct |   -38.242/-0.7082  |   -32.350/-0.5777  |   -43.913/-0.5489  |   -15.294/-0.4779*
+      P1 50% pred 0 wrong   |   -47.420/-0.8781* |   -53.862/-0.9618  |   -80.836/-1.0104  |   -38.591/-1.2060 
+      P2 50% pred 1 wrong   |   -40.798/-0.7555  |   -32.969/-0.5887* |   -52.923/-0.6615  |   -19.493/-0.6092 
+      P3 50% pred 1 wrong   |   -41.598/-0.7703  |   -31.594/-0.5642* |   -51.817/-0.6477  |   -19.235/-0.6011 
+       Q1 4b pred 3 correct |   -38.375/-0.7107  |   -30.272/-0.5406  |   -44.786/-0.5598  |   -15.184/-0.4745*
+       Q1 3b pred 3 correct |   -38.710/-0.7169  |   -45.645/-0.8151  |   -57.879/-0.7235  |   -20.721/-0.6475*
+       Q2 4b pred 3 correct |   -38.289/-0.7091  |   -30.898/-0.5517  |   -44.075/-0.5509  |   -15.243/-0.4763*
+       Q2 3b pred 2 wrong   |   -41.052/-0.7602  |   -36.209/-0.6466  |   -47.075/-0.5884* |   -19.094/-0.5967 
+     Q3 INT4 pred 3 correct |   -37.555/-0.6955  |   -31.325/-0.5594  |   -43.535/-0.5442  |   -15.452/-0.4829*
+     Q3 INT3 pred 3 correct |   -42.227/-0.7820  |   -33.385/-0.5962  |   -50.994/-0.6374  |   -18.623/-0.5820*
+
+=== Rule all_10_correct: first 2 IDs where all 10 full-set conditions are correct
+ID order 4 (source row 13), label 2
+Context: Sharpening knives: He then notices a little black and green poisonous frog sitting next to him. The frog then escapes and jumps away. He
+  [0] sits and hugs another man and also adjusts his camera.
+  [1] then sits there staring at his text machine as if he has actually been given a gift from god.
+  [2] (label) explains how the frog secretes a poisonous fluid that can be extremely harmful.
+  [3] takes the frog on his hand and tickles the back of it.
+        FP16 pred 2 correct |   -54.637/-1.0118  |   -81.715/-0.8787  |   -44.120/-0.5585* |   -39.525/-0.7319 
+      P1 50% pred 2 correct |   -66.796/-1.2370  |  -102.648/-1.1037  |   -67.084/-0.8492* |   -48.131/-0.8913 
+      P2 50% pred 2 correct |   -56.556/-1.0473  |   -83.464/-0.8975  |   -41.184/-0.5213* |   -42.059/-0.7789 
+      P3 50% pred 2 correct |   -56.018/-1.0374  |   -82.207/-0.8839  |   -42.152/-0.5336* |   -40.131/-0.7432 
+       Q1 4b pred 2 correct |   -55.106/-1.0205  |   -76.827/-0.8261  |   -44.550/-0.5639* |   -39.272/-0.7273 
+       Q1 3b pred 2 correct |   -74.560/-1.3807  |  -136.752/-1.4705  |   -76.475/-0.9680* |   -63.528/-1.1765 
+       Q2 4b pred 2 correct |   -55.129/-1.0209  |   -83.343/-0.8962  |   -45.303/-0.5735* |   -41.710/-0.7724 
+       Q2 3b pred 2 correct |   -56.831/-1.0524  |   -87.712/-0.9431  |   -51.597/-0.6531* |   -43.668/-0.8087 
+     Q3 INT4 pred 2 correct |   -53.759/-0.9955  |   -83.378/-0.8965  |   -45.159/-0.5716* |   -40.864/-0.7567 
+     Q3 INT3 pred 2 correct |   -55.280/-1.0237  |   -82.185/-0.8837  |   -46.236/-0.5853* |   -46.792/-0.8665 
+
+=== Rule all_10_correct: first 2 IDs where all 10 full-set conditions are correct
+ID order 7 (source row 32), label 1
+Context: Archery: A man in brown jacket is pulling out an arrow from the target board, then he was talking to the camera, then he pull out his bow and started to use it with his bow to hit the target board, he fired his bows several times. The man
+  [0] played paper if and shoot the arrows to hit the target, then he hang from the board with his bow and arrow.
+  [1] (label) went to the target board and talked to the camera.
+  [2] eventually throw the arrow, but it flew into the gravel is near the targets.
+  [3] have his bow as he talk to the camera, he pulled it out to show how to put with its flex, tighten, and notch that was attached to his bow.
+        FP16 pred 1 correct |   -87.202/-0.8150  |   -19.091/-0.3818* |   -64.247/-0.8453  |  -122.244/-0.8858 
+      P1 50% pred 1 correct |  -110.499/-1.0327  |   -29.526/-0.5905* |   -80.532/-1.0596  |  -173.241/-1.2554 
+      P2 50% pred 1 correct |   -81.344/-0.7602  |   -18.078/-0.3616* |   -67.103/-0.8829  |  -118.882/-0.8615 
+      P3 50% pred 1 correct |   -78.802/-0.7365  |   -18.444/-0.3689* |   -66.123/-0.8700  |  -119.273/-0.8643 
+       Q1 4b pred 1 correct |   -84.601/-0.7907  |   -18.084/-0.3617* |   -65.703/-0.8645  |  -125.263/-0.9077 
+       Q1 3b pred 1 correct |   -91.869/-0.8586  |   -22.876/-0.4575* |   -73.223/-0.9635  |  -130.823/-0.9480 
+       Q2 4b pred 1 correct |   -88.475/-0.8269  |   -18.694/-0.3739* |   -67.487/-0.8880  |  -124.451/-0.9018 
+       Q2 3b pred 1 correct |   -87.485/-0.8176  |   -17.039/-0.3408* |   -67.075/-0.8826  |  -127.401/-0.9232 
+     Q3 INT4 pred 1 correct |   -86.724/-0.8105  |   -18.472/-0.3694* |   -66.735/-0.8781  |  -124.516/-0.9023 
+     Q3 INT3 pred 1 correct |   -93.481/-0.8737  |   -19.675/-0.3935* |   -69.251/-0.9112  |  -117.526/-0.8516 
+
+=== Rule fp16_wrong_any_compressed_correct: first ID where fp16 is wrong and any compressed condition is correct
+ID order 3 (source row 12), label 2
+Context: Sharpening knives: He then takes the knife and sharpens it against the wood piece. He then notices a little black and green poisonous frog sitting next to him. The frog
+  [0] eventually gets to get up and marches out of the room waving its body about.
+  [1] then starts to get up from the chair and begins walking towards the camera.
+  [2] (label) then escapes and jumps away.
+  [3] is acting crazy and attacking him while he is cooking.
+        FP16 pred 1 wrong   |   -61.244/-0.8058  |   -42.265/-0.5635* |   -18.383/-0.6565  |   -38.516/-0.7133 
+      P1 50% pred 1 wrong   |   -94.847/-1.2480  |   -64.169/-0.8556* |   -32.651/-1.1661  |   -55.030/-1.0191 
+      P2 50% pred 2 correct |   -65.884/-0.8669  |   -47.168/-0.6289  |   -17.416/-0.6220* |   -36.761/-0.6808 
+      P3 50% pred 1 wrong   |   -64.706/-0.8514  |   -44.785/-0.5971* |   -18.885/-0.6745  |   -37.324/-0.6912 
+       Q1 4b pred 1 wrong   |   -66.634/-0.8768  |   -46.008/-0.6134* |   -19.214/-0.6862  |   -37.983/-0.7034 
+       Q1 3b pred 1 wrong   |   -74.925/-0.9859  |   -51.494/-0.6866* |   -26.697/-0.9535  |   -39.839/-0.7378 
+       Q2 4b pred 1 wrong   |   -63.389/-0.8341  |   -41.514/-0.5535* |   -19.511/-0.6968  |   -37.839/-0.7007 
+       Q2 3b pred 1 wrong   |   -71.537/-0.9413  |   -47.211/-0.6295* |   -18.916/-0.6756  |   -41.630/-0.7709 
+     Q3 INT4 pred 1 wrong   |   -63.049/-0.8296  |   -41.557/-0.5541* |   -19.149/-0.6839  |   -37.767/-0.6994 
+     Q3 INT3 pred 1 wrong   |   -73.472/-0.9667  |   -48.952/-0.6527* |   -19.221/-0.6865  |   -35.604/-0.6593 
+

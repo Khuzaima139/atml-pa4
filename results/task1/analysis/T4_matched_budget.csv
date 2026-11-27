@@ -1,0 +1,17 @@
+check,condition,reference,value,reference_value,mask_zeros,holds
+achieved zeros equal target,p1_s25,,327548928,327548928,327548928,True
+achieved zeros equal target,p1_s50,,655097856,655097856,655097856,True
+achieved zeros equal target,p1_s75,,982646784,982646784,982646784,True
+achieved zeros equal target,p2_s25,,327548928,327548928,327548928,True
+achieved zeros equal target,p2_s50,,655097856,655097856,655097856,True
+achieved zeros equal target,p2_s75,,982646784,982646784,982646784,True
+achieved zeros equal target,p3_s50,,655097856,655097856,655097856,True
+achieved zeros equal target,p3_s75,,982646784,982646784,982646784,True
+achieved zeros equal target,p2_24_s50,,655097856,655097856,655097856,True
+zeros equal reference zeros,p3_s50,p2_s50,655097856,655097856,,True
+zeros equal reference zeros,p3_s75,p2_s75,982646784,982646784,,True
+zeros equal reference zeros,p2_24_s50,p2_s50,655097856,655097856,,True
+logical_eligible_bytes within reference budget,q3_int4,q2_b4,680588544,680687616,,True
+logical_whole_model_bytes within reference budget,q3_int4,q2_b4,1147625728,1147724800,,True
+logical_eligible_bytes within reference budget,q3_int3,q2_b3,515633664,515633664,,True
+logical_whole_model_bytes within reference budget,q3_int3,q2_b3,982670848,982670848,,True

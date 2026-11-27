@@ -1,0 +1,5 @@
+a,b,comparison,development_delta_mean_nll,calibration_delta_mean_nll,wikitext2_test_delta_mean_nll,c4_validation_delta_mean_nll,sign_agrees_development_calibration,sign_agrees_development_wikitext2_test,sign_agrees_development_c4_validation
+p2_s50,p3_s50,p3_s50 - p2_s50,-0.01723681947163458,-0.010153218880083692,-0.031895064030617704,-0.02328374355509899,True,True,True
+p2_s75,p3_s75,p3_s75 - p2_s75,-2.180001449201412,-2.2568543590214745,-2.504799480873663,-2.3032632114838645,True,True,True
+q2_b4,q3_int4,q3_int4 - q2_b4,-0.003010931611870049,-0.00012214546782196578,-0.0024382162052494216,0.0006616762691762368,True,True,False
+q2_b3,q3_int3,q3_int3 - q2_b3,0.010706163484901943,0.02529203578439443,0.01819828141979052,0.021737714729166413,True,True,True
