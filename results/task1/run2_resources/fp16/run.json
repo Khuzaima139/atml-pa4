@@ -1,0 +1,450 @@
+{
+  "acceptance": null,
+  "config": {
+    "condition": "fp16",
+    "condition_spec": {
+      "family": "baseline",
+      "hellaswag": "full"
+    },
+    "data_files": [
+      {
+        "content_sha256": "eaa0452a7b6830b665debecc5df6960876bc7d3ad89ced339bcfc85fa4db6fe3",
+        "file": "c4_calibration_locked.jsonl.gz",
+        "records": 128
+      }
+    ],
+    "device": "cuda:0",
+    "env": {
+      "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+    },
+    "hellaswag_scope": "full",
+    "limited": false,
+    "limits": {
+      "calib": null,
+      "hellaswag": null,
+      "windows": null
+    },
+    "model_path": null,
+    "output_files": {
+      "run": "run.json"
+    },
+    "resources_mode": "only",
+    "settings": {
+      "attn_implementation": "sdpa",
+      "batch_sizes": {
+        "calib_nll": 8,
+        "hellaswag": 32,
+        "lmeval_verify": 32,
+        "perplexity": 8
+      },
+      "bits": [
+        8,
+        4,
+        3
+      ],
+      "dtype": "float16",
+      "eligible": [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj"
+      ],
+      "eval_id": "t1-eval-v1",
+      "group_size": 128,
+      "latency": {
+        "decode_steps": 64,
+        "prefill_lengths": [
+          512,
+          2048
+        ],
+        "reps": 10,
+        "warmup": 3
+      },
+      "lmeval_acceptance_run": "fp32_model",
+      "logprob_chunk": 128,
+      "model_id": "Qwen/Qwen2.5-1.5B",
+      "model_revision": "8faed761d45a263340a0528343f099c05c9a4323",
+      "q3_bits": [
+        2,
+        3,
+        4,
+        8
+      ],
+      "seed": 6304,
+      "sparsities": [
+        0.25,
+        0.5,
+        0.75
+      ]
+    },
+    "steps_run": [
+      "enumeration",
+      "resources",
+      "storage"
+    ]
+  },
+  "elapsed_wall_s": 58.94211316600013,
+  "end_time": "2026-11-27T00:29:59.212885+00:00",
+  "eval_id": "t1-eval-v1",
+  "meta": {
+    "cuda_available": true,
+    "device_count": 1,
+    "device_names": [
+      "Tesla T4"
+    ],
+    "git_commit": "788b2d5f9c10a8e2b5d6fedceda7a7bd63830dfc",
+    "git_dirty": false,
+    "hostname": "2fd28635e697",
+    "mps_available": false,
+    "package_versions": {
+      "accelerate": "1.16.0",
+      "datasets": "4.8.5",
+      "huggingface_hub": "0.36.2",
+      "lm_eval": "0.4.13",
+      "matplotlib": "3.10.0",
+      "numpy": "2.4.6",
+      "peft": "0.21.2",
+      "safetensors": "0.8.0",
+      "scipy": "1.16.3",
+      "tokenizers": "0.22.2",
+      "torch": "2.11.0+cu130",
+      "transformers": "4.57.1"
+    },
+    "platform": "Linux-6.18.55+-x86_64-with-glibc2.39",
+    "python_version": "3.13.16",
+    "torch_cuda_build": "13.0",
+    "torch_cudnn_build": 92700,
+    "torch_version": "2.11.0+cu130"
+  },
+  "model": {
+    "attn_implementation_effective": "sdpa",
+    "attn_implementation_requested": "sdpa",
+    "device": "cuda:0",
+    "model_class": "Qwen2ForCausalLM",
+    "model_id": "Qwen/Qwen2.5-1.5B",
+    "parameter_dtypes": [
+      "torch.float16"
+    ],
+    "requested_dtype": "float16",
+    "revision": "8faed761d45a263340a0528343f099c05c9a4323"
+  },
+  "peak_vram_allocated_bytes": {
+    "0": 3382212096
+  },
+  "peak_vram_reserved_bytes": {
+    "0": 3737124864
+  },
+  "start_time": "2026-11-27T00:29:00.336226+00:00",
+  "status": "ok",
+  "steps": {
+    "enumeration": {
+      "first": "model.layers.0.self_attn.q_proj",
+      "last": "model.layers.27.mlp.down_proj",
+      "n_eligible_matrices": 196,
+      "param_counts": {
+        "biases": 57344,
+        "eligible": 1310195712,
+        "eligible_exact_zeros": 2914,
+        "eligible_matrices": 196,
+        "embedding": 233373696,
+        "lm_head_tied": true,
+        "non_eligible": 233518592,
+        "norms": 87552,
+        "other": 0,
+        "other_names": [],
+        "total": 1543714304
+      },
+      "per_block": 7,
+      "pristine_tensors_verified": 338
+    },
+    "held_out_guard": {
+      "attempts": [],
+      "forbidden": [
+        "wikitext2_test_windows_locked.jsonl.gz",
+        "c4_validation_windows_locked.jsonl.gz",
+        "hellaswag_val_locked.jsonl.gz"
+      ],
+      "mechanism": "inside forbid_held_out(): locked_path refuses the held-out names, and a process audit hook refuses any open() of a path whose file name is a held-out name; attempted opens are recorded"
+    },
+    "pristine_after": {
+      "tensors_verified": 338
+    },
+    "resources": {
+      "attn_implementation": "sdpa",
+      "batch_size": 1,
+      "device": "cuda:0",
+      "device_name": "Tesla T4",
+      "eval_id": "t1-eval-v1",
+      "execution": {
+        "description": "dense PyTorch nn.Linear matmuls on the stored FP16 weights (zeros and reconstructed quantized values included); no sparse or low-bit kernels",
+        "mode": "dense_fp16"
+      },
+      "measurements": {
+        "decode_64_after_prefill_512": {
+          "decoded_token_ids": [
+            47704,
+            5737,
+            374,
+            264,
+            2480,
+            23461,
+            28006,
+            6588,
+            304,
+            279,
+            7046,
+            9656,
+            11902,
+            3082,
+            13,
+            1205,
+            3010,
+            264,
+            6884,
+            2088,
+            315,
+            28006,
+            3516,
+            11,
+            2670,
+            17832,
+            33699,
+            6019,
+            11,
+            311,
+            1492,
+            498,
+            11075,
+            264,
+            6233,
+            15289,
+            13,
+            2014,
+            3960,
+            803,
+            911,
+            1039,
+            3516,
+            11,
+            1618,
+            601,
+            518,
+            1369,
+            91,
+            74998,
+            19364,
+            8484,
+            91,
+            220,
+            476,
+            3645,
+            601,
+            2860,
+            13,
+            151643,
+            785,
+            1995,
+            389,
+            419
+          ],
+          "max_ms": 2378.5654296875,
+          "median_ms": 2340.2091064453125,
+          "median_ms_per_token": 36.56576728820801,
+          "min_ms": 2276.5400390625,
+          "peak_allocated_bytes": [
+            3125671936,
+            3125671936,
+            3125671936,
+            3125671936,
+            3125671936,
+            3125671936,
+            3125671936,
+            3125671936,
+            3125671936,
+            3125671936
+          ],
+          "peak_allocated_bytes_max": 3125671936,
+          "peak_reserved_bytes": [
+            3737124864,
+            3737124864,
+            3737124864,
+            3737124864,
+            3737124864,
+            3737124864,
+            3737124864,
+            3737124864,
+            3737124864,
+            3737124864
+          ],
+          "peak_reserved_bytes_max": 3737124864,
+          "repetitions": 10,
+          "times_ms": [
+            2309.328857421875,
+            2360.570068359375,
+            2338.073974609375,
+            2358.321533203125,
+            2301.56640625,
+            2342.34423828125,
+            2276.5400390625,
+            2335.1552734375,
+            2371.405029296875,
+            2378.5654296875
+          ],
+          "unit": "ms",
+          "warmup": 3,
+          "what": "64 greedy decode steps with the KV cache after an untimed 512-token prefill, own loop, EOS ignored"
+        },
+        "prefill_2048": {
+          "max_ms": 749.7666015625,
+          "median_ms": 729.826171875,
+          "min_ms": 724.587158203125,
+          "peak_allocated_bytes": [
+            3706277888,
+            3706277888,
+            3706277888,
+            3706277888,
+            3706277888,
+            3706277888,
+            3706277888,
+            3706277888,
+            3706277888,
+            3706277888
+          ],
+          "peak_allocated_bytes_max": 3706277888,
+          "peak_reserved_bytes": [
+            3737124864,
+            3737124864,
+            3737124864,
+            3737124864,
+            3737124864,
+            3737124864,
+            3737124864,
+            3737124864,
+            3737124864,
+            3737124864
+          ],
+          "peak_reserved_bytes_max": 3737124864,
+          "repetitions": 10,
+          "times_ms": [
+            724.587158203125,
+            729.482666015625,
+            729.3677978515625,
+            728.587890625,
+            729.7946166992188,
+            729.8577270507812,
+            740.358154296875,
+            741.6677856445312,
+            748.7590942382812,
+            749.7666015625
+          ],
+          "unit": "ms",
+          "warmup": 3,
+          "what": "prefill of 2048 tokens with KV cache creation, logits for the last position only"
+        },
+        "prefill_512": {
+          "max_ms": 114.09008026123047,
+          "median_ms": 112.73772811889648,
+          "min_ms": 110.84550476074219,
+          "peak_allocated_bytes": [
+            3161237504,
+            3161237504,
+            3161237504,
+            3161237504,
+            3161237504,
+            3161237504,
+            3161237504,
+            3161237504,
+            3161237504,
+            3161237504
+          ],
+          "peak_allocated_bytes_max": 3161237504,
+          "peak_reserved_bytes": [
+            3525312512,
+            3525312512,
+            3525312512,
+            3525312512,
+            3525312512,
+            3525312512,
+            3525312512,
+            3525312512,
+            3525312512,
+            3525312512
+          ],
+          "peak_reserved_bytes_max": 3525312512,
+          "repetitions": 10,
+          "times_ms": [
+            111.44774627685547,
+            111.08771514892578,
+            113.75414276123047,
+            112.37225341796875,
+            112.68233489990234,
+            110.84550476074219,
+            113.74998474121094,
+            114.09008026123047,
+            112.8834228515625,
+            112.79312133789062
+          ],
+          "unit": "ms",
+          "warmup": 3,
+          "what": "prefill of 512 tokens with KV cache creation, logits for the last position only"
+        }
+      },
+      "prompts": {
+        "2048": {
+          "length": 2048,
+          "source_rows": [
+            60,
+            136,
+            150,
+            162
+          ],
+          "split": "c4_calibration"
+        },
+        "512": {
+          "length": 512,
+          "source_rows": [
+            60
+          ],
+          "split": "c4_calibration"
+        }
+      },
+      "timer": "cuda_events"
+    },
+    "storage": {
+      "convention": "fp16: 2 B/weight; sparse16: ceil(n/8) mask bytes + 2 B per nonzero per matrix; packed: ceil(n*b/8) code bytes + 2 B FP16 scale per group + ceil(G*b/8) zero-point bytes per matrix, group size 128 along input columns; whole model adds non-eligible parameters at FP16, tied once",
+      "eligible_matrices": 196,
+      "eligible_weights": 1310195712,
+      "eval_id": "t1-eval-v1",
+      "fp16_dense": {
+        "bits_per_eligible_weight": 16.0,
+        "eligible_bytes": 2620391424,
+        "whole_model_bytes": 3087428608
+      },
+      "non_eligible_params": 233518592,
+      "sparse16": {
+        "bits_per_eligible_weight": 16.99996441447673,
+        "eligible_bytes": 2784160060,
+        "nonzero_fraction": 0.9999977759047955,
+        "nonzeros": 1310192798,
+        "whole_model_bytes": 3251197244
+      }
+    }
+  },
+  "timings_s": {
+    "enumeration_s": 0.6465463749996161,
+    "load_s": 14.520682042000317,
+    "resources_s": 43.00534013100014
+  },
+  "tokenizer": {
+    "bos_token_id": null,
+    "class": "Qwen2TokenizerFast",
+    "eos_token_id": 151643,
+    "len": 151665,
+    "name_or_path": "Qwen/Qwen2.5-1.5B",
+    "pad_token_id": 151643
+  },
+  "updated_time": "2026-11-27T00:29:59.213281+00:00"
+}

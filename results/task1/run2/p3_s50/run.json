@@ -1,0 +1,577 @@
+{
+  "config": {
+    "artifacts_dir": "/kaggle/input/notebooks/khuzaima13/atml-pa4-t1-run1/artifacts/p3_s50",
+    "condition": "p3_s50",
+    "condition_spec": {
+      "family": "P3",
+      "hellaswag": "full",
+      "sparsity": 0.5
+    },
+    "data_files": [
+      {
+        "content_sha256": "879b5c741918fa58f5ce929e61a0ac83e4acf97d368d3a4f1b456e711fc560b3",
+        "file": "wikitext2_test_windows_locked.jsonl.gz",
+        "records": 437
+      },
+      {
+        "content_sha256": "dd36c6eefb4a4f06b9606e28e5135556389ce98d9f86598a6b61fec3f292e8b5",
+        "file": "c4_validation_windows_locked.jsonl.gz",
+        "records": 177
+      },
+      {
+        "content_sha256": "eaa0452a7b6830b665debecc5df6960876bc7d3ad89ced339bcfc85fa4db6fe3",
+        "file": "c4_calibration_locked.jsonl.gz",
+        "records": 128
+      },
+      {
+        "content_sha256": "85b71a7beeaaf06ea84d99510b4414f50d3a9fc3ddee6c15c1f52c2be3d5f7e2",
+        "file": "c4_development_locked.jsonl.gz",
+        "records": 32
+      },
+      {
+        "content_sha256": "8686d379fe103478679199c744fa6779e4014d70f2af3941f64a3215dc677feb",
+        "file": "hellaswag_val_locked.jsonl.gz",
+        "records": 2000
+      }
+    ],
+    "device": "cuda:0",
+    "entry_point": "task1.evaluate_condition",
+    "hellaswag_scope": "full",
+    "limited": false,
+    "limits": {
+      "dev": null,
+      "hellaswag": null,
+      "windows": null
+    },
+    "model_path": null,
+    "output_files": {
+      "calib_nll_c4_development": "calib_nll_c4_development.jsonl.gz",
+      "hellaswag": "hellaswag_full.jsonl.gz",
+      "ppl_c4_validation": "ppl_c4_validation.jsonl.gz",
+      "ppl_wikitext2_test": "ppl_wikitext2_test.jsonl.gz",
+      "run": "run.json"
+    },
+    "repo_root": "/kaggle/working/atml-pa4",
+    "repro_tol": 0.0001,
+    "resources_mode": "skip",
+    "run1_dir": "results/task1/run1/p3_s50",
+    "settings": {
+      "attn_implementation": "sdpa",
+      "batch_sizes": {
+        "calib_nll": 8,
+        "hellaswag": 32,
+        "lmeval_verify": 32,
+        "perplexity": 8
+      },
+      "bits": [
+        8,
+        4,
+        3
+      ],
+      "dtype": "float16",
+      "eligible": [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj"
+      ],
+      "eval_id": "t1-eval-v1",
+      "group_size": 128,
+      "latency": {
+        "decode_steps": 64,
+        "prefill_lengths": [
+          512,
+          2048
+        ],
+        "reps": 10,
+        "warmup": 3
+      },
+      "lmeval_acceptance_run": "fp32_model",
+      "logprob_chunk": 128,
+      "model_id": "Qwen/Qwen2.5-1.5B",
+      "model_revision": "8faed761d45a263340a0528343f099c05c9a4323",
+      "q3_bits": [
+        2,
+        3,
+        4,
+        8
+      ],
+      "seed": 6304,
+      "sparsities": [
+        0.25,
+        0.5,
+        0.75
+      ]
+    },
+    "test_only": false
+  },
+  "elapsed_wall_s": 194.39117048999992,
+  "end_time": "2026-11-27T00:11:48.649913+00:00",
+  "eval_id": "t1-eval-v1",
+  "meta": {
+    "cuda_available": true,
+    "device_count": 1,
+    "device_names": [
+      "Tesla T4"
+    ],
+    "git_commit": "788b2d5f9c10a8e2b5d6fedceda7a7bd63830dfc",
+    "git_dirty": false,
+    "hostname": "2fd28635e697",
+    "mps_available": false,
+    "package_versions": {
+      "accelerate": "1.16.0",
+      "datasets": "4.8.5",
+      "huggingface_hub": "0.36.2",
+      "lm_eval": "0.4.13",
+      "matplotlib": "3.10.0",
+      "numpy": "2.4.6",
+      "peft": "0.21.2",
+      "safetensors": "0.8.0",
+      "scipy": "1.16.3",
+      "tokenizers": "0.22.2",
+      "torch": "2.11.0+cu130",
+      "transformers": "4.57.1"
+    },
+    "platform": "Linux-6.18.55+-x86_64-with-glibc2.39",
+    "python_version": "3.13.16",
+    "torch_cuda_build": "13.0",
+    "torch_cudnn_build": 92700,
+    "torch_version": "2.11.0+cu130"
+  },
+  "model": {
+    "attn_implementation_effective": "sdpa",
+    "attn_implementation_requested": "sdpa",
+    "device": "cuda:0",
+    "model_class": "Qwen2ForCausalLM",
+    "model_id": "Qwen/Qwen2.5-1.5B",
+    "parameter_dtypes": [
+      "torch.float16"
+    ],
+    "requested_dtype": "float16",
+    "revision": "8faed761d45a263340a0528343f099c05c9a4323"
+  },
+  "peak_vram_allocated_bytes": {
+    "0": 3577431552
+  },
+  "peak_vram_reserved_bytes": {
+    "0": 3659530240
+  },
+  "start_time": "2026-11-27T00:08:34.320011+00:00",
+  "status": "ok",
+  "steps": {
+    "executed_model": {
+      "artifact_applied": true,
+      "extra_tensors": [],
+      "restored_tensors_verified": 338
+    },
+    "hellaswag": {
+      "acc": 0.422,
+      "acc_norm": 0.576,
+      "batch_size": 32,
+      "eval_id": "t1-eval-v1",
+      "file": "hellaswag_full.jsonl.gz",
+      "n": 2000,
+      "n_context_not_prefix": 0,
+      "n_correct_acc": 844,
+      "n_correct_acc_norm": 1152,
+      "orders_first_last": [
+        0,
+        1999
+      ],
+      "prompt_format": "lm_eval 0.4.13 hellaswag (task version 1.0), zero-shot. context = preprocess(activity_label + ': ' + ctx_a + ' ' + ctx_b.capitalize()); choices = [preprocess(e) for e in endings]; continuation = ' ' + choice; label = int(label); preprocess = lm_eval.tasks.hellaswag.utils.preprocess. Encoding (causal encode-pair): trailing whitespace of the context moves to the continuation; whole = tokenizer.encode(context + continuation); ctx = tokenizer.encode(context); continuation tokens = whole[len(ctx):]; no BOS (tokenizer default); model input = whole[:-1]. Score = sum of continuation-token log probabilities (FP32 log-softmax, float64 sum). acc = argmax score; acc_norm = argmax score / len(choice) in characters, without the leading space.",
+      "scope": "full",
+      "task": {
+        "harness": "lm_eval==0.4.13",
+        "name": "hellaswag",
+        "num_fewshot": 0,
+        "target_delimiter": " ",
+        "version": "1.0"
+      }
+    },
+    "inputs": {
+      "artifact": {
+        "dir": "/kaggle/input/notebooks/khuzaima13/atml-pa4-t1-run1/artifacts/p3_s50",
+        "file": {
+          "bytes": 163795224,
+          "name": "artifact.safetensors",
+          "sha256": "f6c0119ee28d7de86253c9cfbb72808dc0b80c81e892c6a957d0950ccc194f76"
+        },
+        "file_sha256_verified": true,
+        "manifest_bytes": 90231,
+        "manifest_sha256": "4f8c7d0c936fb84cae53a225a148d6bae9a05db3ec03ac859dfd05daeb44aee9",
+        "n_tensors_verified": 196,
+        "stored_tensor_bytes": 163774464,
+        "tensor_sha256_verified": true
+      },
+      "freeze": {
+        "allocation_sha256_in_manifest": "985254d14377224611000ff9b9f2cc4f9f014e8f930dfe88fdbda65e4f58f7fb",
+        "applies": true,
+        "candidate_id": "p3_s50.S1.lambda0.08",
+        "clean": true,
+        "commits": [
+          {
+            "author_date": "2026-11-27T01:57:30+05:00",
+            "commit": "802badd9210ba3a29af50672164b042324e5fc0c",
+            "committer_date": "2026-11-27T01:57:30+05:00"
+          }
+        ],
+        "exists": true,
+        "file": "/kaggle/working/atml-pa4/task1/frozen/p3_s50.json",
+        "freeze_author_date": "2026-11-27T01:57:30+05:00",
+        "freeze_commit": "802badd9210ba3a29af50672164b042324e5fc0c",
+        "freeze_commit_date": "2026-11-27T01:57:30+05:00",
+        "head": "788b2d5f9c10a8e2b5d6fedceda7a7bd63830dfc",
+        "in_repo": true,
+        "path": "/kaggle/working/atml-pa4/task1/frozen/p3_s50.json",
+        "rel_path": "task1/frozen/p3_s50.json",
+        "repo_root": "/kaggle/working/atml-pa4",
+        "sha256": "985254d14377224611000ff9b9f2cc4f9f014e8f930dfe88fdbda65e4f58f7fb",
+        "status_porcelain": "",
+        "totals": {
+          "eligible_weights": 1310195712,
+          "p2_zeros": 655097856,
+          "zeros": 655097856
+        },
+        "tracked": true
+      },
+      "run1": {
+        "calibration_mean_nll": 2.88696174653923,
+        "development_mean_nll": 2.8210029666545196,
+        "dir": "results/task1/run1/p3_s50",
+        "manifest_copy": {
+          "clean": true,
+          "commits": [
+            {
+              "author_date": "2026-11-26T22:31:53+05:00",
+              "commit": "960336cce6603b4234ca63c92dac53eab77e5af9",
+              "committer_date": "2026-11-26T22:31:53+05:00"
+            }
+          ],
+          "exists": true,
+          "head": "788b2d5f9c10a8e2b5d6fedceda7a7bd63830dfc",
+          "in_repo": true,
+          "path": "results/task1/run1/p3_s50/artifact_manifest.json",
+          "rel_path": "results/task1/run1/p3_s50/artifact_manifest.json",
+          "repo_root": "/kaggle/working/atml-pa4",
+          "sha256": "4f8c7d0c936fb84cae53a225a148d6bae9a05db3ec03ac859dfd05daeb44aee9",
+          "status_porcelain": "",
+          "tracked": true
+        },
+        "manifest_sha256": "4f8c7d0c936fb84cae53a225a148d6bae9a05db3ec03ac859dfd05daeb44aee9",
+        "run_git_commit": "02f128b2dd9dc9057e8c6a47a4e8008eb9067cf0",
+        "run_git_dirty": false,
+        "run_sha256": "ea7a1fd44689a3ad1b6f1f9132614ec969c3770d7b703de28d341713f7f41e50"
+      }
+    },
+    "peak_gpu_allocated_bytes": 3577431552,
+    "perplexity": {
+      "c4_validation": {
+        "N": 50000,
+        "batch_size": 8,
+        "eval_id": "t1-eval-v1",
+        "file": "ppl_c4_validation.jsonl.gz",
+        "mean_nll": 3.0265180307920603,
+        "n_windows": 177,
+        "nll_sum": 151325.90153960302,
+        "ppl": 20.625290785083205,
+        "suite": "c4_validation"
+      },
+      "wikitext2_test": {
+        "N": 50000,
+        "batch_size": 8,
+        "eval_id": "t1-eval-v1",
+        "file": "ppl_wikitext2_test.jsonl.gz",
+        "mean_nll": 3.2032328956166234,
+        "n_windows": 437,
+        "nll_sum": 160161.64478083118,
+        "ppl": 24.611969646983713,
+        "suite": "wikitext2_test"
+      }
+    },
+    "reproduction": {
+      "N": 16352,
+      "batch_size": 8,
+      "diff_vs_run1": 0.0,
+      "eval_id": "t1-eval-v1",
+      "file": "calib_nll_c4_development.jsonl.gz",
+      "mean_nll": 2.8210029666545196,
+      "n_sequences": 32,
+      "nll_sum": 46129.0405107347,
+      "reproduces_run1": true,
+      "run1_mean_nll": 2.8210029666545196,
+      "split": "c4_development"
+    },
+    "storage": {
+      "artifact_files": {
+        "manifest_bytes": 90231,
+        "safetensors_bytes": 163795224,
+        "stored_tensor_bytes": 163774464,
+        "total_bytes": 163885455
+      },
+      "convention": "fp16: 2 B/weight; sparse16: ceil(n/8) mask bytes + 2 B per nonzero per matrix; packed: ceil(n*b/8) code bytes + 2 B FP16 scale per group + ceil(G*b/8) zero-point bytes per matrix, group size 128 along input columns; whole model adds non-eligible parameters at FP16, tied once",
+      "eligible_matrices": 196,
+      "eligible_weights": 1310195712,
+      "eval_id": "t1-eval-v1",
+      "fp16_dense": {
+        "bits_per_eligible_weight": 16.0,
+        "eligible_bytes": 2620391424,
+        "whole_model_bytes": 3087428608
+      },
+      "logical": {
+        "bits_per_eligible_weight": 9.0,
+        "eligible_bytes": 1473970176,
+        "format": "sparse16",
+        "non_eligible_params": 233518592,
+        "tied_lm_head_counted_once": true,
+        "whole_model_bytes": 1941007360
+      },
+      "mask": {
+        "kept": 655097856,
+        "p2_zeros": 655097856,
+        "zero_fraction": 0.5,
+        "zeros": 655097856
+      },
+      "nominal_bits_per_eligible_weight": 16,
+      "non_eligible_params": 233518592,
+      "nonzeros": {
+        "eligible_weights": 1310195712,
+        "global": 655097856,
+        "nonzero_fraction": 0.5,
+        "per_matrix": {
+          "model.layers.0.mlp.down_proj": 8470772,
+          "model.layers.0.mlp.gate_proj": 8470772,
+          "model.layers.0.mlp.up_proj": 8470772,
+          "model.layers.0.self_attn.k_proj": 242022,
+          "model.layers.0.self_attn.o_proj": 1452132,
+          "model.layers.0.self_attn.q_proj": 1452132,
+          "model.layers.0.self_attn.v_proj": 242022,
+          "model.layers.1.mlp.down_proj": 7521337,
+          "model.layers.1.mlp.gate_proj": 7521337,
+          "model.layers.1.mlp.up_proj": 7521337,
+          "model.layers.1.self_attn.k_proj": 214895,
+          "model.layers.1.self_attn.o_proj": 1289372,
+          "model.layers.1.self_attn.q_proj": 1289372,
+          "model.layers.1.self_attn.v_proj": 214895,
+          "model.layers.10.mlp.down_proj": 6455372,
+          "model.layers.10.mlp.gate_proj": 6455372,
+          "model.layers.10.mlp.up_proj": 6455372,
+          "model.layers.10.self_attn.k_proj": 184439,
+          "model.layers.10.self_attn.o_proj": 1106635,
+          "model.layers.10.self_attn.q_proj": 1106635,
+          "model.layers.10.self_attn.v_proj": 184439,
+          "model.layers.11.mlp.down_proj": 6651223,
+          "model.layers.11.mlp.gate_proj": 6651223,
+          "model.layers.11.mlp.up_proj": 6651223,
+          "model.layers.11.self_attn.k_proj": 190035,
+          "model.layers.11.self_attn.o_proj": 1140210,
+          "model.layers.11.self_attn.q_proj": 1140210,
+          "model.layers.11.self_attn.v_proj": 190035,
+          "model.layers.12.mlp.down_proj": 6714054,
+          "model.layers.12.mlp.gate_proj": 6714054,
+          "model.layers.12.mlp.up_proj": 6714054,
+          "model.layers.12.self_attn.k_proj": 191830,
+          "model.layers.12.self_attn.o_proj": 1150981,
+          "model.layers.12.self_attn.q_proj": 1150981,
+          "model.layers.12.self_attn.v_proj": 191830,
+          "model.layers.13.mlp.down_proj": 6469682,
+          "model.layers.13.mlp.gate_proj": 6469682,
+          "model.layers.13.mlp.up_proj": 6469682,
+          "model.layers.13.self_attn.k_proj": 184848,
+          "model.layers.13.self_attn.o_proj": 1109088,
+          "model.layers.13.self_attn.q_proj": 1109088,
+          "model.layers.13.self_attn.v_proj": 184848,
+          "model.layers.14.mlp.down_proj": 6802924,
+          "model.layers.14.mlp.gate_proj": 6802924,
+          "model.layers.14.mlp.up_proj": 6802924,
+          "model.layers.14.self_attn.k_proj": 194369,
+          "model.layers.14.self_attn.o_proj": 1166216,
+          "model.layers.14.self_attn.q_proj": 1166216,
+          "model.layers.14.self_attn.v_proj": 194369,
+          "model.layers.15.mlp.down_proj": 6770272,
+          "model.layers.15.mlp.gate_proj": 6770272,
+          "model.layers.15.mlp.up_proj": 6770272,
+          "model.layers.15.self_attn.k_proj": 193436,
+          "model.layers.15.self_attn.o_proj": 1160618,
+          "model.layers.15.self_attn.q_proj": 1160618,
+          "model.layers.15.self_attn.v_proj": 193436,
+          "model.layers.16.mlp.down_proj": 6987482,
+          "model.layers.16.mlp.gate_proj": 6987482,
+          "model.layers.16.mlp.up_proj": 6987482,
+          "model.layers.16.self_attn.k_proj": 199642,
+          "model.layers.16.self_attn.o_proj": 1197854,
+          "model.layers.16.self_attn.q_proj": 1197854,
+          "model.layers.16.self_attn.v_proj": 199642,
+          "model.layers.17.mlp.down_proj": 6986773,
+          "model.layers.17.mlp.gate_proj": 6986773,
+          "model.layers.17.mlp.up_proj": 6986773,
+          "model.layers.17.self_attn.k_proj": 199622,
+          "model.layers.17.self_attn.o_proj": 1197733,
+          "model.layers.17.self_attn.q_proj": 1197733,
+          "model.layers.17.self_attn.v_proj": 199622,
+          "model.layers.18.mlp.down_proj": 6954202,
+          "model.layers.18.mlp.gate_proj": 6954202,
+          "model.layers.18.mlp.up_proj": 6954202,
+          "model.layers.18.self_attn.k_proj": 198691,
+          "model.layers.18.self_attn.o_proj": 1192149,
+          "model.layers.18.self_attn.q_proj": 1192149,
+          "model.layers.18.self_attn.v_proj": 198691,
+          "model.layers.19.mlp.down_proj": 7120564,
+          "model.layers.19.mlp.gate_proj": 7120564,
+          "model.layers.19.mlp.up_proj": 7120564,
+          "model.layers.19.self_attn.k_proj": 203445,
+          "model.layers.19.self_attn.o_proj": 1220668,
+          "model.layers.19.self_attn.q_proj": 1220668,
+          "model.layers.19.self_attn.v_proj": 203445,
+          "model.layers.2.mlp.down_proj": 7778696,
+          "model.layers.2.mlp.gate_proj": 7778696,
+          "model.layers.2.mlp.up_proj": 7778696,
+          "model.layers.2.self_attn.k_proj": 222248,
+          "model.layers.2.self_attn.o_proj": 1333491,
+          "model.layers.2.self_attn.q_proj": 1333491,
+          "model.layers.2.self_attn.v_proj": 222248,
+          "model.layers.20.mlp.down_proj": 6946006,
+          "model.layers.20.mlp.gate_proj": 6946006,
+          "model.layers.20.mlp.up_proj": 6946006,
+          "model.layers.20.self_attn.k_proj": 198457,
+          "model.layers.20.self_attn.o_proj": 1190744,
+          "model.layers.20.self_attn.q_proj": 1190744,
+          "model.layers.20.self_attn.v_proj": 198457,
+          "model.layers.21.mlp.down_proj": 6905013,
+          "model.layers.21.mlp.gate_proj": 6905013,
+          "model.layers.21.mlp.up_proj": 6905013,
+          "model.layers.21.self_attn.k_proj": 197286,
+          "model.layers.21.self_attn.o_proj": 1183716,
+          "model.layers.21.self_attn.q_proj": 1183716,
+          "model.layers.21.self_attn.v_proj": 197286,
+          "model.layers.22.mlp.down_proj": 6932667,
+          "model.layers.22.mlp.gate_proj": 6932667,
+          "model.layers.22.mlp.up_proj": 6932667,
+          "model.layers.22.self_attn.k_proj": 198076,
+          "model.layers.22.self_attn.o_proj": 1188457,
+          "model.layers.22.self_attn.q_proj": 1188457,
+          "model.layers.22.self_attn.v_proj": 198076,
+          "model.layers.23.mlp.down_proj": 6831493,
+          "model.layers.23.mlp.gate_proj": 6831493,
+          "model.layers.23.mlp.up_proj": 6831493,
+          "model.layers.23.self_attn.k_proj": 195186,
+          "model.layers.23.self_attn.o_proj": 1171113,
+          "model.layers.23.self_attn.q_proj": 1171113,
+          "model.layers.23.self_attn.v_proj": 195186,
+          "model.layers.24.mlp.down_proj": 6552886,
+          "model.layers.24.mlp.gate_proj": 6552886,
+          "model.layers.24.mlp.up_proj": 6552886,
+          "model.layers.24.self_attn.k_proj": 187225,
+          "model.layers.24.self_attn.o_proj": 1123352,
+          "model.layers.24.self_attn.q_proj": 1123352,
+          "model.layers.24.self_attn.v_proj": 187225,
+          "model.layers.25.mlp.down_proj": 6600224,
+          "model.layers.25.mlp.gate_proj": 6600224,
+          "model.layers.25.mlp.up_proj": 6600224,
+          "model.layers.25.self_attn.k_proj": 188578,
+          "model.layers.25.self_attn.o_proj": 1131467,
+          "model.layers.25.self_attn.q_proj": 1131467,
+          "model.layers.25.self_attn.v_proj": 188578,
+          "model.layers.26.mlp.down_proj": 6723275,
+          "model.layers.26.mlp.gate_proj": 6723275,
+          "model.layers.26.mlp.up_proj": 6723275,
+          "model.layers.26.self_attn.k_proj": 192094,
+          "model.layers.26.self_attn.o_proj": 1152561,
+          "model.layers.26.self_attn.q_proj": 1152561,
+          "model.layers.26.self_attn.v_proj": 192094,
+          "model.layers.27.mlp.down_proj": 7260619,
+          "model.layers.27.mlp.gate_proj": 7260619,
+          "model.layers.27.mlp.up_proj": 7260619,
+          "model.layers.27.self_attn.k_proj": 207446,
+          "model.layers.27.self_attn.o_proj": 1244678,
+          "model.layers.27.self_attn.q_proj": 1244678,
+          "model.layers.27.self_attn.v_proj": 207446,
+          "model.layers.3.mlp.down_proj": 7257210,
+          "model.layers.3.mlp.gate_proj": 7257210,
+          "model.layers.3.mlp.up_proj": 7257210,
+          "model.layers.3.self_attn.k_proj": 207349,
+          "model.layers.3.self_attn.o_proj": 1244093,
+          "model.layers.3.self_attn.q_proj": 1244093,
+          "model.layers.3.self_attn.v_proj": 207349,
+          "model.layers.4.mlp.down_proj": 6749335,
+          "model.layers.4.mlp.gate_proj": 6749335,
+          "model.layers.4.mlp.up_proj": 6749335,
+          "model.layers.4.self_attn.k_proj": 192838,
+          "model.layers.4.self_attn.o_proj": 1157029,
+          "model.layers.4.self_attn.q_proj": 1157029,
+          "model.layers.4.self_attn.v_proj": 192838,
+          "model.layers.5.mlp.down_proj": 6889949,
+          "model.layers.5.mlp.gate_proj": 6889949,
+          "model.layers.5.mlp.up_proj": 6889949,
+          "model.layers.5.self_attn.k_proj": 196856,
+          "model.layers.5.self_attn.o_proj": 1181134,
+          "model.layers.5.self_attn.q_proj": 1181134,
+          "model.layers.5.self_attn.v_proj": 196856,
+          "model.layers.6.mlp.down_proj": 6430468,
+          "model.layers.6.mlp.gate_proj": 6430468,
+          "model.layers.6.mlp.up_proj": 6430468,
+          "model.layers.6.self_attn.k_proj": 183728,
+          "model.layers.6.self_attn.o_proj": 1102366,
+          "model.layers.6.self_attn.q_proj": 1102366,
+          "model.layers.6.self_attn.v_proj": 183728,
+          "model.layers.7.mlp.down_proj": 6268762,
+          "model.layers.7.mlp.gate_proj": 6268762,
+          "model.layers.7.mlp.up_proj": 6268762,
+          "model.layers.7.self_attn.k_proj": 179107,
+          "model.layers.7.self_attn.o_proj": 1074645,
+          "model.layers.7.self_attn.q_proj": 1074645,
+          "model.layers.7.self_attn.v_proj": 179108,
+          "model.layers.8.mlp.down_proj": 6346596,
+          "model.layers.8.mlp.gate_proj": 6346596,
+          "model.layers.8.mlp.up_proj": 6346596,
+          "model.layers.8.self_attn.k_proj": 181331,
+          "model.layers.8.self_attn.o_proj": 1087988,
+          "model.layers.8.self_attn.q_proj": 1087988,
+          "model.layers.8.self_attn.v_proj": 181331,
+          "model.layers.9.mlp.down_proj": 6297985,
+          "model.layers.9.mlp.gate_proj": 6297985,
+          "model.layers.9.mlp.up_proj": 6297985,
+          "model.layers.9.self_attn.k_proj": 179942,
+          "model.layers.9.self_attn.o_proj": 1079655,
+          "model.layers.9.self_attn.q_proj": 1079655,
+          "model.layers.9.self_attn.v_proj": 179942
+        },
+        "zero_fraction": 0.5
+      },
+      "param_counts": {
+        "biases": 57344,
+        "eligible": 1310195712,
+        "embedding": 233373696,
+        "lm_head_tied": true,
+        "non_eligible": 233518592,
+        "norms": 87552,
+        "other": 0,
+        "total": 1543714304
+      },
+      "representation": "sparse16",
+      "sparse16": {
+        "bits_per_eligible_weight": 9.0,
+        "eligible_bytes": 1473970176,
+        "nonzero_fraction": 0.5,
+        "nonzeros": 655097856,
+        "whole_model_bytes": 1941007360
+      }
+    }
+  },
+  "timings_s": {
+    "artifact_load_s": 8.204151318999948,
+    "calib_nll_c4_development_s": 4.354556472000013,
+    "hellaswag_s": 141.38806110199994,
+    "load_s": 14.046574989999954,
+    "ppl_c4_validation_s": 13.248397221999994,
+    "ppl_wikitext2_test_s": 12.755759016000184
+  },
+  "tokenizer": {
+    "class": "Qwen2TokenizerFast",
+    "len": 151665,
+    "name_or_path": "Qwen/Qwen2.5-1.5B"
+  },
+  "updated_time": "2026-11-27T00:11:48.650196+00:00"
+}

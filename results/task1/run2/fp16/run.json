@@ -1,0 +1,441 @@
+{
+  "acceptance": "PASS",
+  "config": {
+    "condition": "fp16",
+    "condition_spec": {
+      "family": "baseline",
+      "hellaswag": "full"
+    },
+    "data_files": [
+      {
+        "content_sha256": "879b5c741918fa58f5ce929e61a0ac83e4acf97d368d3a4f1b456e711fc560b3",
+        "file": "wikitext2_test_windows_locked.jsonl.gz",
+        "records": 437
+      },
+      {
+        "content_sha256": "dd36c6eefb4a4f06b9606e28e5135556389ce98d9f86598a6b61fec3f292e8b5",
+        "file": "c4_validation_windows_locked.jsonl.gz",
+        "records": 177
+      },
+      {
+        "content_sha256": "eaa0452a7b6830b665debecc5df6960876bc7d3ad89ced339bcfc85fa4db6fe3",
+        "file": "c4_calibration_locked.jsonl.gz",
+        "records": 128
+      },
+      {
+        "content_sha256": "85b71a7beeaaf06ea84d99510b4414f50d3a9fc3ddee6c15c1f52c2be3d5f7e2",
+        "file": "c4_development_locked.jsonl.gz",
+        "records": 32
+      },
+      {
+        "content_sha256": "8686d379fe103478679199c744fa6779e4014d70f2af3941f64a3215dc677feb",
+        "file": "hellaswag_val_locked.jsonl.gz",
+        "records": 2000
+      }
+    ],
+    "device": "cuda:0",
+    "env": {
+      "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+    },
+    "hellaswag_scope": "full",
+    "limited": false,
+    "limits": {
+      "calib": null,
+      "hellaswag": null,
+      "windows": null
+    },
+    "model_path": null,
+    "output_files": {
+      "calib_nll_c4_calibration": "calib_nll_c4_calibration.jsonl.gz",
+      "calib_nll_c4_development": "calib_nll_c4_development.jsonl.gz",
+      "hellaswag": "hellaswag_full.jsonl.gz",
+      "lmeval_verify": "lmeval_verify.json",
+      "ppl_c4_validation": "ppl_c4_validation.jsonl.gz",
+      "ppl_wikitext2_test": "ppl_wikitext2_test.jsonl.gz",
+      "run": "run.json"
+    },
+    "resources_mode": "skip",
+    "settings": {
+      "attn_implementation": "sdpa",
+      "batch_sizes": {
+        "calib_nll": 8,
+        "hellaswag": 32,
+        "lmeval_verify": 32,
+        "perplexity": 8
+      },
+      "bits": [
+        8,
+        4,
+        3
+      ],
+      "dtype": "float16",
+      "eligible": [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "gate_proj",
+        "up_proj",
+        "down_proj"
+      ],
+      "eval_id": "t1-eval-v1",
+      "group_size": 128,
+      "latency": {
+        "decode_steps": 64,
+        "prefill_lengths": [
+          512,
+          2048
+        ],
+        "reps": 10,
+        "warmup": 3
+      },
+      "lmeval_acceptance_run": "fp32_model",
+      "logprob_chunk": 128,
+      "model_id": "Qwen/Qwen2.5-1.5B",
+      "model_revision": "8faed761d45a263340a0528343f099c05c9a4323",
+      "q3_bits": [
+        2,
+        3,
+        4,
+        8
+      ],
+      "seed": 6304,
+      "sparsities": [
+        0.25,
+        0.5,
+        0.75
+      ]
+    },
+    "steps_run": [
+      "enumeration",
+      "perplexity",
+      "hellaswag",
+      "calib_nll",
+      "lmeval_verify",
+      "storage"
+    ]
+  },
+  "elapsed_wall_s": 457.63777549100007,
+  "end_time": "2026-11-27T00:08:07.428084+00:00",
+  "eval_id": "t1-eval-v1",
+  "meta": {
+    "cuda_available": true,
+    "device_count": 1,
+    "device_names": [
+      "Tesla T4"
+    ],
+    "git_commit": "788b2d5f9c10a8e2b5d6fedceda7a7bd63830dfc",
+    "git_dirty": false,
+    "hostname": "2fd28635e697",
+    "mps_available": false,
+    "package_versions": {
+      "accelerate": "1.16.0",
+      "datasets": "4.8.5",
+      "huggingface_hub": "0.36.2",
+      "lm_eval": "0.4.13",
+      "matplotlib": "3.10.0",
+      "numpy": "2.4.6",
+      "peft": "0.21.2",
+      "safetensors": "0.8.0",
+      "scipy": "1.16.3",
+      "tokenizers": "0.22.2",
+      "torch": "2.11.0+cu130",
+      "transformers": "4.57.1"
+    },
+    "platform": "Linux-6.18.55+-x86_64-with-glibc2.39",
+    "python_version": "3.13.16",
+    "torch_cuda_build": "13.0",
+    "torch_cudnn_build": 92700,
+    "torch_version": "2.11.0+cu130"
+  },
+  "model": {
+    "attn_implementation_effective": "sdpa",
+    "attn_implementation_requested": "sdpa",
+    "device": "cuda:0",
+    "model_class": "Qwen2ForCausalLM",
+    "model_id": "Qwen/Qwen2.5-1.5B",
+    "parameter_dtypes": [
+      "torch.float16"
+    ],
+    "requested_dtype": "float16",
+    "revision": "8faed761d45a263340a0528343f099c05c9a4323"
+  },
+  "peak_vram_allocated_bytes": {
+    "0": 7599271424
+  },
+  "peak_vram_reserved_bytes": {
+    "0": 8078229504
+  },
+  "start_time": "2026-11-27T00:00:29.849752+00:00",
+  "status": "ok",
+  "steps": {
+    "calib_nll": {
+      "c4_calibration": {
+        "N": 65408,
+        "batch_size": 8,
+        "eval_id": "t1-eval-v1",
+        "file": "calib_nll_c4_calibration.jsonl.gz",
+        "mean_nll": 2.6160733503131888,
+        "n_sequences": 128,
+        "nll_sum": 171112.12569728505,
+        "split": "c4_calibration"
+      },
+      "c4_development": {
+        "N": 16352,
+        "batch_size": 8,
+        "eval_id": "t1-eval-v1",
+        "file": "calib_nll_c4_development.jsonl.gz",
+        "mean_nll": 2.5267345896015168,
+        "n_sequences": 32,
+        "nll_sum": 41317.164009164,
+        "split": "c4_development"
+      }
+    },
+    "enumeration": {
+      "first": "model.layers.0.self_attn.q_proj",
+      "last": "model.layers.27.mlp.down_proj",
+      "n_eligible_matrices": 196,
+      "param_counts": {
+        "biases": 57344,
+        "eligible": 1310195712,
+        "eligible_exact_zeros": 2914,
+        "eligible_matrices": 196,
+        "embedding": 233373696,
+        "lm_head_tied": true,
+        "non_eligible": 233518592,
+        "norms": 87552,
+        "other": 0,
+        "other_names": [],
+        "total": 1543714304
+      },
+      "per_block": 7,
+      "pristine_tensors_verified": 338
+    },
+    "hellaswag": {
+      "acc": 0.5045,
+      "acc_norm": 0.6935,
+      "batch_size": 32,
+      "eval_id": "t1-eval-v1",
+      "file": "hellaswag_full.jsonl.gz",
+      "n": 2000,
+      "n_context_not_prefix": 0,
+      "n_correct_acc": 1009,
+      "n_correct_acc_norm": 1387,
+      "orders_first_last": [
+        0,
+        1999
+      ],
+      "prompt_format": "lm_eval 0.4.13 hellaswag (task version 1.0), zero-shot. context = preprocess(activity_label + ': ' + ctx_a + ' ' + ctx_b.capitalize()); choices = [preprocess(e) for e in endings]; continuation = ' ' + choice; label = int(label); preprocess = lm_eval.tasks.hellaswag.utils.preprocess. Encoding (causal encode-pair): trailing whitespace of the context moves to the continuation; whole = tokenizer.encode(context + continuation); ctx = tokenizer.encode(context); continuation tokens = whole[len(ctx):]; no BOS (tokenizer default); model input = whole[:-1]. Score = sum of continuation-token log probabilities (FP32 log-softmax, float64 sum). acc = argmax score; acc_norm = argmax score / len(choice) in characters, without the leading space.",
+      "scope": "full",
+      "task": {
+        "harness": "lm_eval==0.4.13",
+        "name": "hellaswag",
+        "num_fewshot": 0,
+        "target_delimiter": " ",
+        "version": "1.0"
+      }
+    },
+    "lmeval_verify": {
+      "acceptance": "PASS",
+      "acceptance_detail": {
+        "disagreements": [],
+        "max_abs_diff": 0.00018458068370819092,
+        "max_abs_diff_ok": true,
+        "n_disagreements": 0,
+        "n_unexplained": 0,
+        "result": "PASS",
+        "rule": "PASS if the acceptance run's max absolute per-candidate log-likelihood difference is <= 2e-2 nats and every acc or acc_norm argmax disagreement has a top-two margin of our scores in that metric (log likelihood for acc, log likelihood per character for acc_norm) smaller than the observed max difference; otherwise FAIL",
+        "threshold_max_abs_diff": 0.02
+      },
+      "acceptance_run": "fp32_model",
+      "batch_sizes": {
+        "fp32_model": 8,
+        "softmax_dtype=default": 32,
+        "softmax_dtype=float32": 32
+      },
+      "file": "lmeval_verify.json",
+      "fp16_model_after": {
+        "fingerprints_verified": 338,
+        "parameter_devices": [
+          "cuda:0"
+        ],
+        "parameter_dtypes": [
+          "torch.float16"
+        ]
+      },
+      "n_examples": 512,
+      "peak_allocated_bytes": 7599271424,
+      "peak_allocated_bytes_before_step": 3577431552,
+      "peak_reserved_bytes": 8078229504,
+      "runs": {
+        "fp32_model": {
+          "argmax_disagreements_acc": 0,
+          "argmax_disagreements_acc_norm": 0,
+          "batch_size": 8,
+          "device": "cuda:0",
+          "lmeval_acc": 0.462890625,
+          "lmeval_acc_norm": 0.5859375,
+          "loaded_model_offloaded_to": "cpu",
+          "max_abs_diff": 0.00018458068370819092,
+          "mean_abs_diff": 3.555883462169618e-05,
+          "memory_projection": {
+            "batch_size": 8,
+            "device": "cuda:0",
+            "element_bytes": 4,
+            "free_bytes": 9125560320,
+            "max_length": 114,
+            "projected_bytes": 1108525056,
+            "total_bytes": 15636037632,
+            "vocab": 151936
+          },
+          "model_dtype": "torch.float32",
+          "n_candidates": 2048,
+          "n_examples": 512,
+          "ours_acc": 0.462890625,
+          "ours_acc_norm": 0.5859375,
+          "ours_batch_size": 8,
+          "ours_from": "task1.evaluate.hellaswag on the float32 copy",
+          "rule_check": {
+            "max_abs_diff_ok": true,
+            "n_disagreements": 0,
+            "n_unexplained": 0,
+            "result": "PASS"
+          },
+          "softmax_dtype": "float32",
+          "wall_s": 212.6789347020001
+        },
+        "softmax_dtype=default": {
+          "argmax_disagreements_acc": 0,
+          "argmax_disagreements_acc_norm": 0,
+          "batch_size": 32,
+          "lmeval_acc": 0.462890625,
+          "lmeval_acc_norm": 0.580078125,
+          "max_abs_diff": 0.1346024088561535,
+          "mean_abs_diff": 0.01436960770499418,
+          "memory_projection": {
+            "batch_size": 32,
+            "device": "cuda:0",
+            "element_bytes": 2,
+            "free_bytes": 11835080704,
+            "max_length": 114,
+            "projected_bytes": 2217050112,
+            "total_bytes": 15636037632,
+            "vocab": 151936
+          },
+          "model_dtype": "torch.float16",
+          "n_candidates": 2048,
+          "n_examples": 512,
+          "ours_acc": 0.462890625,
+          "ours_acc_norm": 0.580078125,
+          "ours_from": "task1.evaluate.hellaswag on the loaded model",
+          "rule_check": {
+            "max_abs_diff_ok": false,
+            "n_disagreements": 0,
+            "n_unexplained": 0,
+            "result": "FAIL"
+          },
+          "softmax_dtype": "default",
+          "wall_s": 19.753183211000078
+        },
+        "softmax_dtype=float32": {
+          "argmax_disagreements_acc": 0,
+          "argmax_disagreements_acc_norm": 0,
+          "batch_size": 32,
+          "lmeval_acc": 0.462890625,
+          "lmeval_acc_norm": 0.580078125,
+          "max_abs_diff": 0.12357793375849724,
+          "mean_abs_diff": 0.009501497957787208,
+          "memory_projection": {
+            "batch_size": 32,
+            "device": "cuda:0",
+            "element_bytes": 4,
+            "free_bytes": 9240903680,
+            "max_length": 114,
+            "projected_bytes": 4434100224,
+            "total_bytes": 15636037632,
+            "vocab": 151936
+          },
+          "model_dtype": "torch.float16",
+          "n_candidates": 2048,
+          "n_examples": 512,
+          "ours_acc": 0.462890625,
+          "ours_acc_norm": 0.580078125,
+          "ours_from": "task1.evaluate.hellaswag on the loaded model",
+          "rule_check": {
+            "max_abs_diff_ok": false,
+            "n_disagreements": 0,
+            "n_unexplained": 0,
+            "result": "FAIL"
+          },
+          "softmax_dtype": "float32",
+          "wall_s": 20.126187179000226
+        }
+      }
+    },
+    "perplexity": {
+      "c4_validation": {
+        "N": 50000,
+        "batch_size": 8,
+        "eval_id": "t1-eval-v1",
+        "file": "ppl_c4_validation.jsonl.gz",
+        "mean_nll": 2.7055486822307295,
+        "n_windows": 177,
+        "nll_sum": 135277.43411153648,
+        "ppl": 14.962524109793495,
+        "suite": "c4_validation"
+      },
+      "wikitext2_test": {
+        "N": 50000,
+        "batch_size": 8,
+        "eval_id": "t1-eval-v1",
+        "file": "ppl_wikitext2_test.jsonl.gz",
+        "mean_nll": 2.7792817559842486,
+        "n_windows": 437,
+        "nll_sum": 138964.08779921243,
+        "ppl": 16.107447714392283,
+        "suite": "wikitext2_test"
+      }
+    },
+    "pristine_after": {
+      "tensors_verified": 338
+    },
+    "storage": {
+      "convention": "fp16: 2 B/weight; sparse16: ceil(n/8) mask bytes + 2 B per nonzero per matrix; packed: ceil(n*b/8) code bytes + 2 B FP16 scale per group + ceil(G*b/8) zero-point bytes per matrix, group size 128 along input columns; whole model adds non-eligible parameters at FP16, tied once",
+      "eligible_matrices": 196,
+      "eligible_weights": 1310195712,
+      "eval_id": "t1-eval-v1",
+      "fp16_dense": {
+        "bits_per_eligible_weight": 16.0,
+        "eligible_bytes": 2620391424,
+        "whole_model_bytes": 3087428608
+      },
+      "non_eligible_params": 233518592,
+      "sparse16": {
+        "bits_per_eligible_weight": 16.99996441447673,
+        "eligible_bytes": 2784160060,
+        "nonzero_fraction": 0.9999977759047955,
+        "nonzeros": 1310192798,
+        "whole_model_bytes": 3251197244
+      }
+    }
+  },
+  "timings_s": {
+    "calib_nll_c4_calibration_s": 17.270344959999875,
+    "calib_nll_c4_development_s": 4.29642469700002,
+    "enumeration_s": 0.6391915680001148,
+    "hellaswag_s": 142.5928149460001,
+    "lmeval_verify_s": 254.16071181799998,
+    "load_s": 13.133247653999888,
+    "ppl_c4_validation_s": 12.538994272000082,
+    "ppl_wikitext2_test_s": 12.209026740999889
+  },
+  "tokenizer": {
+    "bos_token_id": null,
+    "class": "Qwen2TokenizerFast",
+    "eos_token_id": 151643,
+    "len": 151665,
+    "name_or_path": "Qwen/Qwen2.5-1.5B",
+    "pad_token_id": 151643
+  },
+  "updated_time": "2026-11-27T00:08:07.428434+00:00"
+}

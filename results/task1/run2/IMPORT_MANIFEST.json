@@ -1,0 +1,2115 @@
+{
+  "files": [
+    {
+      "bytes": 2351,
+      "path": "results/task1/run2/fp16/calib_nll_c4_calibration.jsonl.gz",
+      "sha256": "c3873a71e230a04f5073d9d8ec6c170a36b1cd91e04a39948590c7bd5eb83ee9",
+      "zip_path": "results/task1/run2/fp16/calib_nll_c4_calibration.jsonl.gz"
+    },
+    {
+      "bytes": 702,
+      "path": "results/task1/run2/fp16/calib_nll_c4_development.jsonl.gz",
+      "sha256": "3d70252c7707a9141f75d9d84bc5a24665f334d3ebfc8ead33a80083c80c4007",
+      "zip_path": "results/task1/run2/fp16/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 139278,
+      "path": "results/task1/run2/fp16/hellaswag_full.jsonl.gz",
+      "sha256": "029751661d7cfe9c238068c3bcf46792675e83a8a07e80b61384733f41bcf568",
+      "zip_path": "results/task1/run2/fp16/hellaswag_full.jsonl.gz"
+    },
+    {
+      "bytes": 650233,
+      "path": "results/task1/run2/fp16/lmeval_verify.json",
+      "sha256": "5f46cc8d6bbc04fd7a152895c25dcfe1baa6b2d267a144cf7e525ad1ec03315b",
+      "zip_path": "results/task1/run2/fp16/lmeval_verify.json"
+    },
+    {
+      "bytes": 3709,
+      "path": "results/task1/run2/fp16/ppl_c4_validation.jsonl.gz",
+      "sha256": "00e820d65169c1ee64d2046783ae37775fb4ac1ea4e314b2a402dd8a6507b6c1",
+      "zip_path": "results/task1/run2/fp16/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8852,
+      "path": "results/task1/run2/fp16/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "f8e8e4d625fed6874fcea51e7bb8b26b3f8f99593399249335bffc9f8c41a364",
+      "zip_path": "results/task1/run2/fp16/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 14037,
+      "path": "results/task1/run2/fp16/run.json",
+      "sha256": "324b290084188754f7fbd10d62d61a9213a1ff2b4b48d1cbd147b76caa78edbe",
+      "zip_path": "results/task1/run2/fp16/run.json"
+    },
+    {
+      "bytes": 708,
+      "path": "results/task1/run2/p1_s25/calib_nll_c4_development.jsonl.gz",
+      "sha256": "6d6e5db3e5415dabfe71029e479019c6748fd8d7b88c57f45c57ea474f583beb",
+      "zip_path": "results/task1/run2/p1_s25/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 35520,
+      "path": "results/task1/run2/p1_s25/hellaswag_subset512.jsonl.gz",
+      "sha256": "9e4fc5f80bd259288279e00f918379b38d3cb18bc673afa33aa11a711c517bf7",
+      "zip_path": "results/task1/run2/p1_s25/hellaswag_subset512.jsonl.gz"
+    },
+    {
+      "bytes": 3693,
+      "path": "results/task1/run2/p1_s25/ppl_c4_validation.jsonl.gz",
+      "sha256": "3bdbefa07fad42dbf5a3848be61f4dfc59f7fc17fc9786c119d1c3432fae8c3d",
+      "zip_path": "results/task1/run2/p1_s25/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8850,
+      "path": "results/task1/run2/p1_s25/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "8cf36acbd6ea8e2948247673ab138d1c17f5eb42ae7ce232c5dbcdf19bd8153e",
+      "zip_path": "results/task1/run2/p1_s25/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 21670,
+      "path": "results/task1/run2/p1_s25/run.json",
+      "sha256": "850bf1b9fe12fd03f5431502e3a37ffb84d11b4927f3ad0f87fc69fa51d045f1",
+      "zip_path": "results/task1/run2/p1_s25/run.json"
+    },
+    {
+      "bytes": 698,
+      "path": "results/task1/run2/p1_s50/calib_nll_c4_development.jsonl.gz",
+      "sha256": "7bc4c77bbe92fefe032d7315bcf814be5c621413c661d32b2eed202d8b4a4a29",
+      "zip_path": "results/task1/run2/p1_s50/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 139749,
+      "path": "results/task1/run2/p1_s50/hellaswag_full.jsonl.gz",
+      "sha256": "b724aae3aca257eb9fdc6c6aee6e198c24e7da64d310d5069a0179d4c55de9c8",
+      "zip_path": "results/task1/run2/p1_s50/hellaswag_full.jsonl.gz"
+    },
+    {
+      "bytes": 3712,
+      "path": "results/task1/run2/p1_s50/ppl_c4_validation.jsonl.gz",
+      "sha256": "def92393aa9dd2299be933a07e3b432a80fe53cb0d9a6bf11bd97565b3c1f6af",
+      "zip_path": "results/task1/run2/p1_s50/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8830,
+      "path": "results/task1/run2/p1_s50/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "34098d04498f0c1bf58f6276a2124c36ca08b3a63a0a1c479db3945621f3a207",
+      "zip_path": "results/task1/run2/p1_s50/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 21538,
+      "path": "results/task1/run2/p1_s50/run.json",
+      "sha256": "9252a6a2e11443df9ce5515223e1e1804348fb79b73dfebc42b49776c1c60511",
+      "zip_path": "results/task1/run2/p1_s50/run.json"
+    },
+    {
+      "bytes": 697,
+      "path": "results/task1/run2/p1_s75/calib_nll_c4_development.jsonl.gz",
+      "sha256": "cf40d60d79c356e9c7fd0de7b84616bd2dd93a290f9dc23a7d04457842abdee3",
+      "zip_path": "results/task1/run2/p1_s75/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 35369,
+      "path": "results/task1/run2/p1_s75/hellaswag_subset512.jsonl.gz",
+      "sha256": "7d8771e55f97fc5b8806fa7d5c1c4651ca8156aa30ae7fe159e073efd2a040ea",
+      "zip_path": "results/task1/run2/p1_s75/hellaswag_subset512.jsonl.gz"
+    },
+    {
+      "bytes": 3707,
+      "path": "results/task1/run2/p1_s75/ppl_c4_validation.jsonl.gz",
+      "sha256": "87cc0e60bfcbe9af2ca68bda8ad1ec64db9b95b6df7f01f2350df164a52700a5",
+      "zip_path": "results/task1/run2/p1_s75/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8814,
+      "path": "results/task1/run2/p1_s75/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "b0354cbdefc17b7da1ea3fc1a097d80a8acd8031e4498f93150aec248247ba09",
+      "zip_path": "results/task1/run2/p1_s75/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 21474,
+      "path": "results/task1/run2/p1_s75/run.json",
+      "sha256": "7536b4cdc1920986f496c474c75e358639a3e3f4af38cebba9ad996a3f688ba2",
+      "zip_path": "results/task1/run2/p1_s75/run.json"
+    },
+    {
+      "bytes": 696,
+      "path": "results/task1/run2/p2_24_s50/calib_nll_c4_development.jsonl.gz",
+      "sha256": "1945bf95aff8e17e681562a266750e58f76a3b58851cd82989a20345e929c95e",
+      "zip_path": "results/task1/run2/p2_24_s50/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 35515,
+      "path": "results/task1/run2/p2_24_s50/hellaswag_subset512.jsonl.gz",
+      "sha256": "8ca8584fd402393507e37b529496418b463f91197f197e7e194b416394cc99ba",
+      "zip_path": "results/task1/run2/p2_24_s50/hellaswag_subset512.jsonl.gz"
+    },
+    {
+      "bytes": 3695,
+      "path": "results/task1/run2/p2_24_s50/ppl_c4_validation.jsonl.gz",
+      "sha256": "8623f09e0f297f7af2b20f3e1ec258ddad016f9ffaaaf88f1a55b13e45954a78",
+      "zip_path": "results/task1/run2/p2_24_s50/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8873,
+      "path": "results/task1/run2/p2_24_s50/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "68eb8f673525ed11035a373420c53fe315312eacd5c12d550514d7db89c31428",
+      "zip_path": "results/task1/run2/p2_24_s50/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 21608,
+      "path": "results/task1/run2/p2_24_s50/run.json",
+      "sha256": "c0e986c62ae5969dce3e851723f83ee673f576a7bed755e31bc6af73f994e401",
+      "zip_path": "results/task1/run2/p2_24_s50/run.json"
+    },
+    {
+      "bytes": 705,
+      "path": "results/task1/run2/p2_s25/calib_nll_c4_development.jsonl.gz",
+      "sha256": "d75510fb29d00e432a3f8246afb69feeba0b3b02ef66f9c2cd0ac5747e68312a",
+      "zip_path": "results/task1/run2/p2_s25/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 35543,
+      "path": "results/task1/run2/p2_s25/hellaswag_subset512.jsonl.gz",
+      "sha256": "e3e2feaaab3e54c19952cbd0862fdf0a7ee729fa9408694ae4421c967bf205a5",
+      "zip_path": "results/task1/run2/p2_s25/hellaswag_subset512.jsonl.gz"
+    },
+    {
+      "bytes": 3713,
+      "path": "results/task1/run2/p2_s25/ppl_c4_validation.jsonl.gz",
+      "sha256": "3938d7a783fda073cf8d205fb18629fbef8a2f58384a4a247d9a8037d2bdac9e",
+      "zip_path": "results/task1/run2/p2_s25/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8877,
+      "path": "results/task1/run2/p2_s25/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "bab47199fb0db38167b1361e845f0c3a9ca9dbb61eda4c04e0f712447f08d974",
+      "zip_path": "results/task1/run2/p2_s25/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 21676,
+      "path": "results/task1/run2/p2_s25/run.json",
+      "sha256": "599bd38728bd44d2c898570eaa3c23d714b0296cecf8f802c026d49df9b66c4e",
+      "zip_path": "results/task1/run2/p2_s25/run.json"
+    },
+    {
+      "bytes": 703,
+      "path": "results/task1/run2/p2_s50/calib_nll_c4_development.jsonl.gz",
+      "sha256": "78e8da3c9ff4d8b1c7e3e42bf7c55d3a482ff45b34362df9cbf67a74ae4e61bd",
+      "zip_path": "results/task1/run2/p2_s50/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 139416,
+      "path": "results/task1/run2/p2_s50/hellaswag_full.jsonl.gz",
+      "sha256": "40e5615370aad4a23a21e92f3ba00955e1459c1af8051b0efa120bbba98fc8f4",
+      "zip_path": "results/task1/run2/p2_s50/hellaswag_full.jsonl.gz"
+    },
+    {
+      "bytes": 3685,
+      "path": "results/task1/run2/p2_s50/ppl_c4_validation.jsonl.gz",
+      "sha256": "bbad66e5b2e86ff7d3451040be4c7b95d7e1375ee138c718bb2758c2238e0cd2",
+      "zip_path": "results/task1/run2/p2_s50/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8843,
+      "path": "results/task1/run2/p2_s50/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "d107482be714d0757d64ee0a88b8c6f035fd43f5a1c9a8b4039c9b768de4bbbb",
+      "zip_path": "results/task1/run2/p2_s50/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 21552,
+      "path": "results/task1/run2/p2_s50/run.json",
+      "sha256": "0adfb8237b326de7734a241b3e98b41ca0d302e2a02dfce94afa84eb76cfd88f",
+      "zip_path": "results/task1/run2/p2_s50/run.json"
+    },
+    {
+      "bytes": 702,
+      "path": "results/task1/run2/p2_s75/calib_nll_c4_development.jsonl.gz",
+      "sha256": "a0ec841463e19f71fd5c219776ef45f80ccffc2e34971805a18de57b439d230b",
+      "zip_path": "results/task1/run2/p2_s75/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 35528,
+      "path": "results/task1/run2/p2_s75/hellaswag_subset512.jsonl.gz",
+      "sha256": "ad6d89dc62f2063bd1b851597d974fdf18a5d658e80796ae87218d15256479ce",
+      "zip_path": "results/task1/run2/p2_s75/hellaswag_subset512.jsonl.gz"
+    },
+    {
+      "bytes": 3718,
+      "path": "results/task1/run2/p2_s75/ppl_c4_validation.jsonl.gz",
+      "sha256": "b5c36fb02e61132b3704473b1fde112f88761b243ded2b5dec2db233eeb2517f",
+      "zip_path": "results/task1/run2/p2_s75/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8886,
+      "path": "results/task1/run2/p2_s75/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "6c502b7072cacea3608770fb154c335da770ca6e961400f4ea6624a5d6a4f346",
+      "zip_path": "results/task1/run2/p2_s75/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 21467,
+      "path": "results/task1/run2/p2_s75/run.json",
+      "sha256": "3eef62f0154458fd802daa519b666d7b5e4f4413d8652b038411fcb76aa21283",
+      "zip_path": "results/task1/run2/p2_s75/run.json"
+    },
+    {
+      "bytes": 694,
+      "path": "results/task1/run2/p3_s50/calib_nll_c4_development.jsonl.gz",
+      "sha256": "b10633f20481246a6bcbeea0da8143855fe96eea81cc36cf5ab627b2b500cb2d",
+      "zip_path": "results/task1/run2/p3_s50/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 139415,
+      "path": "results/task1/run2/p3_s50/hellaswag_full.jsonl.gz",
+      "sha256": "f3791c7b296bebdd6631095584f214fd5d6d768996b8afcdd7e6e7afd1c45fd2",
+      "zip_path": "results/task1/run2/p3_s50/hellaswag_full.jsonl.gz"
+    },
+    {
+      "bytes": 3684,
+      "path": "results/task1/run2/p3_s50/ppl_c4_validation.jsonl.gz",
+      "sha256": "7c83bbed867b8061b6000fb68a909f3471651d2cbdb4967cbe5260c4b97c9ef8",
+      "zip_path": "results/task1/run2/p3_s50/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8857,
+      "path": "results/task1/run2/p3_s50/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "be7404fbaa65a8f181ecc7a7c1e6cb87728869ce254820592066c26a1dbd4224",
+      "zip_path": "results/task1/run2/p3_s50/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 22808,
+      "path": "results/task1/run2/p3_s50/run.json",
+      "sha256": "68c4f731f8856362aee7767cc340e1c86ace52e3890b71da61c7d712bf966025",
+      "zip_path": "results/task1/run2/p3_s50/run.json"
+    },
+    {
+      "bytes": 684,
+      "path": "results/task1/run2/p3_s75/calib_nll_c4_development.jsonl.gz",
+      "sha256": "6be58efde1eb39034eb72f48156caf8e39fafb391f55de5561921943346ddb3d",
+      "zip_path": "results/task1/run2/p3_s75/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 35454,
+      "path": "results/task1/run2/p3_s75/hellaswag_subset512.jsonl.gz",
+      "sha256": "af8dc6c5a39b525dba7e61ce576214b924a2717c15f769a6d4bbdc844f155df0",
+      "zip_path": "results/task1/run2/p3_s75/hellaswag_subset512.jsonl.gz"
+    },
+    {
+      "bytes": 3700,
+      "path": "results/task1/run2/p3_s75/ppl_c4_validation.jsonl.gz",
+      "sha256": "334e2defa20903bde6cde23f36ad9ed1ef5e40ae32fc1e25d50ef746f1a9c796",
+      "zip_path": "results/task1/run2/p3_s75/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8855,
+      "path": "results/task1/run2/p3_s75/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "d361b1ea8098137f6a8bd4de91d346485b1a8f7117198c0b03a4a0951b920248",
+      "zip_path": "results/task1/run2/p3_s75/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 22730,
+      "path": "results/task1/run2/p3_s75/run.json",
+      "sha256": "8b4a6f3d385203f26e52794f4af442d0f983039539e264ef837fdf2180492350",
+      "zip_path": "results/task1/run2/p3_s75/run.json"
+    },
+    {
+      "bytes": 692,
+      "path": "results/task1/run2/q1_b3/calib_nll_c4_development.jsonl.gz",
+      "sha256": "b44fddb3ccb74e6bf44a673208d2df47685d6e3af3208638ba77b68216808824",
+      "zip_path": "results/task1/run2/q1_b3/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 139553,
+      "path": "results/task1/run2/q1_b3/hellaswag_full.jsonl.gz",
+      "sha256": "422b9555cc09fe7912e725916225dce7653a151d56d53da3ea82170db44978b1",
+      "zip_path": "results/task1/run2/q1_b3/hellaswag_full.jsonl.gz"
+    },
+    {
+      "bytes": 3694,
+      "path": "results/task1/run2/q1_b3/ppl_c4_validation.jsonl.gz",
+      "sha256": "3d6fbf7848faa168e8da6c4801250abc22687a68be6c7faf6ccdde56ddc1f3d3",
+      "zip_path": "results/task1/run2/q1_b3/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8844,
+      "path": "results/task1/run2/q1_b3/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "36eacc3b1b681c1a17ecaea78be5f55175ee21a58b4351704f445f47aa834893",
+      "zip_path": "results/task1/run2/q1_b3/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 30744,
+      "path": "results/task1/run2/q1_b3/run.json",
+      "sha256": "393dd57663292f574d8cfff007b54c06c4f9b20d2f13260a2b819e81be5b28d8",
+      "zip_path": "results/task1/run2/q1_b3/run.json"
+    },
+    {
+      "bytes": 705,
+      "path": "results/task1/run2/q1_b4/calib_nll_c4_development.jsonl.gz",
+      "sha256": "1c50de27c85894a924141465d06718241f722843a22729d963dff33284416d55",
+      "zip_path": "results/task1/run2/q1_b4/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 139370,
+      "path": "results/task1/run2/q1_b4/hellaswag_full.jsonl.gz",
+      "sha256": "8430487ab9572bd04497a9fd6db314fc8b953da90ea19dddb3ed837b533674d6",
+      "zip_path": "results/task1/run2/q1_b4/hellaswag_full.jsonl.gz"
+    },
+    {
+      "bytes": 3706,
+      "path": "results/task1/run2/q1_b4/ppl_c4_validation.jsonl.gz",
+      "sha256": "7bd499bbe804424bb8d3de287a09304b4d34d3baecae9f38ef3beed7971ae749",
+      "zip_path": "results/task1/run2/q1_b4/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8823,
+      "path": "results/task1/run2/q1_b4/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "c37c293fdd07e330934eec82740d85ba41c9710443a15b8169987b66ca4f9958",
+      "zip_path": "results/task1/run2/q1_b4/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 30832,
+      "path": "results/task1/run2/q1_b4/run.json",
+      "sha256": "22c6f3979a61aea6885b07ded79e1f0c2197468a08509c985d43b5035674f0e6",
+      "zip_path": "results/task1/run2/q1_b4/run.json"
+    },
+    {
+      "bytes": 699,
+      "path": "results/task1/run2/q1_b8/calib_nll_c4_development.jsonl.gz",
+      "sha256": "5f4971be8af5621005a5391f401d3deab870dcb0fa40f2c59b6af8375c092a97",
+      "zip_path": "results/task1/run2/q1_b8/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 35556,
+      "path": "results/task1/run2/q1_b8/hellaswag_subset512.jsonl.gz",
+      "sha256": "34636a8a1a6a687f1f8ac10f26b218af19d11de84d52207f225068ba48c038aa",
+      "zip_path": "results/task1/run2/q1_b8/hellaswag_subset512.jsonl.gz"
+    },
+    {
+      "bytes": 3706,
+      "path": "results/task1/run2/q1_b8/ppl_c4_validation.jsonl.gz",
+      "sha256": "fc50ce429298c4769eeea61bad9996c34d8ff2c4a194bf4d9db5b8081a95d362",
+      "zip_path": "results/task1/run2/q1_b8/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8845,
+      "path": "results/task1/run2/q1_b8/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "20fb5983e526c636e08dff5815cb6888beb052fa16142c04f512cf72146aeabd",
+      "zip_path": "results/task1/run2/q1_b8/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 30871,
+      "path": "results/task1/run2/q1_b8/run.json",
+      "sha256": "93fce5ab47feb77e3189c0b67e4ae03ec9c42785f0dc760cb86a8698638dd25b",
+      "zip_path": "results/task1/run2/q1_b8/run.json"
+    },
+    {
+      "bytes": 702,
+      "path": "results/task1/run2/q2_b3/calib_nll_c4_development.jsonl.gz",
+      "sha256": "0203936f5f7c44a731b66c0667abff1cd68937960a97e18c3939292244a11e4c",
+      "zip_path": "results/task1/run2/q2_b3/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 139426,
+      "path": "results/task1/run2/q2_b3/hellaswag_full.jsonl.gz",
+      "sha256": "63b315f655bd9753850c3a33d6ad43f26a5aa58b25f7a3895bece06e9f201958",
+      "zip_path": "results/task1/run2/q2_b3/hellaswag_full.jsonl.gz"
+    },
+    {
+      "bytes": 3688,
+      "path": "results/task1/run2/q2_b3/ppl_c4_validation.jsonl.gz",
+      "sha256": "26e53b816eba911eafeb878844a94934a0a2bf85717005c1c4ce2433647cd1de",
+      "zip_path": "results/task1/run2/q2_b3/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8847,
+      "path": "results/task1/run2/q2_b3/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "d18c3bb283841b87944342f436866b789bbf6c5ce33c27b440384a66cfdf2ba3",
+      "zip_path": "results/task1/run2/q2_b3/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 35149,
+      "path": "results/task1/run2/q2_b3/run.json",
+      "sha256": "6a4ca11ec334623083d488e7d04d1a984ac859cda64787868c03a7844b67fd11",
+      "zip_path": "results/task1/run2/q2_b3/run.json"
+    },
+    {
+      "bytes": 697,
+      "path": "results/task1/run2/q2_b4/calib_nll_c4_development.jsonl.gz",
+      "sha256": "f1d436c790e1b894c29517c77ed2e01ce657a7e4d53cb61cca9569b043dd9fb8",
+      "zip_path": "results/task1/run2/q2_b4/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 139468,
+      "path": "results/task1/run2/q2_b4/hellaswag_full.jsonl.gz",
+      "sha256": "a00f9a966b14efb370dd106f7cb0bdfb409c681c2b5632465ab78319012033af",
+      "zip_path": "results/task1/run2/q2_b4/hellaswag_full.jsonl.gz"
+    },
+    {
+      "bytes": 3708,
+      "path": "results/task1/run2/q2_b4/ppl_c4_validation.jsonl.gz",
+      "sha256": "1ae615bf88df6c579425a5a85e83513515c104b4cdff62cf2886f752733e87a2",
+      "zip_path": "results/task1/run2/q2_b4/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8874,
+      "path": "results/task1/run2/q2_b4/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "fde6d5fff9c2ea4c7e58c41de73a790e887c33f06fcb971eb5b7b771cb49f3a9",
+      "zip_path": "results/task1/run2/q2_b4/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 35227,
+      "path": "results/task1/run2/q2_b4/run.json",
+      "sha256": "27f207c70ff0be86cdaff077e83fabe7df24473337a80ba4de3e980a5df34316",
+      "zip_path": "results/task1/run2/q2_b4/run.json"
+    },
+    {
+      "bytes": 702,
+      "path": "results/task1/run2/q2_b8/calib_nll_c4_development.jsonl.gz",
+      "sha256": "9c03492c3dd0a0311365035e421a8b6f2f924ae42b2300a2a3721bdeb1c7c39d",
+      "zip_path": "results/task1/run2/q2_b8/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 35512,
+      "path": "results/task1/run2/q2_b8/hellaswag_subset512.jsonl.gz",
+      "sha256": "e93fc5055fcaa00daf8a663a587a1573f26b87116ba522a0de97eab2667e7756",
+      "zip_path": "results/task1/run2/q2_b8/hellaswag_subset512.jsonl.gz"
+    },
+    {
+      "bytes": 3687,
+      "path": "results/task1/run2/q2_b8/ppl_c4_validation.jsonl.gz",
+      "sha256": "8a95d2e4e4dcd742b8988419c1d346fa4d81c1f07cf3d0011a1f71ad61ced02f",
+      "zip_path": "results/task1/run2/q2_b8/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8841,
+      "path": "results/task1/run2/q2_b8/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "763c09389135cb3e66c5f4ae9ad096339431e5a487d0d4f5d4291d146527d949",
+      "zip_path": "results/task1/run2/q2_b8/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 35271,
+      "path": "results/task1/run2/q2_b8/run.json",
+      "sha256": "fe174ef62c5574b120c60f07a9d70171d7613233e52e51a8bb4aaeeaa3413cc8",
+      "zip_path": "results/task1/run2/q2_b8/run.json"
+    },
+    {
+      "bytes": 697,
+      "path": "results/task1/run2/q3_int3/calib_nll_c4_development.jsonl.gz",
+      "sha256": "dd0f8ab553aff66ad5d504845c895a847757f62ae9f988393bf860a03955bd4c",
+      "zip_path": "results/task1/run2/q3_int3/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 139461,
+      "path": "results/task1/run2/q3_int3/hellaswag_full.jsonl.gz",
+      "sha256": "282bc5ad629c72db4d8eec6b5f05621473f915b4e4a6c97f2777376e65dc5710",
+      "zip_path": "results/task1/run2/q3_int3/hellaswag_full.jsonl.gz"
+    },
+    {
+      "bytes": 3708,
+      "path": "results/task1/run2/q3_int3/ppl_c4_validation.jsonl.gz",
+      "sha256": "64a19becb128454eafcadc0c1caa9122f6be64ee38d83cd1295aa03d9e62c98d",
+      "zip_path": "results/task1/run2/q3_int3/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8830,
+      "path": "results/task1/run2/q3_int3/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "f8b0372f570eaf87fba08643557c54f1430f3fa43588b861771ad835a54cda0c",
+      "zip_path": "results/task1/run2/q3_int3/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 36741,
+      "path": "results/task1/run2/q3_int3/run.json",
+      "sha256": "5fd2376e724474b56db2221a83edeb26226468f03433010b59f86056858a2bbd",
+      "zip_path": "results/task1/run2/q3_int3/run.json"
+    },
+    {
+      "bytes": 702,
+      "path": "results/task1/run2/q3_int4/calib_nll_c4_development.jsonl.gz",
+      "sha256": "134224f1b5c077ec6a266b50e5f5062c36111e208a2470c3b85a3b3714dcde5c",
+      "zip_path": "results/task1/run2/q3_int4/calib_nll_c4_development.jsonl.gz"
+    },
+    {
+      "bytes": 139301,
+      "path": "results/task1/run2/q3_int4/hellaswag_full.jsonl.gz",
+      "sha256": "9b4627431e7f38bb1e53ea15510d435ad6fde7d5199b40ac5b442f5060997295",
+      "zip_path": "results/task1/run2/q3_int4/hellaswag_full.jsonl.gz"
+    },
+    {
+      "bytes": 3696,
+      "path": "results/task1/run2/q3_int4/ppl_c4_validation.jsonl.gz",
+      "sha256": "1306325b3d32726941bc2c81154a135be64ae2ad8e3798ec55343048940a5e35",
+      "zip_path": "results/task1/run2/q3_int4/ppl_c4_validation.jsonl.gz"
+    },
+    {
+      "bytes": 8840,
+      "path": "results/task1/run2/q3_int4/ppl_wikitext2_test.jsonl.gz",
+      "sha256": "aefcbb664a249123e9318b07bd54ba0d2974e8d21a535943db3de4c1d3623f68",
+      "zip_path": "results/task1/run2/q3_int4/ppl_wikitext2_test.jsonl.gz"
+    },
+    {
+      "bytes": 36841,
+      "path": "results/task1/run2/q3_int4/run.json",
+      "sha256": "710fd7611b35023df6ba5bef5209530d5bbdf06dd03e30fb1249639e8b748938",
+      "zip_path": "results/task1/run2/q3_int4/run.json"
+    },
+    {
+      "bytes": 11743,
+      "path": "results/task1/run2_resources/fp16/run.json",
+      "sha256": "72e6b944966c0c066a665cce85c11cb7534df75f1502a30b85b93253e4e26f0c",
+      "zip_path": "results/task1/run2_resources/fp16/run.json"
+    },
+    {
+      "bytes": 24725,
+      "path": "results/task1/run2_resources/p1_s25/run.json",
+      "sha256": "0b45f7c82078d43439dbc069dcb7aea88c1b38c91dac7f86d23e56553c4c1148",
+      "zip_path": "results/task1/run2_resources/p1_s25/run.json"
+    },
+    {
+      "bytes": 24613,
+      "path": "results/task1/run2_resources/p1_s50/run.json",
+      "sha256": "3b88117085c438787cf4437dd9239dd6e941aec928d60c3d46a95ed96c791a46",
+      "zip_path": "results/task1/run2_resources/p1_s50/run.json"
+    },
+    {
+      "bytes": 24544,
+      "path": "results/task1/run2_resources/p1_s75/run.json",
+      "sha256": "2d5e6adc701d5f1b58748f335f627d5b560743ca8d2ef69e2e689c7201cc8369",
+      "zip_path": "results/task1/run2_resources/p1_s75/run.json"
+    },
+    {
+      "bytes": 24658,
+      "path": "results/task1/run2_resources/p2_24_s50/run.json",
+      "sha256": "3d9687a9f0ca2fa32371353eee97dc9cef273a53a61f2d119430f4f6768baf52",
+      "zip_path": "results/task1/run2_resources/p2_24_s50/run.json"
+    },
+    {
+      "bytes": 24715,
+      "path": "results/task1/run2_resources/p2_s25/run.json",
+      "sha256": "f5e42dece831a19c22eb4ef6f56984c1be5102f370f6faaac44a6daeadf51e2e",
+      "zip_path": "results/task1/run2_resources/p2_s25/run.json"
+    },
+    {
+      "bytes": 24617,
+      "path": "results/task1/run2_resources/p2_s50/run.json",
+      "sha256": "ace6646586be8fbf0723577a29935f6d88a7ffc7cfbf00f026cb00b36c44a2b5",
+      "zip_path": "results/task1/run2_resources/p2_s50/run.json"
+    },
+    {
+      "bytes": 24473,
+      "path": "results/task1/run2_resources/p2_s75/run.json",
+      "sha256": "f52622296f8bc4be67f721d77a986a3b2e7fa520eae065c6eeba324cdfa066aa",
+      "zip_path": "results/task1/run2_resources/p2_s75/run.json"
+    },
+    {
+      "bytes": 25882,
+      "path": "results/task1/run2_resources/p3_s50/run.json",
+      "sha256": "9b0b080d2b9df9f6308aa3c65c293c79100adce538330922c2c0e6a6e5d656c8",
+      "zip_path": "results/task1/run2_resources/p3_s50/run.json"
+    },
+    {
+      "bytes": 25780,
+      "path": "results/task1/run2_resources/p3_s75/run.json",
+      "sha256": "9878085cfd73f309ea59517af41c43cafb9e1a69f06ad8021e9806a75f00d3d4",
+      "zip_path": "results/task1/run2_resources/p3_s75/run.json"
+    },
+    {
+      "bytes": 33788,
+      "path": "results/task1/run2_resources/q1_b3/run.json",
+      "sha256": "98f262d6e844f2e0ce0a9be9a679e8ca9c49689d0232d17730ab6dfab58b434b",
+      "zip_path": "results/task1/run2_resources/q1_b3/run.json"
+    },
+    {
+      "bytes": 33887,
+      "path": "results/task1/run2_resources/q1_b4/run.json",
+      "sha256": "956004ed1ce0228740a7a4fae6b77cb8cdb853cfc2f55d50cea5d44e4a31540c",
+      "zip_path": "results/task1/run2_resources/q1_b4/run.json"
+    },
+    {
+      "bytes": 33906,
+      "path": "results/task1/run2_resources/q1_b8/run.json",
+      "sha256": "9afb435b11805f99f55afa573777a2cd7922015343136cb9c27c9c9f3364a2ff",
+      "zip_path": "results/task1/run2_resources/q1_b8/run.json"
+    },
+    {
+      "bytes": 38209,
+      "path": "results/task1/run2_resources/q2_b3/run.json",
+      "sha256": "37523fcc62872231b1899162c23f1e9264a46a1054de7e6e03c17275995c45d6",
+      "zip_path": "results/task1/run2_resources/q2_b3/run.json"
+    },
+    {
+      "bytes": 38293,
+      "path": "results/task1/run2_resources/q2_b4/run.json",
+      "sha256": "b579de473740515c5c4266acc77cc24ffd0819e4574000ffd26e67fb0a1ad5ae",
+      "zip_path": "results/task1/run2_resources/q2_b4/run.json"
+    },
+    {
+      "bytes": 38316,
+      "path": "results/task1/run2_resources/q2_b8/run.json",
+      "sha256": "1c1e198dc9432a809525aeee418bd1199838a6c1bf87f144a7a1b77128c39857",
+      "zip_path": "results/task1/run2_resources/q2_b8/run.json"
+    },
+    {
+      "bytes": 39812,
+      "path": "results/task1/run2_resources/q3_int3/run.json",
+      "sha256": "4c90934043e68550e1e9efa71c3d14071406cbb9f1d6fac4865f7742642becfa",
+      "zip_path": "results/task1/run2_resources/q3_int3/run.json"
+    },
+    {
+      "bytes": 39914,
+      "path": "results/task1/run2_resources/q3_int4/run.json",
+      "sha256": "08e37480abed92bef2ac4ad67ea8bcf653633dc3d9122461bda44be85f557ee6",
+      "zip_path": "results/task1/run2_resources/q3_int4/run.json"
+    }
+  ],
+  "logs_and_status_not_committed": [
+    {
+      "bytes": 1130,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_jobs/preflight_gpu0.json",
+      "sha256": "4a9fbdea4978498b7eaa78879ba6e51609c4be5a4c1a1a3f28363df97c6f46e4",
+      "zip_path": "notes/kaggle_jobs/preflight_gpu0.json"
+    },
+    {
+      "bytes": 647,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_jobs/preflight_gpu1.json",
+      "sha256": "bbf233b81583aa6570ae84afbf19c44cb285f55ffc72f17d6edcee5f31f75c3e",
+      "zip_path": "notes/kaggle_jobs/preflight_gpu1.json"
+    },
+    {
+      "bytes": 3748,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_jobs/preflight_meta.json",
+      "sha256": "34cd54f83b12d08c7841502a61518eb99357a65aa8c10f65515e49ac1cc48943",
+      "zip_path": "notes/kaggle_jobs/preflight_meta.json"
+    },
+    {
+      "bytes": 4737,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_jobs/run2_gpu0.json",
+      "sha256": "5236720dc4a0cb5e93621a97e134937173fabc15acdbd7ab59d009614aaf721d",
+      "zip_path": "notes/kaggle_jobs/run2_gpu0.json"
+    },
+    {
+      "bytes": 4910,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_jobs/run2_gpu1.json",
+      "sha256": "3b2c879d408567df12ab139e0d38708a561c71403eae27276769b478b6337275",
+      "zip_path": "notes/kaggle_jobs/run2_gpu1.json"
+    },
+    {
+      "bytes": 60329,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_jobs/run2_meta.json",
+      "sha256": "6877183c0ff783195d655f1c2265d589289aef3f389a38b4b1d1e8ff68473f93",
+      "zip_path": "notes/kaggle_jobs/run2_meta.json"
+    },
+    {
+      "bytes": 24944,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_jobs/run2_res_gpu0.json",
+      "sha256": "e4bac0abfba7de04a7749eb58df7b1740ea550617afa3963fae5d9a77f71e52f",
+      "zip_path": "notes/kaggle_jobs/run2_res_gpu0.json"
+    },
+    {
+      "bytes": 37,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/check_run2.json",
+      "sha256": "ada5d6af069dee1f306d8e6983ad39e3a1a0983df95904c5e2d0f3dc2051eb28",
+      "zip_path": "notes/kaggle_logs/check_run2.json"
+    },
+    {
+      "bytes": 792,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/env_check.log",
+      "sha256": "6759c75c7cf8350f6a8dd87245b1a86af582459ef69f243b73f3d525e1aa6c2c",
+      "zip_path": "notes/kaggle_logs/env_check.log"
+    },
+    {
+      "bytes": 2871,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_fp16.log",
+      "sha256": "9e790cf8095142c6cda2211c25b81c54713504be92cb7a9faccafd99ac3ee1a1",
+      "zip_path": "notes/kaggle_logs/eval_fp16.log"
+    },
+    {
+      "bytes": 720,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_p1_s25.log",
+      "sha256": "f7dda04b4c44bc6568431a3bfbee52c74b78f4eaa5d734d42509ff51fa6e980c",
+      "zip_path": "notes/kaggle_logs/eval_p1_s25.log"
+    },
+    {
+      "bytes": 721,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_p1_s50.log",
+      "sha256": "04424c84e32d375686b5d4cbfa0227c643b9df851961a9a530ef86c7c23e6537",
+      "zip_path": "notes/kaggle_logs/eval_p1_s50.log"
+    },
+    {
+      "bytes": 720,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_p1_s75.log",
+      "sha256": "82c51fd1ad54a19ff5c843d287f139faf592788e89f64c0d7b7f7936410209f4",
+      "zip_path": "notes/kaggle_logs/eval_p1_s75.log"
+    },
+    {
+      "bytes": 741,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_p2_24_s50.log",
+      "sha256": "66d03083115e7993fe27ac6d05eb49a56cb76432d480bbd5c98b4e543659bbb6",
+      "zip_path": "notes/kaggle_logs/eval_p2_24_s50.log"
+    },
+    {
+      "bytes": 720,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_p2_s25.log",
+      "sha256": "b6c9ae927cb546ebe7081f0aecaaa2dd4ebd2a2c01e0b4fad0eb05a63b9f7079",
+      "zip_path": "notes/kaggle_logs/eval_p2_s25.log"
+    },
+    {
+      "bytes": 721,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_p2_s50.log",
+      "sha256": "5390e27cb8374cd19c68ae80438b33654d0ae21794bb25700fe96e58c10c1198",
+      "zip_path": "notes/kaggle_logs/eval_p2_s50.log"
+    },
+    {
+      "bytes": 720,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_p2_s75.log",
+      "sha256": "8a8ab706828c4ff9235579e9dfdb3c34ea106d6298988f495e6511e3e5a374f4",
+      "zip_path": "notes/kaggle_logs/eval_p2_s75.log"
+    },
+    {
+      "bytes": 721,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_p3_s50.log",
+      "sha256": "33f3815e2c60a0526b342687b75b77ad1b15c75b6a6e7ad3230437711b293be1",
+      "zip_path": "notes/kaggle_logs/eval_p3_s50.log"
+    },
+    {
+      "bytes": 720,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_p3_s75.log",
+      "sha256": "a158cf236ce2b65cb35d836c1b9b8a573353f045c086c7fc05b16fb58d6a6283",
+      "zip_path": "notes/kaggle_logs/eval_p3_s75.log"
+    },
+    {
+      "bytes": 714,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_q1_b3.log",
+      "sha256": "9cd9080e88fb4ba609ce9df9756bb7d628e90a81e930fef7c62fe769c8722bff",
+      "zip_path": "notes/kaggle_logs/eval_q1_b3.log"
+    },
+    {
+      "bytes": 714,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_q1_b4.log",
+      "sha256": "2c023c1f74029f80c9fa9ebb03a76cc7b8dae6d4146eb6bc5a8ec7a9e9aa9942",
+      "zip_path": "notes/kaggle_logs/eval_q1_b4.log"
+    },
+    {
+      "bytes": 713,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_q1_b8.log",
+      "sha256": "ec64bc5d81cec6b058251c49c6d1feb5382fcb424e5e0243630f597248f666ad",
+      "zip_path": "notes/kaggle_logs/eval_q1_b8.log"
+    },
+    {
+      "bytes": 714,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_q2_b3.log",
+      "sha256": "5311b1f4ab8d3ccd58e1ca46af6326adfcd68ebe563ec10d2ccff42eabd21fa3",
+      "zip_path": "notes/kaggle_logs/eval_q2_b3.log"
+    },
+    {
+      "bytes": 714,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_q2_b4.log",
+      "sha256": "30da453960a488d802ff9b5a954f37873e999bd8a03fc2e23636fc87041f32a3",
+      "zip_path": "notes/kaggle_logs/eval_q2_b4.log"
+    },
+    {
+      "bytes": 713,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_q2_b8.log",
+      "sha256": "b30cd86ec19828cb14b8946bbd1070e6a5f66c4a1d15db1f180d1a3d920c6912",
+      "zip_path": "notes/kaggle_logs/eval_q2_b8.log"
+    },
+    {
+      "bytes": 730,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_q3_int3.log",
+      "sha256": "cf709effa267ddf75285b1e9b193768bcda2dfd8eb53a26a94be99ad64a0d27a",
+      "zip_path": "notes/kaggle_logs/eval_q3_int3.log"
+    },
+    {
+      "bytes": 730,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/eval_q3_int4.log",
+      "sha256": "633556a72bc9d9972fb39b65120d781081d52b4a9edd30de10d8ee8cc584a6bf",
+      "zip_path": "notes/kaggle_logs/eval_q3_int4.log"
+    },
+    {
+      "bytes": 510,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/freeze_check_run2.log",
+      "sha256": "c4c8d68b96899f99dcfb58a49068152db758812bc9aea3f4b0427c4f0acc74c7",
+      "zip_path": "notes/kaggle_logs/freeze_check_run2.log"
+    },
+    {
+      "bytes": 2419,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/locate_run2.log",
+      "sha256": "102076ee5b3028fa1469fd11074030c3ec703506be6b2d1c59530d1fa6501cd4",
+      "zip_path": "notes/kaggle_logs/locate_run2.log"
+    },
+    {
+      "bytes": 18664,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/located_run2.json",
+      "sha256": "f49651fbbd20c4550953913e2fcc3d5805e0ab4d9d4ecf0ee6d29509849efb28",
+      "zip_path": "notes/kaggle_logs/located_run2.json"
+    },
+    {
+      "bytes": 845,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/model_snapshot.log",
+      "sha256": "80f78d25a2ff652ea6f12159910c5059b0bc0a06a12d443df6d03bb5e6164004",
+      "zip_path": "notes/kaggle_logs/model_snapshot.log"
+    },
+    {
+      "bytes": 2057,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/nvidia_smi.txt",
+      "sha256": "e21b713b1037ffaa1b2227f74fe573b69e9d8c6404ec3d0b1a48879b6abbb761",
+      "zip_path": "notes/kaggle_logs/nvidia_smi.txt"
+    },
+    {
+      "bytes": 18338,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/pip_freeze.txt",
+      "sha256": "4e7472780039178ee4841e1cc58283e878cfb02084cda3774587a00cad36293c",
+      "zip_path": "notes/kaggle_logs/pip_freeze.txt"
+    },
+    {
+      "bytes": 3842,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/prepare_data.log",
+      "sha256": "595862756b91ab5749ffe23eca61defaeb061a774842c84730f76a1a0f2b925f",
+      "zip_path": "notes/kaggle_logs/prepare_data.log"
+    },
+    {
+      "bytes": 8732,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/queue_gpu0.log",
+      "sha256": "dd7da61294f70bb9514a67136ac914ca771cdae5c6f75f26612582a9a1c7a557",
+      "zip_path": "notes/kaggle_logs/queue_gpu0.log"
+    },
+    {
+      "bytes": 6547,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/queue_gpu1.log",
+      "sha256": "f11c8d2663f8dc02a8efb64c8e1fb7a172fce9ea8617af116e0944d15e8a07d7",
+      "zip_path": "notes/kaggle_logs/queue_gpu1.log"
+    },
+    {
+      "bytes": 13240,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/queue_res_gpu0.log",
+      "sha256": "7ddfe502d31c3e7834fe7c7fd2a8a489fcdcc3f4edff6d4fdd822e1bacefae74",
+      "zip_path": "notes/kaggle_logs/queue_res_gpu0.log"
+    },
+    {
+      "bytes": 571,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_fp16.log",
+      "sha256": "de322bf501063838730a8555cd9a576bf17a6cae96ccbe51c7f686aa5b50fc81",
+      "zip_path": "notes/kaggle_logs/res_fp16.log"
+    },
+    {
+      "bytes": 740,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_p1_s25.log",
+      "sha256": "7b78f963e95bfa9127f7a694a1b27ed391ba985a08bca1295eb603640f7e3a3d",
+      "zip_path": "notes/kaggle_logs/res_p1_s25.log"
+    },
+    {
+      "bytes": 740,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_p1_s50.log",
+      "sha256": "10c31184c09fd8dd181a6d9e2f024d495bf096aef9898b76bb5f8deb3434bdfc",
+      "zip_path": "notes/kaggle_logs/res_p1_s50.log"
+    },
+    {
+      "bytes": 740,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_p1_s75.log",
+      "sha256": "713d1df6b1d32905e7cfb4421d1fcdf4695ae82fce73cfbc2dd2c00e05809797",
+      "zip_path": "notes/kaggle_logs/res_p1_s75.log"
+    },
+    {
+      "bytes": 761,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_p2_24_s50.log",
+      "sha256": "25864ee4b855546b7e7ee4ed7119e1835dabdbef893d2152287b7b4c1859336c",
+      "zip_path": "notes/kaggle_logs/res_p2_24_s50.log"
+    },
+    {
+      "bytes": 740,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_p2_s25.log",
+      "sha256": "7411b2c2b3f627770dd498a68f0916ce24810a88f8b88c783025f56548f1f948",
+      "zip_path": "notes/kaggle_logs/res_p2_s25.log"
+    },
+    {
+      "bytes": 740,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_p2_s50.log",
+      "sha256": "75a5ded64d3a4f296e9f9ec4f1c36bc66d20247a06fc1f26b2844e3213aa06c9",
+      "zip_path": "notes/kaggle_logs/res_p2_s50.log"
+    },
+    {
+      "bytes": 740,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_p2_s75.log",
+      "sha256": "cf55e4700606a5430d2422b2fb1bdd43b7e3e9dde614cf917282745601b1f4a6",
+      "zip_path": "notes/kaggle_logs/res_p2_s75.log"
+    },
+    {
+      "bytes": 740,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_p3_s50.log",
+      "sha256": "8cb9c63ad8a5095c84ca36e17baa0651d8a729d2cf2436be7d80f7022d5dd646",
+      "zip_path": "notes/kaggle_logs/res_p3_s50.log"
+    },
+    {
+      "bytes": 740,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_p3_s75.log",
+      "sha256": "183f773e8f8d5ff6bb606bff2f1f59137970a6efe4844b3e76130dd85e34a671",
+      "zip_path": "notes/kaggle_logs/res_p3_s75.log"
+    },
+    {
+      "bytes": 734,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_q1_b3.log",
+      "sha256": "50b548fd210fa5f6a3949506b27a1114a52569f79ffcf6929e835a0fc5ed77db",
+      "zip_path": "notes/kaggle_logs/res_q1_b3.log"
+    },
+    {
+      "bytes": 734,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_q1_b4.log",
+      "sha256": "60da6beecce470774acbdc1048931782a9575b7d05dcd15c2177cf56a71b6cbc",
+      "zip_path": "notes/kaggle_logs/res_q1_b4.log"
+    },
+    {
+      "bytes": 733,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_q1_b8.log",
+      "sha256": "fc4b12e50e30b874577be46fceaf65d4e7631de12e3d3dcfbd2aac3858c95942",
+      "zip_path": "notes/kaggle_logs/res_q1_b8.log"
+    },
+    {
+      "bytes": 734,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_q2_b3.log",
+      "sha256": "5947041fd24be8c127b5b1df4698526ef314fce03afa38d32d36d80fa77544f5",
+      "zip_path": "notes/kaggle_logs/res_q2_b3.log"
+    },
+    {
+      "bytes": 734,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_q2_b4.log",
+      "sha256": "894ce3106871e02148bc28af593e0f7ef146c84b1a5d0691923926a67512d84b",
+      "zip_path": "notes/kaggle_logs/res_q2_b4.log"
+    },
+    {
+      "bytes": 733,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_q2_b8.log",
+      "sha256": "d578aaa5ec054a6b865d05584f86d8d69f5376654c406d86ceecbcf107b52f3b",
+      "zip_path": "notes/kaggle_logs/res_q2_b8.log"
+    },
+    {
+      "bytes": 750,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_q3_int3.log",
+      "sha256": "9f6cdf569592d080e93c994b72bfc107a3e889f93dff27b7a92bb75055e3a490",
+      "zip_path": "notes/kaggle_logs/res_q3_int3.log"
+    },
+    {
+      "bytes": 750,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/res_q3_int4.log",
+      "sha256": "dcabb50d489de131841c8e2ec530112fac6fc39919360b314323618d1fa5c422",
+      "zip_path": "notes/kaggle_logs/res_q3_int4.log"
+    },
+    {
+      "bytes": 2906,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_logs/wait_run2.json",
+      "sha256": "51b2e87d66c0cc51b449fe7d6122eb5f5174bb6887dfa354ee249577c9fc2f7b",
+      "zip_path": "notes/kaggle_logs/wait_run2.json"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_fp16.done",
+      "sha256": "a68e430a553fedb7aea4cc1c962fb8aa252ee0b4594b0d206cf78bca930f238f",
+      "zip_path": "notes/kaggle_status/eval_fp16.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_fp16.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_fp16.exit"
+    },
+    {
+      "bytes": 615,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_fp16.json",
+      "sha256": "836c47746241c76e90104300c133664d0203c6f36cba4b8293165056284c667c",
+      "zip_path": "notes/kaggle_status/eval_fp16.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_fp16.pid",
+      "sha256": "2fbfe464fac08a6c55d7a68a1006c3eb6b113d76bc494647d387a33de306e899",
+      "zip_path": "notes/kaggle_status/eval_fp16.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p1_s25.done",
+      "sha256": "e81842bc37f4c46558ae75b42a500508a93a2d51428ae73cc906a6e93918a4f0",
+      "zip_path": "notes/kaggle_status/eval_p1_s25.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p1_s25.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_p1_s25.exit"
+    },
+    {
+      "bytes": 808,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p1_s25.json",
+      "sha256": "da20fc8f5384019daba477e6d4d8f953a8ee1631c78cca69c7f1fa8d0cdd3825",
+      "zip_path": "notes/kaggle_status/eval_p1_s25.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p1_s25.pid",
+      "sha256": "00ae0900e3ba03583e3561d76de50754935c10913065d737f9cf4c8e86e54bda",
+      "zip_path": "notes/kaggle_status/eval_p1_s25.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p1_s50.done",
+      "sha256": "38b250430aaeadff14e70cc13ad8a5d9c12516bcf58dd4dd19e2ea1d11502f52",
+      "zip_path": "notes/kaggle_status/eval_p1_s50.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p1_s50.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_p1_s50.exit"
+    },
+    {
+      "bytes": 804,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p1_s50.json",
+      "sha256": "c38ed9566c742abf689c9c71ea5c625f1f38f9bd02e382f8cfb2b89c3e4fb04e",
+      "zip_path": "notes/kaggle_status/eval_p1_s50.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p1_s50.pid",
+      "sha256": "cfa27eb5a1edc1181a691715d60b00f47beaa7dab6a170e25e0c5e727707cb95",
+      "zip_path": "notes/kaggle_status/eval_p1_s50.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p1_s75.done",
+      "sha256": "8bc30c7e9ef323ae7dd01f68af4e4f3c8bdfe7565be848dae56b2dd6a7374e62",
+      "zip_path": "notes/kaggle_status/eval_p1_s75.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p1_s75.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_p1_s75.exit"
+    },
+    {
+      "bytes": 809,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p1_s75.json",
+      "sha256": "698968fc00592a036def4f29c2059192094dcf1e6e527382074ebab536fe8b22",
+      "zip_path": "notes/kaggle_status/eval_p1_s75.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p1_s75.pid",
+      "sha256": "279f7724783a5881bf5b3d61f676152bff9b5e3f3e6c37637c7a8ce8a68d8bf4",
+      "zip_path": "notes/kaggle_status/eval_p1_s75.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p2_24_s50.done",
+      "sha256": "db72a63c990b881a463b6eaff53acca3379908d0a110827225356f5602c16a34",
+      "zip_path": "notes/kaggle_status/eval_p2_24_s50.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p2_24_s50.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_p2_24_s50.exit"
+    },
+    {
+      "bytes": 830,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p2_24_s50.json",
+      "sha256": "95bdc4fb463b3c5a0cde2684b76b321ef146954dc2295fe24b197c385e56e593",
+      "zip_path": "notes/kaggle_status/eval_p2_24_s50.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p2_24_s50.pid",
+      "sha256": "f8967f8440a04782f9d0ffef14622b48bf1c9704451ba4e800d93bff0c10f45a",
+      "zip_path": "notes/kaggle_status/eval_p2_24_s50.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p2_s25.done",
+      "sha256": "015bed04860745279b6ee6be269bd302d3703dee882d3e9eb5d456109f7e5594",
+      "zip_path": "notes/kaggle_status/eval_p2_s25.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p2_s25.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_p2_s25.exit"
+    },
+    {
+      "bytes": 808,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p2_s25.json",
+      "sha256": "b6cddabab3d490eb13f117c99edd37635f56c3c3e0a5473070cb6e564772d2fd",
+      "zip_path": "notes/kaggle_status/eval_p2_s25.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p2_s25.pid",
+      "sha256": "7a3cc8ae6abd272d2adbb617cae2fab8f6f35ee6bff7f565291a49fcb1dc54b9",
+      "zip_path": "notes/kaggle_status/eval_p2_s25.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p2_s50.done",
+      "sha256": "649ad34a6d6c800014566e59ec23fbabde7335059663de76d58e9bc75391f207",
+      "zip_path": "notes/kaggle_status/eval_p2_s50.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p2_s50.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_p2_s50.exit"
+    },
+    {
+      "bytes": 809,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p2_s50.json",
+      "sha256": "f514a4e3fc317c593084fc26ff0677ca98567057a6916aa9523ab87b02a9f640",
+      "zip_path": "notes/kaggle_status/eval_p2_s50.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p2_s50.pid",
+      "sha256": "6aae908f0885ee0bc886c506963020298eeee7e549084babf7e823f768e08950",
+      "zip_path": "notes/kaggle_status/eval_p2_s50.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p2_s75.done",
+      "sha256": "0b25e8b1f3f47b2adfd93a8ddfeaa359241e97abefe86c7511ff01ec27ec025f",
+      "zip_path": "notes/kaggle_status/eval_p2_s75.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p2_s75.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_p2_s75.exit"
+    },
+    {
+      "bytes": 809,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p2_s75.json",
+      "sha256": "e41c8e628ff085c269ede935b6f58a0480fe608fc7f3b9899d27ddbf792b5b42",
+      "zip_path": "notes/kaggle_status/eval_p2_s75.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p2_s75.pid",
+      "sha256": "1d22a0d0218bfe0acbbb63a833d5fe0110af4044fa1695ea379237d1cea3acfe",
+      "zip_path": "notes/kaggle_status/eval_p2_s75.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p3_s50.done",
+      "sha256": "dcf6b1256dd0649091a6d388d6c31167791d468ac783e91ceba92d1988ec1066",
+      "zip_path": "notes/kaggle_status/eval_p3_s50.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p3_s50.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_p3_s50.exit"
+    },
+    {
+      "bytes": 808,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p3_s50.json",
+      "sha256": "e6ae4bd563e0d8c7d9c7e492fffd4b7098086040336680dfe4786abb957c6326",
+      "zip_path": "notes/kaggle_status/eval_p3_s50.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p3_s50.pid",
+      "sha256": "e20bfde4b83d8d3ab886f19c3938ac91e30beea8bd30bf2a9c9c3568e8def893",
+      "zip_path": "notes/kaggle_status/eval_p3_s50.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p3_s75.done",
+      "sha256": "08660b5aa1fb51391391ea333dc8536affc097e7d177a1e2a0b28b18dd09d3a4",
+      "zip_path": "notes/kaggle_status/eval_p3_s75.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p3_s75.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_p3_s75.exit"
+    },
+    {
+      "bytes": 809,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p3_s75.json",
+      "sha256": "56a67fe2673961b7490c8bbd7f55bd283c544d65d48d91f84d2b54ad1a376692",
+      "zip_path": "notes/kaggle_status/eval_p3_s75.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_p3_s75.pid",
+      "sha256": "71d80754f7717e7ec0f19a83672e7196303c2f748606038e6b1c8af5ba594b07",
+      "zip_path": "notes/kaggle_status/eval_p3_s75.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q1_b3.done",
+      "sha256": "975881f9d47bed82501b31fe9ee133031cc0ef1f69475e006f6dfc0eaf4dfa0e",
+      "zip_path": "notes/kaggle_status/eval_q1_b3.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q1_b3.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_q1_b3.exit"
+    },
+    {
+      "bytes": 802,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q1_b3.json",
+      "sha256": "45963cdd7fe9f31d71d2dc278e0165283e022f20c3719ce2ffb13dbaa208ed16",
+      "zip_path": "notes/kaggle_status/eval_q1_b3.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q1_b3.pid",
+      "sha256": "8a411eab6dc3431021059b9f59f07823a0303ff869b639e1df92f295cfb11721",
+      "zip_path": "notes/kaggle_status/eval_q1_b3.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q1_b4.done",
+      "sha256": "927f8beff61d1867c0a73860d3e15f90c87dbc71c4208a2e4ba1dbe4655ad7c1",
+      "zip_path": "notes/kaggle_status/eval_q1_b4.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q1_b4.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_q1_b4.exit"
+    },
+    {
+      "bytes": 802,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q1_b4.json",
+      "sha256": "66ef14bea1d56f63c41223889c5d0d5b9d83a06119fc4e35bd2b3c8812d62dd7",
+      "zip_path": "notes/kaggle_status/eval_q1_b4.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q1_b4.pid",
+      "sha256": "1d42234635e87f07d19c2a5b7e2f316dd40389c46abd2223052146caa5e3483e",
+      "zip_path": "notes/kaggle_status/eval_q1_b4.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q1_b8.done",
+      "sha256": "d692b5e615550102a74a43b24ef51cb2515c004afb3247c95bde3d5516e7aa0c",
+      "zip_path": "notes/kaggle_status/eval_q1_b8.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q1_b8.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_q1_b8.exit"
+    },
+    {
+      "bytes": 801,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q1_b8.json",
+      "sha256": "a7aff0ecdccb950ad8741d4bc82614bfb7318090e4eb2fbbe95de2a5cad1fd22",
+      "zip_path": "notes/kaggle_status/eval_q1_b8.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q1_b8.pid",
+      "sha256": "4c05a11264c74a65b7e1aceff1e6de4cdc7467178976f6f9a97ab536a3d478c4",
+      "zip_path": "notes/kaggle_status/eval_q1_b8.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q2_b3.done",
+      "sha256": "64607788634c58fab6bf5026d4e480874531909f19923c2dc7718c72a66e873d",
+      "zip_path": "notes/kaggle_status/eval_q2_b3.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q2_b3.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_q2_b3.exit"
+    },
+    {
+      "bytes": 802,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q2_b3.json",
+      "sha256": "00715545acbd25b22ca2fe257bbe1b3656ab77cfd18897a80dd5a3a24309d4d9",
+      "zip_path": "notes/kaggle_status/eval_q2_b3.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q2_b3.pid",
+      "sha256": "51c89491c7f2633f19ad217f732d832ade0bd773d19b2f1e87e0e5c3b45b29d3",
+      "zip_path": "notes/kaggle_status/eval_q2_b3.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q2_b4.done",
+      "sha256": "77a49680c9f2726f1774ab824d391a73ea4aaf153c919a0f7fd2fcd95870f91b",
+      "zip_path": "notes/kaggle_status/eval_q2_b4.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q2_b4.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_q2_b4.exit"
+    },
+    {
+      "bytes": 802,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q2_b4.json",
+      "sha256": "eadf0db6c64664bd8e3358fa9d80b9e3c94aa08f8cba1559e5972fc2b5c27447",
+      "zip_path": "notes/kaggle_status/eval_q2_b4.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q2_b4.pid",
+      "sha256": "b5c2d3e09f97e9c06a6f57fdb5145e620277703d30b996b6f2008afbf8c907f1",
+      "zip_path": "notes/kaggle_status/eval_q2_b4.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q2_b8.done",
+      "sha256": "744980444b9a177b979fd30532d400f807ba61d0745afe7efffd69981bc2e405",
+      "zip_path": "notes/kaggle_status/eval_q2_b8.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q2_b8.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_q2_b8.exit"
+    },
+    {
+      "bytes": 801,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q2_b8.json",
+      "sha256": "dae3925c661b51a6af0adf40215b4277198343c3e9b0b93d62c697b130ff76d1",
+      "zip_path": "notes/kaggle_status/eval_q2_b8.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q2_b8.pid",
+      "sha256": "7967da211f5678b263bde0310fd5e90b19d621b353fa8ab9ee8467193a712758",
+      "zip_path": "notes/kaggle_status/eval_q2_b8.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q3_int3.done",
+      "sha256": "8e1fb8225d03e26aabe1d455360ceec2c52e6d565bf1e3245826636846c4e8ef",
+      "zip_path": "notes/kaggle_status/eval_q3_int3.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q3_int3.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_q3_int3.exit"
+    },
+    {
+      "bytes": 818,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q3_int3.json",
+      "sha256": "a34faf34cfcbd1c7dfd5fd30aaaa4866b3e050e0f82eab7b1aea48bd323bd4d9",
+      "zip_path": "notes/kaggle_status/eval_q3_int3.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q3_int3.pid",
+      "sha256": "650fb46b422406b2b0fc89c674bfb4e6df41548629110322a00690ab39b37133",
+      "zip_path": "notes/kaggle_status/eval_q3_int3.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q3_int4.done",
+      "sha256": "e2601c65c39917e7a3ed05d014585f78507b6c77b421f002b3e41fcc9f04b4e4",
+      "zip_path": "notes/kaggle_status/eval_q3_int4.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q3_int4.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/eval_q3_int4.exit"
+    },
+    {
+      "bytes": 818,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q3_int4.json",
+      "sha256": "3b66f82b802e1f2a91ccf6ad38bee92ceda34eda6e62a04c3df6bd40e59ae7de",
+      "zip_path": "notes/kaggle_status/eval_q3_int4.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/eval_q3_int4.pid",
+      "sha256": "0649820fba7dcee6ab300b5e63ad9b37c1cef2128e8a9e65219982887fb8b643",
+      "zip_path": "notes/kaggle_status/eval_q3_int4.pid"
+    },
+    {
+      "bytes": 163,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/gpu0.queue.exit",
+      "sha256": "379efaf9dffb2706e1ebb55f2d7f63e9fd9f2d60b6913078bfddaefd71d0ac32",
+      "zip_path": "notes/kaggle_status/gpu0.queue.exit"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/gpu0.queue.pid",
+      "sha256": "c502c94f410b5535c1920173107b2e9a75d6938eb2141a09ff1743e689061943",
+      "zip_path": "notes/kaggle_status/gpu0.queue.pid"
+    },
+    {
+      "bytes": 160,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/gpu1.queue.exit",
+      "sha256": "105d0b6c7bd13e9c54c1c5e27c4e05ba492a53321c68a277e62cb844d09be79e",
+      "zip_path": "notes/kaggle_status/gpu1.queue.exit"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/gpu1.queue.pid",
+      "sha256": "c057d969c0275594ce77ea451f3ba9c805b069e80d0f31b4b94f1366c94d30b6",
+      "zip_path": "notes/kaggle_status/gpu1.queue.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_fp16.done",
+      "sha256": "5911cd7d2ea76d43537f9e7c66c66304e5e044860174a536a063380b0c534ddf",
+      "zip_path": "notes/kaggle_status/res_fp16.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_fp16.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_fp16.exit"
+    },
+    {
+      "bytes": 1427,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_fp16.json",
+      "sha256": "a45fc05d51dce4964099e14fc8f4c3777646f2cecb0f6731d6a8fe733dbab3f3",
+      "zip_path": "notes/kaggle_status/res_fp16.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_fp16.pid",
+      "sha256": "cb18e60f0f95e7509670cc9606fb30e3d7ad7eefc8c4bec7147abcfa0d88c482",
+      "zip_path": "notes/kaggle_status/res_fp16.pid"
+    },
+    {
+      "bytes": 304,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_gpu0.queue.exit",
+      "sha256": "06592268fe6fb0242a54343e25124729b9ff8ba3aa549e948e7ad9fd1fda17d8",
+      "zip_path": "notes/kaggle_status/res_gpu0.queue.exit"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_gpu0.queue.pid",
+      "sha256": "67fcbe6c014f951e1fb9c188ad0218fad3cc7d9002588aed4a15f04a541c9173",
+      "zip_path": "notes/kaggle_status/res_gpu0.queue.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p1_s25.done",
+      "sha256": "f0b337b8672407d212a51aa950d2f69307f92323cffd090497fe915dbed57291",
+      "zip_path": "notes/kaggle_status/res_p1_s25.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p1_s25.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_p1_s25.exit"
+    },
+    {
+      "bytes": 1620,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p1_s25.json",
+      "sha256": "a41b871ab8f8a7ba9e9a5ca77026cc01d812d0dd885c92b10c5982aae7b6041b",
+      "zip_path": "notes/kaggle_status/res_p1_s25.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p1_s25.pid",
+      "sha256": "0e5a2620743f8f0accf713cbd4e004e77a484c732f28747e9fa7c402474e516b",
+      "zip_path": "notes/kaggle_status/res_p1_s25.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p1_s50.done",
+      "sha256": "2057e9322538672a4eaeb3ac23fc28e744781093a3974419be086f3064da4904",
+      "zip_path": "notes/kaggle_status/res_p1_s50.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p1_s50.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_p1_s50.exit"
+    },
+    {
+      "bytes": 1620,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p1_s50.json",
+      "sha256": "3c43f1cc5c4756e840fea713f191d96877f45c322ef8eaf9cf755dae208f65af",
+      "zip_path": "notes/kaggle_status/res_p1_s50.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p1_s50.pid",
+      "sha256": "f33e4a44dfad75f896283c1ada3aba77739fcdb5d6efdff274b367408ae70c54",
+      "zip_path": "notes/kaggle_status/res_p1_s50.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p1_s75.done",
+      "sha256": "ef7ff4aad16a3cc2c2f57e5fe3d27b365420208ef258dc5067d67599ad8c725a",
+      "zip_path": "notes/kaggle_status/res_p1_s75.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p1_s75.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_p1_s75.exit"
+    },
+    {
+      "bytes": 1620,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p1_s75.json",
+      "sha256": "fe1b251437b4fe5b6d9b33a70adfe9c1497501b0e54b0efdb3c5699042d714fe",
+      "zip_path": "notes/kaggle_status/res_p1_s75.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p1_s75.pid",
+      "sha256": "b5803baeda902cec52361a534cb99defde4214196b2c292c27275c6b62ce1457",
+      "zip_path": "notes/kaggle_status/res_p1_s75.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p2_24_s50.done",
+      "sha256": "e8157b4caeb64651b05b5a6b1eea3c51ae839467ece090a0077d0a9758d6a381",
+      "zip_path": "notes/kaggle_status/res_p2_24_s50.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p2_24_s50.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_p2_24_s50.exit"
+    },
+    {
+      "bytes": 1641,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p2_24_s50.json",
+      "sha256": "f67d6b21ce82429cd6b3c67bf18eee83e0aad8ed72165ebfc9c64b596f8c5801",
+      "zip_path": "notes/kaggle_status/res_p2_24_s50.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p2_24_s50.pid",
+      "sha256": "2dc2959566661a65036621053f2fabc7fd4a542397b8902b0937b9233a242c43",
+      "zip_path": "notes/kaggle_status/res_p2_24_s50.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p2_s25.done",
+      "sha256": "2d8dcc6c84cb59da54235476b44d2c0e2ffdb2e16f312fa795dc4269d4cedfd2",
+      "zip_path": "notes/kaggle_status/res_p2_s25.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p2_s25.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_p2_s25.exit"
+    },
+    {
+      "bytes": 1620,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p2_s25.json",
+      "sha256": "929030b2aef1e1af1e8fa8146fe9c1227cc9b923674eced915c2ea63abd54da5",
+      "zip_path": "notes/kaggle_status/res_p2_s25.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p2_s25.pid",
+      "sha256": "8b0616b0d93bea53c8c5a845ff55882e081d3fc3e03e496ddabf7fcc2e1c24d2",
+      "zip_path": "notes/kaggle_status/res_p2_s25.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p2_s50.done",
+      "sha256": "532fb7ff68244799f3f65b260c2645dab7874e0323350f720177b2bdbf536199",
+      "zip_path": "notes/kaggle_status/res_p2_s50.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p2_s50.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_p2_s50.exit"
+    },
+    {
+      "bytes": 1620,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p2_s50.json",
+      "sha256": "d0011a7331a136fe696f28909aa2904c81235ed3142deb5dfc11a355b0cbe69f",
+      "zip_path": "notes/kaggle_status/res_p2_s50.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p2_s50.pid",
+      "sha256": "826c8d59c616a9dc6b5d5d7e53017fd8f5e8d6c9c50b2c0d687b403cb06c24fb",
+      "zip_path": "notes/kaggle_status/res_p2_s50.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p2_s75.done",
+      "sha256": "a88cd461f14c25fe34713a66ac3bf7b730d510964edeac164c67441ce1044ea3",
+      "zip_path": "notes/kaggle_status/res_p2_s75.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p2_s75.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_p2_s75.exit"
+    },
+    {
+      "bytes": 1620,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p2_s75.json",
+      "sha256": "b0d54f9a8b14d93e85a87c008361615732a36ff66120f62d3f816607ef3a6add",
+      "zip_path": "notes/kaggle_status/res_p2_s75.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p2_s75.pid",
+      "sha256": "b3ead6d4284686778fd655244f6b7887d19bd0bb979a2d7e83d1f6029d81f42a",
+      "zip_path": "notes/kaggle_status/res_p2_s75.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p3_s50.done",
+      "sha256": "2774c74ab8d054646a080c70c667ad7a59eba75ab77e46f0331dc78c065437c3",
+      "zip_path": "notes/kaggle_status/res_p3_s50.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p3_s50.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_p3_s50.exit"
+    },
+    {
+      "bytes": 1620,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p3_s50.json",
+      "sha256": "05842ec922e103c70001981be51130b3e27af928995e53bd8d46c2ee2c34c207",
+      "zip_path": "notes/kaggle_status/res_p3_s50.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p3_s50.pid",
+      "sha256": "cfc1349ff285a0639b1f8e1d6a338eab352f0e7df1e56f2f38bf77439c6dc192",
+      "zip_path": "notes/kaggle_status/res_p3_s50.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p3_s75.done",
+      "sha256": "e54d23ca6429e30dc08c055920c1e1ddf72f7dc3087b0b04c12e362c1bcad8b3",
+      "zip_path": "notes/kaggle_status/res_p3_s75.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p3_s75.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_p3_s75.exit"
+    },
+    {
+      "bytes": 1620,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p3_s75.json",
+      "sha256": "b929c5fe66e03c366367796b9e961790288b25deb528a2a06e4561f48647a0f9",
+      "zip_path": "notes/kaggle_status/res_p3_s75.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_p3_s75.pid",
+      "sha256": "0c4366178da7d7b45d941c5a432e8685d3ed7f9b880e0842371bd483a891fe77",
+      "zip_path": "notes/kaggle_status/res_p3_s75.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q1_b3.done",
+      "sha256": "38732ff583837d031760dfe587bd2e498f26e35e9de8525686c8dabfdb4fb00a",
+      "zip_path": "notes/kaggle_status/res_q1_b3.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q1_b3.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_q1_b3.exit"
+    },
+    {
+      "bytes": 1614,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q1_b3.json",
+      "sha256": "1e6c3095cf347c2741ca7b26a4c529d02746f60755cad971890b14c54b14fbe2",
+      "zip_path": "notes/kaggle_status/res_q1_b3.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q1_b3.pid",
+      "sha256": "1bec21730513b197c582a1b99237f7e95e3b7b86dfd1bf72b45cafe224edd5ce",
+      "zip_path": "notes/kaggle_status/res_q1_b3.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q1_b4.done",
+      "sha256": "4ffb1f4a10d367f5591921bc800141f9637773e325f956da5a5cf6c7b6e537ca",
+      "zip_path": "notes/kaggle_status/res_q1_b4.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q1_b4.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_q1_b4.exit"
+    },
+    {
+      "bytes": 1614,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q1_b4.json",
+      "sha256": "d459b20384b565591fc9259e141dd002e6ce112dac8716bb1efbac1699c65bfa",
+      "zip_path": "notes/kaggle_status/res_q1_b4.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q1_b4.pid",
+      "sha256": "e921165ea35f8e84c53de667e57fe6174cc657eca31e51a76b79998fb763d917",
+      "zip_path": "notes/kaggle_status/res_q1_b4.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q1_b8.done",
+      "sha256": "abb065e8a7014d77928e9a30e923c01afcfd1dd7a28584c7ff07ec60b8c72dd5",
+      "zip_path": "notes/kaggle_status/res_q1_b8.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q1_b8.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_q1_b8.exit"
+    },
+    {
+      "bytes": 1612,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q1_b8.json",
+      "sha256": "310062e682da4b6d26f138e489d69b9bb79704bdbbef25c20a886908b9837dd6",
+      "zip_path": "notes/kaggle_status/res_q1_b8.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q1_b8.pid",
+      "sha256": "301c2aaa0419a210ec1400d6ba10b339d58f7e319ee004d784b6fdecf9ae83f4",
+      "zip_path": "notes/kaggle_status/res_q1_b8.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q2_b3.done",
+      "sha256": "27c54ba6709f3165c673b40b21d4f8cea01ecb198cd7f731d73563a318fbc36a",
+      "zip_path": "notes/kaggle_status/res_q2_b3.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q2_b3.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_q2_b3.exit"
+    },
+    {
+      "bytes": 1614,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q2_b3.json",
+      "sha256": "383264513508de21675fe1a5c6b33fad93a5162495e1a54071e3ee781b6cf4e5",
+      "zip_path": "notes/kaggle_status/res_q2_b3.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q2_b3.pid",
+      "sha256": "46ef53090799c9392bab0e823895f835423e1e1a7851d620ac606a1bdb5444f5",
+      "zip_path": "notes/kaggle_status/res_q2_b3.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q2_b4.done",
+      "sha256": "8c6e4f128079dfe9404cbcf568e21c7e739ac3e5f7bb11b3a1f3c16002b8357b",
+      "zip_path": "notes/kaggle_status/res_q2_b4.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q2_b4.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_q2_b4.exit"
+    },
+    {
+      "bytes": 1614,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q2_b4.json",
+      "sha256": "55be6ee9cb84dd310ee82eb18b83c8f17573ba5b4f5dda71001e316b21a59ece",
+      "zip_path": "notes/kaggle_status/res_q2_b4.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q2_b4.pid",
+      "sha256": "081beba90804fa05b1f2f5fbb9398a328351bc756da7f92ac1484a2ca05e7e1d",
+      "zip_path": "notes/kaggle_status/res_q2_b4.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q2_b8.done",
+      "sha256": "f2352ab83feb48592f497d2af66540c00f26d936855f60eb059c2fa8b0afd5d1",
+      "zip_path": "notes/kaggle_status/res_q2_b8.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q2_b8.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_q2_b8.exit"
+    },
+    {
+      "bytes": 1613,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q2_b8.json",
+      "sha256": "90f90f0b9b39fca99674e0aceae58d032c341c9e0287b8b22dc4946f31611871",
+      "zip_path": "notes/kaggle_status/res_q2_b8.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q2_b8.pid",
+      "sha256": "65dea71a6fb9e88879628604e31fd82c65c89ea72d36bf55f60b2a9748f87574",
+      "zip_path": "notes/kaggle_status/res_q2_b8.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q3_int3.done",
+      "sha256": "70e17dc12d812f743f54d83b9a541132eb4b595fb0e6a6ab49a4af1951f02b51",
+      "zip_path": "notes/kaggle_status/res_q3_int3.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q3_int3.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_q3_int3.exit"
+    },
+    {
+      "bytes": 1630,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q3_int3.json",
+      "sha256": "e8640647221290f1a6744599ec83413d93a40376f0bb7a65e075bd449e0f3b1e",
+      "zip_path": "notes/kaggle_status/res_q3_int3.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q3_int3.pid",
+      "sha256": "d1506f9b33d16a9d93f8b6aa03d6b12739f1b4a2fcb7403546b53e8c03fcff26",
+      "zip_path": "notes/kaggle_status/res_q3_int3.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q3_int4.done",
+      "sha256": "112ecbcbd7e34fdfd9da931b57b2d8edcc8eed26f1b78c776808f786eaca8a06",
+      "zip_path": "notes/kaggle_status/res_q3_int4.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q3_int4.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/res_q3_int4.exit"
+    },
+    {
+      "bytes": 1630,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q3_int4.json",
+      "sha256": "40f9066251e47265e93ae13068a65d3a615de1f923c4f62469da2998416d7c5e",
+      "zip_path": "notes/kaggle_status/res_q3_int4.json"
+    },
+    {
+      "bytes": 5,
+      "committed": false,
+      "path": "notes/kaggle_logs/run2/kaggle_status/res_q3_int4.pid",
+      "sha256": "513f80b781f276f640e54c3479da0984c3a5d07c9d488525360f908222120f58",
+      "zip_path": "notes/kaggle_status/res_q3_int4.pid"
+    }
+  ],
+  "n_files": 110,
+  "source": {
+    "bytes": 2355296,
+    "name": "t1_run2_results.zip",
+    "notebook_output": "t1_run2 (Kaggle run 2 of Task 1, held-out evaluation and resources)",
+    "sha256": "a4a1a5d6894ab8cc5bd6babd8bf1a853ca738984d8902b662c0ebae72a4387b0"
+  }
+}
