@@ -276,3 +276,45 @@ AM3.5 Prediction B3-H: local_dilated_curriculum learns (B6) on at least 2 of 3 s
     more than 30 points above the comparator's (seed means; B8 applies); its far K 16 test accuracy is above 0.5 (seed
     mean). Rival R1: it learns near queries but far K 16 accuracy stays near 1/K. Rival R2: it stays flat (development
     accuracy near 1/K at every checkpoint).
+
+AM4 (2026-11-28, applied after the notebook 2 Part C results and before any diagnostic code or result existed).
+Post hoc diagnostic of the int4_token result. Manual line 505-506: "Measure reconstruction errors for K and V
+separately, teacher-forced logit divergence, and free-running answer accuracy"; line 328-330: "A
+channel-wise-K/token-wise-V layout, motivated by KIVI, groups key values along the token axis separately for each
+feature channel, while grouping values along the feature dimension separately for each token"; line 72-73: "Report all
+specified conditions, including runs that fail to reach useful accuracy".
+
+AM4.1 Status. A post hoc diagnostic, motivated by the observed int4_token result (exact match 0/180 in
+    results/task2/part_c/eval); not a matched-budget condition and not part of the principal comparisons (AM2.7). No
+    Part C method, setting or row is changed, selected or dropped because of it. Version identifier task2-kv-diag-v1;
+    entry point python -m task2.kv_diag; output directory results/task2/part_c/diag/.
+AM4.2 Prompts: the lowest-ID prompt of each of the 18 grid cells (task2.kv_run.first_per_cell, the same set as the
+    validate run's full-forward checks).
+AM4.3 Channel statistics, on each prompt's FP16 pre-question context cache (the cached rotated keys and the values at
+    positions [0, L) after the full FP16 prefill, the tensors every method compresses), per layer and KV head, over the
+    L context tokens. Per channel: the max and the median of |K| and of |V| over tokens (median of an even count: the
+    mean of the two middle values); for K and for V, the ratio of the largest channel max to the median channel max.
+    Per-channel relative reconstruction error ||x_c - x_hat_c||_2 / ||x_c||_2 over the L context tokens, with x_hat the
+    dequantized context of the packed cache as evaluated (the trailing r tokens are FP16 and contribute zero error): K
+    under INT4 token-wise and under INT4 channel-K, V under INT4 token-wise. Channels are split per layer and KV head
+    into the top 1% by channel max |K| (ceil(0.01 d_h) channels, 2 of 128; ties go to the lower channel index) and the
+    rest; the summary of each group is the mean of its per-channel errors. V uses the same split by channel max |V|.
+    Reported per layer as the mean over prompts and KV heads, and overall as the mean over layers.
+AM4.4 Generation controls, with the same pipeline, settings and metrics as eval (C1, C6, AM2.6: exact match,
+    reference-answer NLL, post-prefill KL and teacher-forced KL, the KLs against the fp16 reference of the same run,
+    which is run on every prompt): (a) k_int4_token: K INT4 token-wise, V FP16; (b) v_int4_token: K FP16, V INT4
+    token-wise; (c) kv_int8_token: K and V INT8 token-wise; (d) int4_token as evaluated; (e) int4_channel_k as evaluated.
+    Quantizer (AM2.1; INT8 uses 2^8 - 1 levels and stores one code per byte without packing), group size 64, FP16 scale
+    and offset per group and the trailing rule (AM2.2: the trailing r context tokens stay FP16 for K and V, appended
+    entries join the FP16 tail, and a complete 64-token tail group is quantized after the forward pass that completed
+    it) as AM2; only the bit width or the quantized tensor differs. In (a) and (b) the tensor that is not quantized keeps
+    its FP16 values at every position. (d) and (e) run through the evaluated code path unchanged. Bytes are recorded;
+    no budget applies.
+AM4.5 Predictions fixed before running, on the 18 prompts: (c) exact match within 5 points of fp16 and mean
+    teacher-forced KL below 0.05; (a) fails like (d): exact match at most 0.1; (b) exact match within 5 points of fp16;
+    K shows channel max/median ratios far above V's (operationalised: the mean K ratio over prompts, layers and KV heads
+    is at least 3 times the mean V ratio); token-wise K error on the non-outlier channels is far above channel-K's
+    (operationalised: the overall non-outlier mean at least 3 times as large). Rival: (c) also fails (its prediction
+    does not hold), which would indicate a defect in the token-wise code path rather than an effect of the layout.
+AM4.6 Consequence. If (c) fails, int4_token is treated as a defect: the notebook 2 int4_token rows are kept as
+    evidence, the defect is fixed and int4_token is re-run in a later notebook.
