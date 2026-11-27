@@ -2,6 +2,8 @@
 
 Usage: python -m task2.train_mqar --mechanism {dense,window,local_dilated,linear} --K {4,8,16} --regime {near,mixed}
            --seed {6304,6305,6306} --out DIR [--cache-dir DIR] [--device cuda:0]
+       python -m task2.train_mqar --mechanism local_dilated --K 16 --regime mixed --curriculum near_to_mixed
+           --seed {6304,6305,6306} --out DIR [...]     (protocol AM3; run name local_dilated_curriculum_K16_s<seed>)
 Test-only options (refused for any output under results/task2):
        --limit-updates N   train N updates (checkpoints and warmup scaled by N / 4500)
        --limit-eval M      evaluate the first M sequences of each development and test cell
@@ -22,12 +24,25 @@ Disjointness: the training stream is checked against the committed held-out hash
 opening of the development file (dev_file_opens) and of the test file (test_file_opens, empty until the final
 evaluation), each with the update count after which it happened.
 
+Curriculum (protocol AM3, --curriculum near_to_mixed; only with mechanism local_dilated, K 16 and regime mixed, the
+regime of the final batches and of the learned flag): batch u (1-based) holds n_near(u) = round(32 f(u)) sequences of
+the seed's near K16 stream followed by 32 - n_near(u) sequences of its mixed K16 stream; each stream is consumed in
+index order from the start of the seed's index range. f(u) = 1 for u <= a, (b - u) / (b - a) for a < u < b and 0 for
+u >= b, with a = 1000 and b = 2000 (with --limit-updates N: a = round(1000 N / 4500), b = round(2000 N / 4500),
+recorded); round is half-to-even on the exact rational value. Both streams are loaded for the range [start, stop) of
+the seed (a superset of what is consumed), validated and checked against the held-out hash list. run.json records the
+mixed stream under "stream" and the near stream under "stream_near", the schedule under config.curriculum and the
+consumed index ranges under curriculum_consumed; train_log rows carry curriculum_f, n_near, near_index_range and
+mixed_index_range (in place of index_range); dev_curve rows carry curriculum_f, n_near and the cumulative near and
+mixed counts at the checkpoint.
+
 Outputs under --out: run.json, train_log.jsonl (one row per update), dev_curve.jsonl (one row per checkpoint, cell and
 mask condition), dev_queries_final.npz and test_queries.npz (one row per query, format in task2.query_npz),
 model_final.safetensors.
 """
 import argparse
 import sys
+from fractions import Fraction
 import time
 import traceback
 from pathlib import Path
@@ -68,6 +83,13 @@ LEARNED_THRESHOLD = 0.5
 LEARNED_MAX_DISTANCE = 64
 SCORER = "64-way cross-entropy and argmax over logits 128..191 at query positions; label = answer id - 128"
 
+CURRICULA = ("near_to_mixed",)
+CURRICULUM_MECHANISM, CURRICULUM_K, CURRICULUM_REGIME = "local_dilated", 16, "mixed"
+CURRICULUM_BREAKS = (1000, 2000)
+CURRICULUM_RULE = ("batch u (1-based): n_near(u) = round(32 f(u)) near rows first, then 32 - n_near(u) mixed rows; "
+                   "f(u) = 1 for u <= a, (b - u) / (b - a) for a < u < b, 0 for u >= b; round half to even on the "
+                   "exact rational; each stream consumed in index order from the start of the seed's index range")
+
 OUTPUT_FILES = {"run": "run.json", "train_log": "train_log.jsonl", "dev_curve": "dev_curve.jsonl",
                 "dev_queries": "dev_queries_final.npz", "test_queries": "test_queries.npz",
                 "checkpoint": "model_final.safetensors"}
@@ -93,6 +115,56 @@ def scaled_checkpoints(n_updates: int):
 
 def scaled_warmup(n_updates: int) -> int:
     return WARMUP if n_updates == D.UPDATES else max(1, round(WARMUP * n_updates / D.UPDATES))
+
+
+def run_name(mechanism: str, regime: str, K: int, seed: int, curriculum=None) -> str:
+    if curriculum is not None:
+        return f"{mechanism}_curriculum_K{K}_s{seed}"
+    return f"{mechanism}_{regime}_K{K}_s{seed}"
+
+
+def curriculum_breaks(n_updates: int = D.UPDATES):
+    """(a, b) of the near fraction schedule: (1000, 2000) at 4,500 updates, scaled by n_updates / 4500 otherwise."""
+    if n_updates == D.UPDATES:
+        return CURRICULUM_BREAKS
+    return tuple(round(Fraction(x * n_updates, D.UPDATES)) for x in CURRICULUM_BREAKS)
+
+
+def curriculum_f(u: int, n_updates: int = D.UPDATES) -> Fraction:
+    """Near fraction f(u) of update u (1-based), exact."""
+    if not 1 <= u <= n_updates:
+        raise ValueError(f"update {u} outside [1, {n_updates}]")
+    a, b = curriculum_breaks(n_updates)
+    if u <= a:
+        return Fraction(1)
+    if u >= b:
+        return Fraction(0)
+    return Fraction(b - u, b - a)
+
+
+def n_near_at(u: int, n_updates: int = D.UPDATES, batch: int = D.BATCH) -> int:
+    return round(batch * curriculum_f(u, n_updates))
+
+
+def curriculum_plan(n_updates: int = D.UPDATES, batch: int = D.BATCH) -> list:
+    """Per update: f, n_near and the [lo, hi) offsets into the near and mixed streams (offsets from the start of the
+    seed's index range), each stream consumed contiguously in index order."""
+    rows, pn, pm = [], 0, 0
+    for u in range(1, n_updates + 1):
+        n = n_near_at(u, n_updates, batch)
+        rows.append({"update": u, "f": curriculum_f(u, n_updates), "n_near": n, "near": (pn, pn + n),
+                     "mixed": (pm, pm + batch - n)})
+        pn, pm = pn + n, pm + batch - n
+    return rows
+
+
+def curriculum_batch(near, mixed, row: dict):
+    """Rows of one curriculum batch: the near slice followed by the mixed slice (numpy or torch, same type)."""
+    a = near[row["near"][0]:row["near"][1]]
+    b = mixed[row["mixed"][0]:row["mixed"][1]]
+    if isinstance(a, np.ndarray):
+        return np.concatenate([a, b])
+    return torch.cat([a, b])
 
 
 def query_logits(logits, qpos):
@@ -194,6 +266,7 @@ def parse_args(argv=None):
     ap.add_argument("--out", required=True)
     ap.add_argument("--cache-dir", default=str(DEFAULT_CACHE))
     ap.add_argument("--device", default="cuda:0")
+    ap.add_argument("--curriculum", default=None, choices=CURRICULA)
     ap.add_argument("--limit-updates", type=int, default=None, help="tests only")
     ap.add_argument("--limit-eval", type=int, default=None, help="tests only")
     return ap.parse_args(argv)
@@ -204,6 +277,10 @@ def check_args(args) -> dict:
     limited = any(v is not None for v in limits.values())
     if limited and under(args.out, REAL_ROOT):
         raise SystemExit(f"refusing --limit-* with an output path under {REAL_ROOT}: {args.out}")
+    if args.curriculum is not None and (args.mechanism, args.K, args.regime) != \
+            (CURRICULUM_MECHANISM, CURRICULUM_K, CURRICULUM_REGIME):
+        raise SystemExit(f"--curriculum {args.curriculum} needs --mechanism {CURRICULUM_MECHANISM} --K {CURRICULUM_K} "
+                         f"--regime {CURRICULUM_REGIME}; got {args.mechanism}, K {args.K}, {args.regime}")
     if Path(args.out).exists():
         raise SystemExit(f"output directory exists: {args.out}")
     n_updates = D.UPDATES if args.limit_updates is None else args.limit_updates
@@ -259,6 +336,16 @@ def main(argv=None):
         "query_file_format": Q.codes(),
         "heldout_list": str(D.HELDOUT_LIST),
     }
+    if args.curriculum is not None:
+        a, b = curriculum_breaks(n_updates)
+        config["run_name"] = run_name(args.mechanism, args.regime, args.K, args.seed, args.curriculum)
+        config["curriculum"] = {
+            "name": args.curriculum, "protocol": "AM3", "rule": CURRICULUM_RULE, "breaks": [a, b],
+            "breaks_full": list(CURRICULUM_BREAKS), "scaled": n_updates != D.UPDATES,
+            "scaling": "a = round(1000 N / 4500), b = round(2000 N / 4500) with N updates (half to even)",
+            "streams": {"near": D.cell_name("near", args.K), "mixed": D.cell_name("mixed", args.K)},
+            "batch_order": "near rows first, then mixed rows",
+            "learned_cell": D.cell_name(args.regime, args.K)}
     out.mkdir(parents=True)
     rec = RunRecorder(out / OUTPUT_FILES["run"], config)
     rec.update(environment=environment(device), step="started")
@@ -279,21 +366,35 @@ def _run(args, chk, out, rec, model, device, warmup, checkpoints, start, stop, c
     list_git = require_committed(D.HELDOUT_LIST, "held-out hash list")
     ref_hashes, list_info = D.load_heldout_list(D.HELDOUT_LIST)
     list_info.update(tracked=list_git["tracked"], clean=list_git["clean"], commits=list_git["commits"])
-    arr, stream = D.load_or_build_stream(args.cache_dir, gen, gen_info, args.K, args.regime, start, stop)
-    t0 = time.perf_counter()
-    stream["validation"] = D.validate_stream(gen, arr, args.K, args.regime, start)
-    stream["validation"]["seconds"] = time.perf_counter() - t0
-    stream["disjointness"] = {**D.check_disjoint(arr, ref_hashes, start, args.K, args.regime),
-                              "heldout_list": list_info,
+    def ready_stream(regime):
+        a, st = D.load_or_build_stream(args.cache_dir, gen, gen_info, args.K, regime, start, stop)
+        t0 = time.perf_counter()
+        st["validation"] = D.validate_stream(gen, a, args.K, regime, start)
+        st["validation"]["seconds"] = time.perf_counter() - t0
+        st["disjointness"] = {**D.check_disjoint(a, ref_hashes, start, args.K, regime), "heldout_list": list_info,
                               "note": "checked against the committed list only; no development or test file opened"}
+        return a, st
+
+    curriculum = args.curriculum is not None
+    extra = {}
+    if curriculum:
+        arr_near, stream_near = ready_stream("near")
+        extra["stream_near"] = stream_near
+    arr, stream = ready_stream(args.regime)
     del ref_hashes
-    rec.update(generator=gen_info, stream=stream, dev_file_opens=dev_opens, test_file_opens=test_opens,
+    rec.update(generator=gen_info, stream=stream, **extra, dev_file_opens=dev_opens, test_file_opens=test_opens,
                step="stream_ready")
 
     dev = D.read_eval_file(D.DEV_FILE, "development", gen=gen, limit_per_cell=args.limit_eval, audit=dev_opens,
                            after_update=0, manifest_rel=D.DEV_REL)
     rec.update(dev_file_opens=dev_opens, test_file_opens=test_opens, step="dev_loaded")
     data = torch.from_numpy(arr).to(device)
+    plan = None
+    if curriculum:
+        data_near = torch.from_numpy(arr_near).to(device)
+        plan = curriculum_plan(n_updates)
+        if plan[-1]["near"][1] > len(arr_near) or plan[-1]["mixed"][1] > len(arr):
+            raise RuntimeError("curriculum consumes more sequences than the loaded streams hold")
     K, Tn = args.K, D.T
     model.to(device).train()
     opt = torch.optim.AdamW(model.parameters(), lr=0.0, betas=BETAS, eps=ADAM_EPS, weight_decay=WEIGHT_DECAY)
@@ -309,7 +410,12 @@ def _run(args, chk, out, rec, model, device, warmup, checkpoints, start, stop, c
             lr = lr_at(u, n_updates, warmup)
             sync(device)
             t_a = time.perf_counter()
-            batch = data[(u - 1) * D.BATCH:u * D.BATCH]
+            if curriculum:
+                row = plan[u - 1]
+                batch = curriculum_batch(data_near, data, row)
+                assert batch.shape[0] == D.BATCH
+            else:
+                batch = data[(u - 1) * D.BATCH:u * D.BATCH]
             tok = batch[:, :Tn].long()
             qpos = batch[:, Tn:Tn + K].long()
             ans = batch[:, Tn + 2 * K:Tn + 3 * K].long()
@@ -323,9 +429,15 @@ def _run(args, chk, out, rec, model, device, warmup, checkpoints, start, stop, c
             sync(device)
             dt = time.perf_counter() - t_a
             train_s += dt
-            log.write({"version": VERSION, "update": u, "loss": float(loss.detach()), "accuracy": float(acc), "lr": lr,
-                       "grad_norm": float(gnorm), "clipped": bool(float(gnorm) > CLIP), "step_ms": dt * 1000.0,
-                       "index_range": [start + (u - 1) * D.BATCH, start + u * D.BATCH]})
+            entry = {"version": VERSION, "update": u, "loss": float(loss.detach()), "accuracy": float(acc), "lr": lr,
+                     "grad_norm": float(gnorm), "clipped": bool(float(gnorm) > CLIP), "step_ms": dt * 1000.0}
+            if curriculum:
+                entry.update(curriculum_f=float(row["f"]), n_near=row["n_near"],
+                             near_index_range=[start + row["near"][0], start + row["near"][1]],
+                             mixed_index_range=[start + row["mixed"][0], start + row["mixed"][1]])
+            else:
+                entry["index_range"] = [start + (u - 1) * D.BATCH, start + u * D.BATCH]
+            log.write(entry)
             if u in checkpoints:
                 if is_cuda(device):
                     peak_train = max(peak_train, torch.cuda.max_memory_allocated(device))
@@ -333,10 +445,15 @@ def _run(args, chk, out, rec, model, device, warmup, checkpoints, start, stop, c
                 t_e = time.perf_counter()
                 results = {c: eval_cell(model, dev[c], device, "native") for c in D.cell_order()}
                 point = {"update": u, "cells": {}}
+                cur = {}
+                if curriculum:
+                    cur = {"curriculum_f": float(row["f"]), "n_near": row["n_near"],
+                           "near_consumed": row["near"][1], "mixed_consumed": row["mixed"][1]}
+                    point.update(cur)
                 for c in D.cell_order():
                     s = summarize(dev[c], results[c])
                     dcw.write({"version": VERSION, "update": u, "split": "development", "cell": c,
-                               "K": dev[c]["K"], "regime": dev[c]["regime"], "mask_condition": "native", **s})
+                               "K": dev[c]["K"], "regime": dev[c]["regime"], "mask_condition": "native", **cur, **s})
                     point["cells"][c] = {"accuracy": s["accuracy"], "loss": s["loss"]}
                 curve.append(point)
                 dt_e = time.perf_counter() - t_e
@@ -376,7 +493,15 @@ def _run(args, chk, out, rec, model, device, warmup, checkpoints, start, stop, c
     test_cols = Q.concat(test_parts)
     Q.write_query_npz(out / OUTPUT_FILES["test_queries"], test_cols, VERSION)
 
+    out_extra = {}
+    if curriculum:
+        last = plan[-1]
+        out_extra["curriculum_consumed"] = {
+            "near_index_range": [start, start + last["near"][1]], "mixed_index_range": [start, start + last["mixed"][1]],
+            "n_near": last["near"][1], "n_mixed": last["mixed"][1],
+            "n_near_by_update_sum": sum(r["n_near"] for r in plan)}
     return {
+        **out_extra,
         "learned": learned, "dev_curve": curve, "test_summary": test_summary, "test_pooled_bins": test_pooled,
         "test_opened_after_update": test_opened_after, "updates_done": n_updates,
         "dev_file_opens": dev_opens, "test_file_opens": test_opens,
