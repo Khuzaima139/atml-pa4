@@ -131,3 +131,108 @@ attention in FP32 computed on the FP16 inputs cast to FP32, and for gradients on
 FP32, so FP16 input rounding is not counted as attention error. The comparison against dense FP32 on the original
 FP32 inputs is kept for FP16 rows as a second set of error columns prefixed `vs_fp32_inputs_`. FP32 rows are
 unchanged. Each row records its reference in `reference_inputs`; the result version is `task2-part-a-v2`.
+
+AM2 (2026-11-28, applied before any Part C code or result existed). Part C cache arithmetic, layouts, metrics,
+analysis and predictions. Symbols: n_l layers, H_kv KV heads, d_h head dimension, all read from the model config;
+C = 2 n_l H_kv d_h stored KV channels (14,336 for Qwen2.5-1.5B-Instruct, so one FP16 position costs 2C = 28,672
+bytes); L = pre-question context length in tokens; S = question-suffix length; r = L mod 64.
+
+AM2.1 Quantizer. Asymmetric min/max per 64-element group: scale = (max - min) / (2^b - 1) and offset = min, both stored
+    as FP16; codes = clamp(round_half_even((x - offset) / scale), 0, 2^b - 1), computed in FP32 with the FP16-rounded
+    scale and offset; reconstruction = offset + scale * code. A constant group (or one whose FP16 scale rounds to 0)
+    stores scale 0 and codes 0 and reconstructs to the FP16 offset, exactly for FP16 inputs. There is no integer
+    zero-point; the FP16 offset plays that role. Codes are packed into uint8 low bits first (INT4: element 2i in bits
+    0-3, element 2i+1 in bits 4-7; INT2: element 4i+j in bits 2j to 2j+1). Manual line 432-433: "Each quantization
+    group has 64 elements, with an FP16 scale and FP16 offset (four metadata bytes), plus packed integer payload;
+    zero-point handling is fixed and reported separately"; line 330-331: "This layout asymmetry is distinct from using
+    asymmetric integer quantization with a nonzero zero-point."
+AM2.2 Layouts. Token-wise: groups of 64 consecutive head-dimension elements per (layer, KV head, token). Channel-wise K:
+    groups of 64 consecutive tokens per (layer, KV head, channel). V is token-wise in both layouts. In both INT4
+    layouts the trailing r context tokens stay FP16 for K and V. Appended tokens (question suffix, generated tokens,
+    teacher-forced gold digits) join the FP16 tail; in the quantized layouts the tail is quantized as one group when it
+    reaches 64 tokens, after the forward pass that completed it (inside that pass those tokens are used in FP16, as
+    produced). Eviction and the hybrid keep appended tokens in FP16. The bytes of appended entries are reported as the
+    shared decode-time component and are included in total live cache memory. Manual line 433-435: "only complete
+    64-token groups are compressed: the trailing r = L mod 64 cached tokens remain FP16 for both K and V, including
+    newly generated tokens until they form a complete group"; line 504-505: "apply the same FP16 trailing-token rule to
+    both layouts"; line 506-507: "Quantization must include prompt-cache entries and be applied consistently to
+    subsequently generated entries"; line 441-443: "The identical question suffix and subsequently generated FP16
+    tokens add a shared decode-time memory component, which must be reported separately and included when reporting
+    total live cache memory."
+AM2.3 Budget. M4 per prompt from M_b(L) = C [floor(L/64) (64b/8 + 4) + 2 r] with b = 4, at the pre-question context
+    length L. Sink-plus-recent: largest N with 2C N + 8 <= M4 (8 bytes for the two counts; 8 sink, the recent window
+    fills the remaining N - 8). Question-aware: largest N with 2C N + 4 N <= M4 (8 sink, 64 recent, then the
+    highest-ranked remaining positions; one int32 index list). Hybrid: F = L - 64 m FP16 positions (8 sink, 64 recent,
+    then the highest-ranked remaining positions), with m the smallest group count such that
+    C m (64*2/8 + 4) + 2C F + 4 F <= M4; the other 64 m positions, in position order, form INT2 groups (channel-wise K,
+    token-wise V); one int32 index list for the FP16 positions only (the INT2 positions are their ordered complement).
+    Every count is capped at L, and a prompt where the 72 safeguards (or F >= 72) do not fit raises an error instead of
+    being dropped silently. Bytes counted from the actual packed tensors must equal these formulas. Manual line 444-446:
+    "retain the largest legal number of FP16 positions whose actual bytes do not exceed the reference INT4 budget.
+    Apply the same actual-byte accounting to the hybrid, including its low-bit groups, quantization metadata, position
+    indices, and FP16 positions"; line 511: "The low-precision positions must form complete 64-element groups, with
+    any incomplete residual stored in FP16."
+AM2.4 Computation uses stored values. K and V given to SDPA are dequantized from the packed codes (or are the stored
+    FP16 values), in original position order; the packed object is the stored form and its tensors are counted. Manual
+    line 530-531: "Distinguish packed storage from allocated GPU memory when quantized values are dequantized before
+    ordinary SDPA."
+AM2.5 Scoring details. Query projections are captured with forward hooks on each layer's q_proj during the full FP16
+    prefill (attention implementation unchanged), rotated with the model's own rotary embedding at the absolute suffix
+    positions in the model dtype, then cast to FP32; keys are the cached (rotated) keys cast to FP32 and expanded to the
+    query heads. The global ranking places the 72 safeguards first, then the remaining positions by descending score
+    with ties broken by lower position. Manual line 498-499 (quoted in C2).
+AM2.6 Metrics per prompt and method: exact match (extractor C5); exact match conditional on FP16-correct prompts;
+    reference-answer NLL (C7); post-prefill KL (C8, at the first answer position, after the suffix re-run on the
+    method's cache); teacher-forced KL = mean over the 5 gold-digit positions of KL(FP16 || method), both models
+    teacher-forced from their own cache state right after the suffix re-run; K and V relative reconstruction error
+    ||X - X_hat||_F / ||X||_F over the L context positions, per layer and mean over layers (INT4 layouts and hybrid;
+    0 for FP16; not defined for eviction); fraction of evidence tokens retained (eviction and hybrid FP16 sets);
+    bytes by component (payload, metadata, FP16 retained positions, FP16 residual, indices, decode-time appended
+    entries) and realized fraction of FP16 bytes M_method / M16(L); phase times (full prefill, scoring, compression,
+    suffix re-run, decode); peak allocated memory. Generation stops at EOS or after 32 new tokens; the last generated
+    token is not fed back. Manual line 520-523: "Record exact-match retrieval, reference-answer NLL, post-prefill logit
+    KL from FP16, fraction of marked evidence tokens retained (for eviction and the hybrid's FP16 selection), realized
+    packed bytes, scoring/preprocessing time, prefill time, decode time, and peak allocated GPU memory"; line 505-506:
+    "Measure reconstruction errors for K and V separately, teacher-forced logit divergence, and free-running answer
+    accuracy"; line 550-551: "also report compressed accuracy conditional on reference correctness".
+AM2.7 Bootstrap: paired over the 180 prompts, 10,000 resamples, seed 6304. Principal differences, for exact match and
+    NLL: each method minus FP16; question-aware minus sink-plus-recent; channel-K minus token-wise; hybrid minus
+    question-aware; hybrid minus INT4 channel-K. Cell-level results are descriptive only. Manual line 524: "Use paired
+    bootstrap resampling of prompts, with at least 2,000 resamples, for principal accuracy differences"; line 528-529:
+    "treat the ten prompts in each grid cell as descriptive diagnostics rather than separately powered comparisons."
+AM2.8 C5 benchmark: real caches from the first 8 prompt IDs (sorted) of each length level, truncated to L = 2048 and
+    L = 4096; batch 1 uses the first of them, batch 8 all 8. Configurations: INT4 token-wise, INT4 channel-K, hybrid.
+    3 warmup and 10 CUDA-synchronized repetitions per condition; pack time, unpack-plus-dequantize time, serialized
+    bytes, and decode-step latency with unpacking versus FP16 at matched shapes. Manual line 525-527: "Independently
+    benchmark actual packed-cache encode and decode overhead at batch sizes 1 and 8 and both context lengths. Use at
+    least ten warmed-up, CUDA-synchronized repetitions per condition".
+AM2.9 Qualitative set: for each context length, the lowest-ID prompt in each of the start, middle and end cells with 8
+    distractors (6 prompts). Manual line 566-567: "a small fixed set of aligned generations with their evidence spans,
+    FP16 selections and token-selection masks."
+
+Predictions fixed before Part C results (manual line 482: "State a prediction before evaluation"), each followed by
+its rival outcome:
+
+C-H1. Full FP16 cache exact match >= 0.9 in every length x location cell. Rival: lower for middle evidence at 4k.
+C-H2. Question-aware eviction exceeds sink-plus-recent by > 30 points overall; sink-plus-recent succeeds mainly when
+    evidence lies in its recent window. Rival: gap < 10 points because question attention spreads across same-format
+    distractor records.
+C-H3. Question-aware retains >= 0.9 of evidence tokens and stays within 5 points of FP16 exact match at 0, 2 and 8
+    distractors. Rival: exact match falls > 10 points from 0 to 8 distractors.
+C-H4. Channel-K has lower K reconstruction error and lower teacher-forced KL than token-wise; both within 5 points of
+    FP16 exact match. Rival: token-wise equal or better on KL.
+C-H5. The INT4 layouts match FP16 exact match but answer NLL rises with a 95% interval excluding 0. Rival: interval
+    includes 0.
+C-H6. Hybrid exact match within 5 points of question-aware eviction; hybrid teacher-forced KL above INT4 channel-K.
+    Rival: hybrid more than 10 points below eviction.
+C-H7. Per-step unpack-plus-dequantize adds >= 20% to FP16 decode-step time at batch 8 and L 4096. Rival: < 5%.
+
+Part C construction facts:
+
+F6. Sink-plus-recent evidence retention is fixed by positions before the model runs.
+F7. The hybrid FP16 set is a prefix of the question-aware ranking (F <= N), so its evidence retention cannot exceed
+    question-aware eviction's.
+F8. The FP16 reference has zero KL by definition.
+F9. Full-prompt prefill is identical across methods, so eviction cannot lower prefill peak memory (manual line 543:
+    "Eviction after a full prefill does not reduce the peak memory consumed during that prefill").
+F10. Dequantizing before SDPA does not lower allocated memory during attention.
