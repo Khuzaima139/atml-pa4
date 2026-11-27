@@ -3,6 +3,11 @@
 Reads committed result files under --results (default results/task1) and writes a new directory --out.
 
     python -m task1.analysis --out results/task1/analysis
+    python -m task1.analysis --figures-only --out results/task1/figures
+
+--figures-only rebuilds the figures from the committed analysis outputs in --analysis (tables from summary.json,
+checked against the CSVs); probe values, selected allocations and per-projection records, which the analysis
+outputs do not store, are read from the committed results and checked against the sha256 in summary.json.
 """
 import argparse
 import csv
@@ -671,6 +676,68 @@ def build(root, out, expect, hs_records, require_committed=True, figures=True):
     return summary, inp
 
 
+# ------------------------------------------------------------------------------------------------ figures only
+FIGURE_TABLES = ("T1_quality.csv", "T2_resources.csv", "D_block_sensitivity_ranks.csv")
+
+
+def _cell(v):
+    return "" if v is None else (json.dumps(v) if isinstance(v, (list, dict)) else str(v))
+
+
+def figures_only(analysis_dir, results_root, out, require_committed=True):
+    """Figures from the analysis outputs; returns (figure files, sizes in inches, label placement, committed)."""
+    from task1 import analysis_figures as F
+    analysis_dir, results_root = Path(analysis_dir), Path(results_root)
+    with open(analysis_dir / "summary.json", encoding="utf-8") as fh:
+        summary = json.load(fh)
+    check(summary.get("analysis_id") == ANALYSIS_ID, "analysis_id of summary.json")
+    for name in FIGURE_TABLES:
+        with open(analysis_dir / name, newline="", encoding="utf-8") as fh:
+            got = list(csv.DictReader(fh))
+        ref = summary["tables"][name]
+        check(len(got) == len(ref), f"{name}: row count differs from summary.json")
+        for g, r in zip(got, ref):
+            check(all(g[k] == _cell(r.get(k)) for k in g), f"{name}: values differ from summary.json")
+    inp = Inputs(results_root)
+    D = load(inp, summary["expect"])
+    for path, digest in inp.read.items():
+        rel = str(Path(path).relative_to(results_root))
+        check(summary["inputs"].get(rel) == digest, f"input differs from the analysis record: {rel}")
+    sens = {r["block"]: r for r in summary["tables"]["D_block_sensitivity_ranks.csv"]}
+    for b, m in q3v2_unit_values(D, "QS1v2").items():
+        check(all(close(float(v), sens[i][f"QS1v2_block_sum_b{b}"]) for i, v in enumerate(m.sum(axis=0))),
+              f"QS1v2 block sums at {b} bits differ from the analysis table")
+    committed = None
+    if require_committed:
+        committed = committed_check([analysis_dir / "summary.json", *(analysis_dir / n for n in FIGURE_TABLES),
+                                     *inp.read])
+    qrows, rrows = summary["tables"]["T1_quality.csv"], summary["tables"]["T2_resources.csv"]
+    out.mkdir(parents=True)
+    info = {}
+    names = F.make_all(D, qrows, rrows, out, info)
+    sizes = {n: [round(v, 3) for v in F.pdf_size_in(out / n)] for n in names}
+    return names, sizes, info, committed
+
+
+def main_figures(a):
+    out = Path(a.out)
+    if out.exists():
+        sys.exit(f"refusing existing output directory: {out}")
+    staging = out.with_name(out.name + ".building")
+    if staging.exists():
+        sys.exit(f"refusing existing staging directory: {staging}")
+    names, sizes, info, committed = figures_only(a.analysis, a.results, staging,
+                                                 require_committed=not a.allow_uncommitted)
+    rec = RunRecorder(staging / "run.json", {"entry_point": "task1.analysis --figures-only", "args": vars(a),
+                                              "analysis_id": ANALYSIS_ID})
+    rec.finish("ok", inputs_committed=committed, figures=names, size_inches=sizes, **info)
+    staging.rename(out)
+    for n in names:
+        print(f"{n}: {sizes[n][0]:.2f} x {sizes[n][1]:.2f} in")
+    print(f"wrote {out}")
+    return out
+
+
 def parse(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", required=True, help="new output directory (refused if it exists)")
@@ -682,11 +749,17 @@ def parse(argv=None):
     ap.add_argument("--expect-hellaswag-full", type=int, default=C.HELLASWAG_FULL_N)
     ap.add_argument("--expect-hellaswag-subset", type=int, default=C.HELLASWAG_SUBSET_N)
     ap.add_argument("--no-figures", action="store_true")
+    ap.add_argument("--figures-only", action="store_true",
+                    help="only rebuild the figures from the analysis outputs in --analysis")
+    ap.add_argument("--analysis", default=str(REPO_ROOT / "results" / "task1" / "analysis"),
+                    help="analysis outputs read by --figures-only")
     return ap.parse_args(argv)
 
 
 def main(argv=None):
     a = parse(argv)
+    if a.figures_only:
+        return main_figures(a)
     out = Path(a.out)
     if out.exists():
         sys.exit(f"refusing existing output directory: {out}")

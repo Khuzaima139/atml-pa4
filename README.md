@@ -92,9 +92,11 @@ On the Mac, `.venv/bin/python -m pytest -q` runs every pipeline piece end to end
 | `results/task1/run2/` | Per condition: perplexity per window (both suites), HellaSwag scores per example and ending, development NLL reproduction; FP16 lm_eval comparison |
 | `results/task1/run2_resources/` | Per condition: storage accounting, prefill and decode latency, peak allocated memory |
 | `results/task1/analysis/` | Tables T1-T6 and diagnostics (CSV, `summary.json`), figures F1-F5 (PDF), `qualitative.jsonl` and `qualitative.txt` |
+| `results/task1/figures/` | report figures (F1-F5, F3_full), rebuilt with `.venv/bin/python -m task1.analysis --figures-only --out results/task1/figures` |
 
 ## Attribution
 
 - Course data repository [AbDu11aHHH/atml-pa4-datasets](https://github.com/AbDu11aHHH/atml-pa4-datasets) (commit `6a0a9ec`), whose scripts prepare the fixed dataset selections and are called rather than copied.
 - Models from Hugging Face: [Qwen/Qwen2.5-1.5B](https://huggingface.co/Qwen/Qwen2.5-1.5B), [Qwen/Qwen2.5-1.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct) and [Qwen/Qwen2.5-0.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct).
 - Datasets: [allenai/c4](https://huggingface.co/datasets/allenai/c4), [Salesforce/wikitext](https://huggingface.co/datasets/Salesforce/wikitext), [Rowan/hellaswag](https://huggingface.co/datasets/Rowan/hellaswag), [openai/gsm8k](https://huggingface.co/datasets/openai/gsm8k).
+- lm-evaluation-harness 0.4.13: its HellaSwag preprocessing function is imported for prompt formatting, and its HFLM log-likelihood is used to check the scorer on the FP16 model.

@@ -28,7 +28,7 @@ OUTPUTS = {"T1_quality.csv", "T2_resources.csv", "T3_bootstrap.csv", "T4_matched
            "T5_selection_effort.csv", "T5_candidates.csv", "T6_dev_to_test.csv", "D_block_sensitivity_ranks.csv",
            "D_block_sensitivity_rank_correlations.csv", "qualitative.jsonl", "qualitative.txt", "summary.json",
            "run.json", "F1_quality_vs_resource.pdf", "F2_p3_allocation.pdf", "F3_q3_allocation.pdf",
-           "F4_calibration_vs_heldout.pdf", "F5_magnitude_vs_wanda.pdf"}
+           "F3_full_q3_allocation.pdf", "F4_calibration_vs_heldout.pdf", "F5_magnitude_vs_wanda.pdf"}
 SUMMARY_KEYS = {"analysis_id", "eval_id", "bootstrap", "expect", "conditions", "full_hellaswag_conditions", "pairs",
                 "family_labels", "tables", "diagnostics", "resolution", "construction", "qualitative_rule",
                 "qualitative_found", "sanity_assertions", "inputs", "inputs_committed", "figures"}
@@ -375,3 +375,115 @@ def test_committed_check_refuses_untracked(tree):
     root, _ = tree
     with pytest.raises((A.AnalysisError, ValueError)):
         A.committed_check([root / "calib_stats/run.json"])
+
+
+# ------------------------------------------------------------------------------------------------ figures only
+FIGURES = {"F1_quality_vs_resource.pdf", "F2_p3_allocation.pdf", "F3_q3_allocation.pdf", "F3_full_q3_allocation.pdf",
+           "F4_calibration_vs_heldout.pdf", "F5_magnitude_vs_wanda.pdf"}
+
+
+def run_figures(root, analysis, out, extra=()):
+    return A.main(["--figures-only", "--results", str(root), "--analysis", str(analysis), "--out", str(out),
+                   "--allow-uncommitted", *extra])
+
+
+@pytest.fixture(scope="module")
+def figures(tree, analysed, tmp_path_factory):
+    root, _ = tree
+    return run_figures(root, analysed, tmp_path_factory.mktemp("fig") / "figures")
+
+
+def test_figures_only_outputs_and_sizes(figures, analysed, capsys):
+    from task1 import analysis_figures as F
+    assert {p.name for p in figures.iterdir()} == FIGURES | {"run.json"}
+    run = json.loads((figures / "run.json").read_text())
+    assert run["status"] == "ok" and sorted(run["figures"]) == sorted(FIGURES)
+    assert run["inputs_committed"] is None
+    for name in FIGURES:
+        w, h = F.pdf_size_in(figures / name)
+        assert run["size_inches"][name] == [round(w, 3), round(h, 3)]
+        assert w <= F.WIDTH + 0.1, (name, w)  # synthetic tick labels can widen F1 slightly
+    assert F.pdf_size_in(figures / "F3_q3_allocation.pdf")[1] <= 4.0
+    w, h = F.pdf_size_in(figures / "F4_calibration_vs_heldout.pdf")
+    assert 2.4 <= h <= 3.0
+    for s in ("wikitext2_test", "c4_validation"):
+        lab = run["F4_point_labels"][s]
+        assert sorted(lab["shown"] + lab["skipped"]) == sorted(r["label"] for r in json.loads(
+            (analysed / "summary.json").read_text())["tables"]["T1_quality.csv"])
+
+
+def test_figures_only_identical_to_full_analysis(figures, analysed):
+    for name in FIGURES:
+        assert (figures / name).read_bytes() == (analysed / name).read_bytes(), name
+
+
+def test_figures_only_refuses_existing_out(tree, analysed, tmp_path):
+    root, _ = tree
+    (tmp_path / "fig").mkdir()
+    with pytest.raises(SystemExit, match="refusing existing output"):
+        run_figures(root, analysed, tmp_path / "fig")
+
+
+def test_figures_only_refuses_table_not_matching_summary(tree, analysed, tmp_path):
+    import shutil
+    root, _ = tree
+    an = tmp_path / "an"
+    shutil.copytree(analysed, an)
+    t1 = an / "T1_quality.csv"
+    lines = t1.read_text().splitlines()
+    head, first = lines[0].split(","), lines[1].split(",")
+    k = head.index("calibration_mean_nll")
+    first[k] = str(float(first[k]) + 1.0)
+    t1.write_text("\n".join([lines[0], ",".join(first), *lines[2:]]) + "\n")
+    with pytest.raises(A.AnalysisError, match="values differ"):
+        run_figures(root, an, tmp_path / "fig")
+    assert not (tmp_path / "fig").exists()
+
+
+def test_figures_only_refuses_changed_input(tree, analysed, tmp_path):
+    import shutil
+    root, _ = tree
+    r2 = tmp_path / "task1"
+    shutil.copytree(root, r2)
+    p = r2 / "probe_prune/sensitivity.json"
+    d = json.loads(p.read_text())
+    d["values"]["S1"][0] += 1e-3
+    p.write_text(json.dumps(d))
+    with pytest.raises(A.AnalysisError, match="input differs"):
+        run_figures(r2, analysed, tmp_path / "fig")
+
+
+def test_label_placement_has_no_overlap_and_stays_inside():
+    import matplotlib.pyplot as plt
+
+    from task1 import analysis_figures as F
+    rng = np.random.default_rng(0)
+    xs = list(np.exp(rng.uniform(1, 2.5, 30)))
+    ys = list(np.exp(rng.uniform(1, 2.5, 30)))
+    labels = [f"label {k}" for k in range(30)]
+    with plt.rc_context(F.RC):
+        fig, ax = plt.subplots(figsize=(2.7, 2.4))
+        ax.plot(xs, ys, "o", markersize=4)
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+        res = F.place_labels(ax, xs, ys, labels, marker_pt=4)
+        assert sorted(res["shown"] + res["skipped"]) == sorted(labels) and res["shown"] and res["skipped"]
+        r = fig.canvas.get_renderer()
+        frame = ax.get_window_extent(r)
+        boxes = [t.get_window_extent(r) for t in ax.texts]
+        assert len(boxes) == len(res["shown"])
+        for i, b in enumerate(boxes):
+            assert frame.x0 <= b.x0 and b.x1 <= frame.x1 and frame.y0 <= b.y0 and b.y1 <= frame.y1
+            assert not any(b.overlaps(o) for o in boxes[i + 1:])
+        plt.close(fig)
+
+
+def test_small_font_is_refused(tmp_path):
+    import matplotlib.pyplot as plt
+
+    from task1 import analysis_figures as F
+    fig, ax = plt.subplots()
+    ax.set_title("small", fontsize=6)
+    with pytest.raises(F.FigureError, match="below 8 pt"):
+        F._save(fig, tmp_path / "x.pdf")
+    assert not (tmp_path / "x.pdf").exists()
