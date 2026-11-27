@@ -1,0 +1,182 @@
+{
+  "concurrent_jobs": {
+    "alive_at_start": [],
+    "end": "2026-11-27T19:49:07.227676+00:00",
+    "gpu": "0",
+    "job": "part_a_verify",
+    "method": "intervals written by the job wrapper into the status directory: start before this job's end and end after its start (or no end yet)",
+    "overlapping": [
+      {
+        "end": null,
+        "ended_without_record": false,
+        "gpu": "1",
+        "name": "train_linear_mixed_K8_s6304",
+        "start": "2026-11-27T19:47:23.521215+00:00"
+      }
+    ],
+    "overlapping_same_gpu": [],
+    "start": "2026-11-27T19:46:23.456029+00:00",
+    "status_dir": "notes/kaggle_status"
+  },
+  "config": {
+    "B": 2,
+    "H": 4,
+    "d": 64,
+    "device": "cuda:0",
+    "dtypes": [
+      "fp16",
+      "fp32"
+    ],
+    "edge_L": 256,
+    "edge_causality_t": [
+      0,
+      37,
+      127,
+      254
+    ],
+    "extreme_targets": [
+      1000.0,
+      10000.0
+    ],
+    "impls": [
+      "dense",
+      "tiled_32x32",
+      "tiled_64x64",
+      "tiled_128x128",
+      "tiled_64x128",
+      "sdpa_default",
+      "sdpa_MATH",
+      "sdpa_FLASH_ATTENTION",
+      "sdpa_EFFICIENT_ATTENTION",
+      "sdpa_CUDNN_ATTENTION",
+      "sdpa_OVERRIDEABLE"
+    ],
+    "input_generation": "torch.randn on CPU from one generator seeded 6304 per L, order q, k, v, g, pk, pv; FP16 inputs cast from the FP32 draws",
+    "lengths": [
+      256,
+      512,
+      1024,
+      2048,
+      4096,
+      8192
+    ],
+    "limited": false,
+    "limits": {
+      "lengths": null,
+      "projection_gib": null,
+      "reps": null
+    },
+    "masked_row": 128,
+    "mode": "verify",
+    "output_files": {
+      "rows": "verify_rows.jsonl",
+      "run": "run.json",
+      "score_bytes": "score_bytes.json"
+    },
+    "projection_limit_gib": 14.0,
+    "reference": "dense_causal in FP32 with the fixed upstream gradient; FP32 rows: on the FP32 inputs; FP16 rows: on q, k, v and the upstream gradient rounded to FP16 and cast to FP32. FP16 rows also carry errors against the FP32-input reference in columns prefixed vs_fp32_inputs_",
+    "reference_inputs": {
+      "fp16": "fp16_inputs_cast_to_fp32",
+      "fp32": "fp32_inputs"
+    },
+    "score_scaling": "q is multiplied by d**-0.5 before the q k^T matmul",
+    "secondary_error_prefix": "vs_fp32_inputs_",
+    "seed": 6304,
+    "verify_tiles": [
+      [
+        32,
+        32
+      ],
+      [
+        64,
+        64
+      ],
+      [
+        128,
+        128
+      ],
+      [
+        64,
+        128
+      ]
+    ],
+    "version": "task2-part-a-v2"
+  },
+  "elapsed_wall_s": 160.92634590800003,
+  "end_time": "2026-11-27T19:49:06.532761+00:00",
+  "environment": {
+    "cpu_threads": 2,
+    "cudnn_allow_tf32": false,
+    "cudnn_sdp_enabled": true,
+    "device": "cuda:0",
+    "env": {
+      "CUDA_VISIBLE_DEVICES": "0",
+      "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+    },
+    "flash_sdp_enabled": true,
+    "float32_matmul_precision": "highest",
+    "gpu_capability": [
+      7,
+      5
+    ],
+    "gpu_name": "Tesla T4",
+    "gpu_total_memory_bytes": 15636037632,
+    "math_sdp_enabled": true,
+    "matmul_allow_fp16_reduced_precision_reduction": true,
+    "matmul_allow_tf32": false,
+    "mem_efficient_sdp_enabled": true,
+    "sdpa_backends_enumerated": [
+      "MATH",
+      "FLASH_ATTENTION",
+      "EFFICIENT_ATTENTION",
+      "CUDNN_ATTENTION",
+      "OVERRIDEABLE"
+    ]
+  },
+  "implementation_orders": {},
+  "meta": {
+    "cuda_available": true,
+    "device_count": 1,
+    "device_names": [
+      "Tesla T4"
+    ],
+    "git_commit": "c99b65d62946dc71440b76d4524bcd10695c08e6",
+    "git_dirty": false,
+    "hostname": "101b9c8f8961",
+    "mps_available": false,
+    "package_versions": {
+      "accelerate": "1.16.0",
+      "datasets": "4.8.5",
+      "huggingface_hub": "0.36.2",
+      "lm_eval": "0.4.13",
+      "matplotlib": "3.10.0",
+      "numpy": "2.4.6",
+      "peft": "0.21.2",
+      "safetensors": "0.8.0",
+      "scipy": "1.16.3",
+      "tokenizers": "0.22.2",
+      "torch": "2.11.0+cu130",
+      "transformers": "4.57.1"
+    },
+    "platform": "Linux-6.18.55+-x86_64-with-glibc2.39",
+    "python_version": "3.13.16",
+    "torch_cuda_build": "13.0",
+    "torch_cudnn_build": 92700,
+    "torch_version": "2.11.0+cu130"
+  },
+  "n_rows": 258,
+  "peak_vram_allocated_bytes": {
+    "0": 201588736
+  },
+  "peak_vram_reserved_bytes": {
+    "0": 251658240
+  },
+  "start_time": "2026-11-27T19:46:25.638384+00:00",
+  "status": "ok",
+  "status_counts": {
+    "ok": 204,
+    "unsupported": 54
+  },
+  "step": "done",
+  "updated_time": "2026-11-27T19:49:06.533156+00:00"
+}

@@ -1,0 +1,1310 @@
+{
+  "checkpoint_sha256": "f72dd964a824b5ee2548a74636d667c1257b0477a1ddd1232fcd9df06134dc4f",
+  "concurrent_jobs": {
+    "alive_at_start": [
+      "train_window_near_K8_s6305"
+    ],
+    "end": "2026-11-27T20:14:01.778553+00:00",
+    "gpu": "0",
+    "job": "train_window_near_K4_s6305",
+    "method": "intervals written by the job wrapper into the status directory: start before this job's end and end after its start (or no end yet)",
+    "overlapping": [
+      {
+        "end": null,
+        "ended_without_record": false,
+        "gpu": "1",
+        "name": "train_window_near_K4_s6304",
+        "start": "2026-11-27T20:12:37.971940+00:00"
+      },
+      {
+        "end": "2026-11-27T20:12:37.790221+00:00",
+        "ended_without_record": false,
+        "gpu": "1",
+        "name": "train_window_near_K8_s6305",
+        "start": "2026-11-27T20:10:52.356516+00:00"
+      }
+    ],
+    "overlapping_same_gpu": [],
+    "start": "2026-11-27T20:12:17.789611+00:00",
+    "status_dir": "notes/kaggle_status"
+  },
+  "config": {
+    "K": 4,
+    "batch": 32,
+    "cache_dir": "/kaggle/tmp/mqar_cache",
+    "checkpoints": [
+      500,
+      1000,
+      1500,
+      2000,
+      3000,
+      4500
+    ],
+    "device": "cuda:0",
+    "distance_bins": [
+      [
+        0,
+        32
+      ],
+      [
+        32,
+        64
+      ],
+      [
+        64,
+        128
+      ],
+      [
+        128,
+        256
+      ]
+    ],
+    "dtype": "float32",
+    "eval_batch": 64,
+    "grad_clip_global_norm": 1.0,
+    "heldout_list": "/kaggle/working/atml-pa4/task2/heldout_hashes.json.gz",
+    "learned_rule": "protocol B6: final development accuracy >= 0.5 on distance < 64 queries of the run's own (K, regime) cell",
+    "limited": false,
+    "limits": {
+      "eval": null,
+      "updates": null
+    },
+    "mask_conditions": [
+      "native"
+    ],
+    "mechanism": "window",
+    "model": {
+      "d_ff": 512,
+      "d_model": 128,
+      "head": "untied linear, no bias",
+      "head_dim": 32,
+      "heads": 4,
+      "init": "PyTorch module defaults, seeded construction on CPU",
+      "layers": 2,
+      "materialization_train": {
+        "dense_mask": true,
+        "dense_mask_bytes": 65536,
+        "dense_mask_shape": [
+          256,
+          256
+        ],
+        "linear_prefix": false,
+        "linear_prefix_bytes_per_layer": 0,
+        "linear_prefix_shape": null,
+        "note": "explicit dense boolean mask through SDPA (correctness implementation)"
+      },
+      "norm": "pre-norm LayerNorm with weight and bias",
+      "parameters": 462336,
+      "positional": "fixed sinusoidal, added",
+      "projection_biases": true,
+      "vocab": 256
+    },
+    "optimizer": {
+      "betas": [
+        0.9,
+        0.999
+      ],
+      "decay_applies_to": "every parameter",
+      "eps": 1e-08,
+      "name": "AdamW",
+      "peak_lr": 0.0008,
+      "weight_decay": 0.01
+    },
+    "output_files": {
+      "checkpoint": "model_final.safetensors",
+      "dev_curve": "dev_curve.jsonl",
+      "dev_queries": "dev_queries_final.npz",
+      "run": "run.json",
+      "test_queries": "test_queries.npz",
+      "train_log": "train_log.jsonl"
+    },
+    "query_file_format": {
+      "cell": {
+        "far_K16": 7,
+        "far_K4": 1,
+        "far_K8": 4,
+        "mixed_K16": 8,
+        "mixed_K4": 2,
+        "mixed_K8": 5,
+        "near_K16": 6,
+        "near_K4": 0,
+        "near_K8": 3
+      },
+      "fields": {
+        "K": "uint8",
+        "answer_id": "int16",
+        "answer_logit": "float32",
+        "cell": "uint8",
+        "correct": "uint8",
+        "distance": "int16",
+        "mask_condition": "uint8",
+        "predicted_id": "int16",
+        "query_loss": "float32",
+        "query_position": "int16",
+        "regime": "uint8",
+        "sequence_index": "int32",
+        "source_position": "int16",
+        "split": "uint8"
+      },
+      "format_version": 1,
+      "id_rule": "f'{split}-{regime}-K{K}-{sequence_index:05d}' (the supplied record id)",
+      "mask_condition": {
+        "native": 0,
+        "window64": 1
+      },
+      "meta_fields": {
+        "format_version": "int32",
+        "version_ascii": "uint8"
+      },
+      "regime": {
+        "far": 1,
+        "mixed": 2,
+        "near": 0
+      },
+      "split": {
+        "development": 0,
+        "test": 1
+      }
+    },
+    "regime": "near",
+    "schedule": {
+      "final_fraction": 0.15,
+      "rule": "update u (1-based) uses peak*u/warmup for u <= warmup, then linear decay to final_fraction*peak at the last update",
+      "warmup_updates": 200
+    },
+    "scorer": "64-way cross-entropy and argmax over logits 128..191 at query positions; label = answer id - 128",
+    "seed": 6305,
+    "theoretical_costs": {
+      "T": 256,
+      "attended_pairs_per_layer": 57472,
+      "head_types": [
+        "window",
+        "window",
+        "window",
+        "window"
+      ],
+      "kv_cache": {
+        "bytes_per_layer_fp16": 32768,
+        "bytes_per_layer_fp32": 65536,
+        "definition": "keys and values of the positions each head can still attend to when decoding continues after T tokens",
+        "elements_per_layer": 16384,
+        "positions_per_head": [
+          64,
+          64,
+          64,
+          64
+        ]
+      },
+      "mechanism": "window",
+      "per_head_type": {
+        "window": {
+          "attended_pairs_per_head_per_layer": 14368,
+          "candidates_at_last_position": 64,
+          "candidates_max": 64,
+          "candidates_mean": 56.125
+        }
+      },
+      "persistent_state": null,
+      "union_candidates_at_last_position": 64
+    },
+    "theoretical_costs_all": {
+      "dense": {
+        "T": 256,
+        "attended_pairs_per_layer": 131584,
+        "head_types": [
+          "dense",
+          "dense",
+          "dense",
+          "dense"
+        ],
+        "kv_cache": {
+          "bytes_per_layer_fp16": 131072,
+          "bytes_per_layer_fp32": 262144,
+          "definition": "keys and values of the positions each head can still attend to when decoding continues after T tokens",
+          "elements_per_layer": 65536,
+          "positions_per_head": [
+            256,
+            256,
+            256,
+            256
+          ]
+        },
+        "mechanism": "dense",
+        "per_head_type": {
+          "dense": {
+            "attended_pairs_per_head_per_layer": 32896,
+            "candidates_at_last_position": 256,
+            "candidates_max": 256,
+            "candidates_mean": 128.5
+          }
+        },
+        "persistent_state": null,
+        "union_candidates_at_last_position": 256
+      },
+      "linear": {
+        "T": 256,
+        "attended_pairs_per_layer": null,
+        "candidates_note": "every earlier position contributes through a fixed-size state; none is retrieved individually",
+        "head_types": [
+          "linear",
+          "linear",
+          "linear",
+          "linear"
+        ],
+        "kv_cache": null,
+        "mechanism": "linear",
+        "per_head_type": {
+          "linear": {
+            "attended_pairs_per_head_per_layer": null,
+            "candidates_at_last_position": 256,
+            "candidates_max": 256,
+            "candidates_mean": 128.5
+          }
+        },
+        "persistent_state": {
+          "bytes_per_layer_fp16": 8448,
+          "bytes_per_layer_fp32": 16896,
+          "definition": "S (4 x 32 x 32) and z (4 x 32) per layer",
+          "elements_per_layer": 4224
+        },
+        "union_candidates_at_last_position": 256
+      },
+      "local_dilated": {
+        "T": 256,
+        "attended_pairs_per_layer": 45376,
+        "head_types": [
+          "window",
+          "window",
+          "dilated",
+          "dilated"
+        ],
+        "kv_cache": {
+          "bytes_per_layer_fp16": 81152,
+          "bytes_per_layer_fp32": 162304,
+          "definition": "keys and values of the positions each head can still attend to when decoding continues after T tokens",
+          "elements_per_layer": 40576,
+          "positions_per_head": [
+            64,
+            64,
+            253,
+            253
+          ]
+        },
+        "mechanism": "local_dilated",
+        "per_head_type": {
+          "dilated": {
+            "attended_pairs_per_head_per_layer": 8320,
+            "candidates_at_last_position": 64,
+            "candidates_max": 64,
+            "candidates_mean": 32.5
+          },
+          "window": {
+            "attended_pairs_per_head_per_layer": 14368,
+            "candidates_at_last_position": 64,
+            "candidates_max": 64,
+            "candidates_mean": 56.125
+          }
+        },
+        "persistent_state": null,
+        "union_candidates_at_last_position": 112
+      },
+      "window": {
+        "T": 256,
+        "attended_pairs_per_layer": 57472,
+        "head_types": [
+          "window",
+          "window",
+          "window",
+          "window"
+        ],
+        "kv_cache": {
+          "bytes_per_layer_fp16": 32768,
+          "bytes_per_layer_fp32": 65536,
+          "definition": "keys and values of the positions each head can still attend to when decoding continues after T tokens",
+          "elements_per_layer": 16384,
+          "positions_per_head": [
+            64,
+            64,
+            64,
+            64
+          ]
+        },
+        "mechanism": "window",
+        "per_head_type": {
+          "window": {
+            "attended_pairs_per_head_per_layer": 14368,
+            "candidates_at_last_position": 64,
+            "candidates_max": 64,
+            "candidates_mean": 56.125
+          }
+        },
+        "persistent_state": null,
+        "union_candidates_at_last_position": 64
+      }
+    },
+    "train_index_range": [
+      144000,
+      288000
+    ],
+    "updates": 4500,
+    "version": "task2-part-b-v1"
+  },
+  "dev_curve": [
+    {
+      "cells": {
+        "far_K16": {
+          "accuracy": 0.015625,
+          "loss": 5.151982307434082
+        },
+        "far_K4": {
+          "accuracy": 0.0146484375,
+          "loss": 5.121888160705566
+        },
+        "far_K8": {
+          "accuracy": 0.01806640625,
+          "loss": 5.107935428619385
+        },
+        "mixed_K16": {
+          "accuracy": 0.030029296875,
+          "loss": 4.993175029754639
+        },
+        "mixed_K4": {
+          "accuracy": 0.068359375,
+          "loss": 4.286576271057129
+        },
+        "mixed_K8": {
+          "accuracy": 0.03515625,
+          "loss": 4.79518985748291
+        },
+        "near_K16": {
+          "accuracy": 0.08935546875,
+          "loss": 4.120856761932373
+        },
+        "near_K4": {
+          "accuracy": 0.2802734375,
+          "loss": 1.7771888971328735
+        },
+        "near_K8": {
+          "accuracy": 0.138671875,
+          "loss": 3.2178144454956055
+        }
+      },
+      "update": 500
+    },
+    {
+      "cells": {
+        "far_K16": {
+          "accuracy": 0.01220703125,
+          "loss": 5.663352012634277
+        },
+        "far_K4": {
+          "accuracy": 0.0126953125,
+          "loss": 5.6828999519348145
+        },
+        "far_K8": {
+          "accuracy": 0.013671875,
+          "loss": 5.6591596603393555
+        },
+        "mixed_K16": {
+          "accuracy": 0.07080078125,
+          "loss": 5.569501876831055
+        },
+        "mixed_K4": {
+          "accuracy": 0.2587890625,
+          "loss": 4.2657928466796875
+        },
+        "mixed_K8": {
+          "accuracy": 0.14892578125,
+          "loss": 5.044007301330566
+        },
+        "near_K16": {
+          "accuracy": 0.343505859375,
+          "loss": 4.376161098480225
+        },
+        "near_K4": {
+          "accuracy": 0.998046875,
+          "loss": 0.01148578617721796
+        },
+        "near_K8": {
+          "accuracy": 0.640625,
+          "loss": 2.318084239959717
+        }
+      },
+      "update": 1000
+    },
+    {
+      "cells": {
+        "far_K16": {
+          "accuracy": 0.012939453125,
+          "loss": 5.916443347930908
+        },
+        "far_K4": {
+          "accuracy": 0.0166015625,
+          "loss": 5.9194464683532715
+        },
+        "far_K8": {
+          "accuracy": 0.015625,
+          "loss": 5.915797233581543
+        },
+        "mixed_K16": {
+          "accuracy": 0.073486328125,
+          "loss": 5.801093101501465
+        },
+        "mixed_K4": {
+          "accuracy": 0.259765625,
+          "loss": 4.432701110839844
+        },
+        "mixed_K8": {
+          "accuracy": 0.15673828125,
+          "loss": 5.242885589599609
+        },
+        "near_K16": {
+          "accuracy": 0.35888671875,
+          "loss": 4.614298343658447
+        },
+        "near_K4": {
+          "accuracy": 1.0,
+          "loss": 0.002617795718833804
+        },
+        "near_K8": {
+          "accuracy": 0.65625,
+          "loss": 2.356234073638916
+        }
+      },
+      "update": 1500
+    },
+    {
+      "cells": {
+        "far_K16": {
+          "accuracy": 0.0126953125,
+          "loss": 6.024298667907715
+        },
+        "far_K4": {
+          "accuracy": 0.017578125,
+          "loss": 6.020071983337402
+        },
+        "far_K8": {
+          "accuracy": 0.01513671875,
+          "loss": 6.017642974853516
+        },
+        "mixed_K16": {
+          "accuracy": 0.07275390625,
+          "loss": 5.896585464477539
+        },
+        "mixed_K4": {
+          "accuracy": 0.2607421875,
+          "loss": 4.5000410079956055
+        },
+        "mixed_K8": {
+          "accuracy": 0.15673828125,
+          "loss": 5.341241836547852
+        },
+        "near_K16": {
+          "accuracy": 0.358642578125,
+          "loss": 4.7318949699401855
+        },
+        "near_K4": {
+          "accuracy": 1.0,
+          "loss": 0.0011592945083975792
+        },
+        "near_K8": {
+          "accuracy": 0.658203125,
+          "loss": 2.4179940223693848
+        }
+      },
+      "update": 2000
+    },
+    {
+      "cells": {
+        "far_K16": {
+          "accuracy": 0.013671875,
+          "loss": 6.17230224609375
+        },
+        "far_K4": {
+          "accuracy": 0.0146484375,
+          "loss": 6.171687126159668
+        },
+        "far_K8": {
+          "accuracy": 0.01416015625,
+          "loss": 6.160426139831543
+        },
+        "mixed_K16": {
+          "accuracy": 0.072998046875,
+          "loss": 6.067890644073486
+        },
+        "mixed_K4": {
+          "accuracy": 0.2626953125,
+          "loss": 4.6208720207214355
+        },
+        "mixed_K8": {
+          "accuracy": 0.15673828125,
+          "loss": 5.480839729309082
+        },
+        "near_K16": {
+          "accuracy": 0.3623046875,
+          "loss": 4.915435791015625
+        },
+        "near_K4": {
+          "accuracy": 1.0,
+          "loss": 0.000645133201032877
+        },
+        "near_K8": {
+          "accuracy": 0.65478515625,
+          "loss": 2.5477027893066406
+        }
+      },
+      "update": 3000
+    },
+    {
+      "cells": {
+        "far_K16": {
+          "accuracy": 0.012451171875,
+          "loss": 6.276833534240723
+        },
+        "far_K4": {
+          "accuracy": 0.0146484375,
+          "loss": 6.2647199630737305
+        },
+        "far_K8": {
+          "accuracy": 0.0146484375,
+          "loss": 6.261922836303711
+        },
+        "mixed_K16": {
+          "accuracy": 0.076171875,
+          "loss": 6.112647533416748
+        },
+        "mixed_K4": {
+          "accuracy": 0.26171875,
+          "loss": 4.669768333435059
+        },
+        "mixed_K8": {
+          "accuracy": 0.1552734375,
+          "loss": 5.569268226623535
+        },
+        "near_K16": {
+          "accuracy": 0.371337890625,
+          "loss": 4.827247619628906
+        },
+        "near_K4": {
+          "accuracy": 1.0,
+          "loss": 0.0003645472461357713
+        },
+        "near_K8": {
+          "accuracy": 0.6748046875,
+          "loss": 2.411195755004883
+        }
+      },
+      "update": 4500
+    }
+  ],
+  "dev_eval_sequences_per_cell": {
+    "far_K16": 256,
+    "far_K4": 256,
+    "far_K8": 256,
+    "mixed_K16": 256,
+    "mixed_K4": 256,
+    "mixed_K8": 256,
+    "near_K16": 256,
+    "near_K4": 256,
+    "near_K8": 256
+  },
+  "dev_file_opens": [
+    {
+      "after_update": 0,
+      "manifest_sha256": "b960a5c503956afdb77edb43c9c89003ca5cbed07cca3ca65fbc71d50be5d9fd",
+      "path": "/kaggle/working/atml-pa4/external/atml-pa4-datasets/data/mqar/mqar_development.jsonl.gz",
+      "sha256": "b960a5c503956afdb77edb43c9c89003ca5cbed07cca3ca65fbc71d50be5d9fd",
+      "split": "development"
+    }
+  ],
+  "elapsed_wall_s": 100.94682570999976,
+  "end_time": "2026-11-27T20:14:00.988885+00:00",
+  "environment": {
+    "cpu_threads": 2,
+    "cudnn_allow_tf32": false,
+    "cudnn_sdp_enabled": true,
+    "device": "cuda:0",
+    "env": {
+      "CUDA_VISIBLE_DEVICES": "0",
+      "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+    },
+    "flash_sdp_enabled": true,
+    "float32_matmul_precision": "highest",
+    "gpu_capability": [
+      7,
+      5
+    ],
+    "gpu_name": "Tesla T4",
+    "gpu_total_memory_bytes": 15636037632,
+    "math_sdp_enabled": true,
+    "matmul_allow_fp16_reduced_precision_reduction": true,
+    "matmul_allow_tf32": false,
+    "mem_efficient_sdp_enabled": true,
+    "sdpa_backends_enumerated": [
+      "MATH",
+      "FLASH_ATTENTION",
+      "EFFICIENT_ATTENTION",
+      "CUDNN_ATTENTION",
+      "OVERRIDEABLE"
+    ]
+  },
+  "eval_timings_note": "wall seconds of each development checkpoint evaluation (all 9 cells) and of each test mask condition (all 9 cells, summaries included)",
+  "eval_timings_s": {
+    "dev_checkpoints": {
+      "1000": 0.3955683260001024,
+      "1500": 0.4063259899999139,
+      "2000": 0.42753306900021926,
+      "3000": 0.4231016600001567,
+      "4500": 0.4044621499997447,
+      "500": 0.3858186160000514
+    },
+    "test": {
+      "native": 1.4663939349998145
+    }
+  },
+  "eval_wall_s": 3.926672336000138,
+  "generator": {
+    "T": 256,
+    "manifest_sha256": "af69fe1cfd03a63ddbe2cc5844691bff138f06206bd94e8c7cb7aad93c727d08",
+    "master_seed": 6304,
+    "path": "/kaggle/working/atml-pa4/external/atml-pa4-datasets/scripts/mqar_generator.py",
+    "sha256": "af69fe1cfd03a63ddbe2cc5844691bff138f06206bd94e8c7cb7aad93c727d08"
+  },
+  "learned": {
+    "accuracy": 1.0,
+    "cell": "near_K4",
+    "learned": true,
+    "max_distance_exclusive": 64,
+    "n_queries": 1024,
+    "rule": "protocol B6",
+    "threshold": 0.5
+  },
+  "mean_ms_per_update": 15.093950494893559,
+  "meta": {
+    "cuda_available": true,
+    "device_count": 1,
+    "device_names": [
+      "Tesla T4"
+    ],
+    "git_commit": "c99b65d62946dc71440b76d4524bcd10695c08e6",
+    "git_dirty": false,
+    "hostname": "101b9c8f8961",
+    "mps_available": false,
+    "package_versions": {
+      "accelerate": "1.16.0",
+      "datasets": "4.8.5",
+      "huggingface_hub": "0.36.2",
+      "lm_eval": "0.4.13",
+      "matplotlib": "3.10.0",
+      "numpy": "2.4.6",
+      "peft": "0.21.2",
+      "safetensors": "0.8.0",
+      "scipy": "1.16.3",
+      "tokenizers": "0.22.2",
+      "torch": "2.11.0+cu130",
+      "transformers": "4.57.1"
+    },
+    "platform": "Linux-6.18.55+-x86_64-with-glibc2.39",
+    "python_version": "3.13.16",
+    "torch_cuda_build": "13.0",
+    "torch_cudnn_build": 92700,
+    "torch_version": "2.11.0+cu130"
+  },
+  "n_rows": {
+    "dev_curve": 54,
+    "dev_queries": 21504,
+    "test_queries": 86016,
+    "train_log": 4500
+  },
+  "parameter_count": 462336,
+  "peak_allocated_bytes_eval": 157821952,
+  "peak_allocated_bytes_train": 227515904,
+  "peak_vram_allocated_bytes": {
+    "0": 157821952
+  },
+  "peak_vram_reserved_bytes": {
+    "0": 243269632
+  },
+  "start_time": "2026-11-27T20:12:20.076587+00:00",
+  "status": "ok",
+  "step": "done",
+  "stream": {
+    "K": 4,
+    "build_seconds": null,
+    "built": false,
+    "cache_version": "task2-mqar-stream-v1",
+    "disjointness": {
+      "collisions": 0,
+      "hash": "sha256 of the 256 token values as uint8 bytes",
+      "heldout_list": {
+        "clean": true,
+        "commits": [
+          {
+            "author_date": "2026-11-27T22:20:52+05:00",
+            "commit": "bf58003aab0946e9632549f4b0d0cafd32f37bd2",
+            "committer_date": "2026-11-27T22:20:52+05:00"
+          }
+        ],
+        "files": [
+          {
+            "n_sequences": 2304,
+            "name": "mqar_development.jsonl.gz",
+            "rel": "data/mqar/mqar_development.jsonl.gz",
+            "sha256": "b960a5c503956afdb77edb43c9c89003ca5cbed07cca3ca65fbc71d50be5d9fd"
+          },
+          {
+            "n_sequences": 9216,
+            "name": "mqar_test.jsonl.gz",
+            "rel": "data/mqar/mqar_test.jsonl.gz",
+            "sha256": "84925dc5f2b7a7e0b042fc354e5ec34435002b829a90b35813accd005ad4b549"
+          }
+        ],
+        "n_sequences": 11520,
+        "n_unique": 11520,
+        "path": "/kaggle/working/atml-pa4/task2/heldout_hashes.json.gz",
+        "sha256": "2efd1b08c5bf4efba645612f1124fac8a1f25b2c1690cefe561eeeddf5b27c8c",
+        "tracked": true,
+        "version": "task2-heldout-hashes-v1"
+      },
+      "n_reference_hashes": 11520,
+      "n_train_hashed": 144000,
+      "n_train_unique": 144000,
+      "note": "checked against the committed list only; no development or test file opened"
+    },
+    "load_seconds": 0.1361306900003001,
+    "n_sequences": 144000,
+    "path": "/kaggle/tmp/mqar_cache/mqar_train_K4_near_144000_288000.npy",
+    "rebuild_reason": null,
+    "regime": "near",
+    "sha256": "9d0bd655783d1c3ffd8e01f9f79d3bb4e622bda79f5423f2cddad277a29f5593",
+    "shape": [
+      144000,
+      268
+    ],
+    "spot_checked_indices": [
+      144000,
+      153600,
+      163200,
+      172800,
+      182400,
+      192000,
+      201600,
+      211200,
+      220799,
+      230399,
+      239999,
+      249599,
+      259199,
+      268799,
+      278399,
+      287999
+    ],
+    "start": 144000,
+    "stop": 288000,
+    "validation": {
+      "batches_checked": 4500,
+      "checks": "generator validate() and filler ids 2..63 outside key, value and query slots",
+      "seconds": 11.689524721999987,
+      "sequences_checked": 144000
+    }
+  },
+  "test_eval_sequences_per_cell": {
+    "far_K16": 1024,
+    "far_K4": 1024,
+    "far_K8": 1024,
+    "mixed_K16": 1024,
+    "mixed_K4": 1024,
+    "mixed_K8": 1024,
+    "near_K16": 1024,
+    "near_K4": 1024,
+    "near_K8": 1024
+  },
+  "test_file_opens": [
+    {
+      "after_update": 4500,
+      "manifest_sha256": "84925dc5f2b7a7e0b042fc354e5ec34435002b829a90b35813accd005ad4b549",
+      "path": "/kaggle/working/atml-pa4/external/atml-pa4-datasets/data/mqar/mqar_test.jsonl.gz",
+      "sha256": "84925dc5f2b7a7e0b042fc354e5ec34435002b829a90b35813accd005ad4b549",
+      "split": "test"
+    }
+  ],
+  "test_opened_after_update": 4500,
+  "test_pooled_bins": {
+    "native": {
+      "[0,32)": {
+        "accuracy": 0.47562953478446435,
+        "n_queries": 11715
+      },
+      "[128,256)": {
+        "accuracy": 0.015627176891283148,
+        "n_queries": 43066
+      },
+      "[32,64)": {
+        "accuracy": 0.5799069045771916,
+        "n_queries": 23202
+      },
+      "[64,128)": {
+        "accuracy": 0.028756379932777295,
+        "n_queries": 8033
+      }
+    }
+  },
+  "test_summary": {
+    "native": {
+      "far_K16": {
+        "accuracy": 0.01593017578125,
+        "bins": {
+          "[0,32)": {
+            "accuracy": null,
+            "loss": null,
+            "n_queries": 0
+          },
+          "[128,256)": {
+            "accuracy": 0.01593017578125,
+            "loss": 6.313055038452148,
+            "n_queries": 16384
+          },
+          "[32,64)": {
+            "accuracy": null,
+            "loss": null,
+            "n_queries": 0
+          },
+          "[64,128)": {
+            "accuracy": null,
+            "loss": null,
+            "n_queries": 0
+          }
+        },
+        "loss": 6.313055038452148,
+        "n_queries": 16384,
+        "n_sequences": 1024,
+        "residue_mod4": {
+          "0": {
+            "accuracy": 0.01730959446092977,
+            "loss": 6.315427780151367,
+            "n_queries": 4044
+          },
+          "1": {
+            "accuracy": 0.012227928588897041,
+            "loss": 6.274428367614746,
+            "n_queries": 4089
+          },
+          "2": {
+            "accuracy": 0.018477457501847747,
+            "loss": 6.288671016693115,
+            "n_queries": 4059
+          },
+          "3": {
+            "accuracy": 0.015744274809160304,
+            "loss": 6.372054576873779,
+            "n_queries": 4192
+          }
+        }
+      },
+      "far_K4": {
+        "accuracy": 0.015869140625,
+        "bins": {
+          "[0,32)": {
+            "accuracy": null,
+            "loss": null,
+            "n_queries": 0
+          },
+          "[128,256)": {
+            "accuracy": 0.015869140625,
+            "loss": 6.252418518066406,
+            "n_queries": 4096
+          },
+          "[32,64)": {
+            "accuracy": null,
+            "loss": null,
+            "n_queries": 0
+          },
+          "[64,128)": {
+            "accuracy": null,
+            "loss": null,
+            "n_queries": 0
+          }
+        },
+        "loss": 6.252418518066406,
+        "n_queries": 4096,
+        "n_sequences": 1024,
+        "residue_mod4": {
+          "0": {
+            "accuracy": 0.01556420233463035,
+            "loss": 6.218534469604492,
+            "n_queries": 1028
+          },
+          "1": {
+            "accuracy": 0.019455252918287938,
+            "loss": 6.26663875579834,
+            "n_queries": 1028
+          },
+          "2": {
+            "accuracy": 0.012048192771084338,
+            "loss": 6.3467559814453125,
+            "n_queries": 996
+          },
+          "3": {
+            "accuracy": 0.016283524904214558,
+            "loss": 6.181778430938721,
+            "n_queries": 1044
+          }
+        }
+      },
+      "far_K8": {
+        "accuracy": 0.0162353515625,
+        "bins": {
+          "[0,32)": {
+            "accuracy": null,
+            "loss": null,
+            "n_queries": 0
+          },
+          "[128,256)": {
+            "accuracy": 0.0162353515625,
+            "loss": 6.2465691566467285,
+            "n_queries": 8192
+          },
+          "[32,64)": {
+            "accuracy": null,
+            "loss": null,
+            "n_queries": 0
+          },
+          "[64,128)": {
+            "accuracy": null,
+            "loss": null,
+            "n_queries": 0
+          }
+        },
+        "loss": 6.2465691566467285,
+        "n_queries": 8192,
+        "n_sequences": 1024,
+        "residue_mod4": {
+          "0": {
+            "accuracy": 0.013928914505283382,
+            "loss": 6.296318531036377,
+            "n_queries": 2082
+          },
+          "1": {
+            "accuracy": 0.019941634241245135,
+            "loss": 6.222967624664307,
+            "n_queries": 2056
+          },
+          "2": {
+            "accuracy": 0.012703252032520325,
+            "loss": 6.224792957305908,
+            "n_queries": 1968
+          },
+          "3": {
+            "accuracy": 0.01821668264621285,
+            "loss": 6.240721225738525,
+            "n_queries": 2086
+          }
+        }
+      },
+      "mixed_K16": {
+        "accuracy": 0.07806396484375,
+        "bins": {
+          "[0,32)": {
+            "accuracy": 0.11279620853080569,
+            "loss": 7.215002059936523,
+            "n_queries": 1055
+          },
+          "[128,256)": {
+            "accuracy": 0.012873451542385232,
+            "loss": 6.320847511291504,
+            "n_queries": 8234
+          },
+          "[32,64)": {
+            "accuracy": 0.40093537414965985,
+            "loss": 4.190291881561279,
+            "n_queries": 2352
+          },
+          "[64,128)": {
+            "accuracy": 0.02340290955091714,
+            "loss": 6.411073684692383,
+            "n_queries": 4743
+          }
+        },
+        "loss": 6.098691940307617,
+        "n_queries": 16384,
+        "n_sequences": 1024,
+        "residue_mod4": {
+          "0": {
+            "accuracy": 0.08241758241758242,
+            "loss": 6.110001087188721,
+            "n_queries": 4186
+          },
+          "1": {
+            "accuracy": 0.07624780536744419,
+            "loss": 6.105395793914795,
+            "n_queries": 3987
+          },
+          "2": {
+            "accuracy": 0.07268351383874849,
+            "loss": 6.105162143707275,
+            "n_queries": 4155
+          },
+          "3": {
+            "accuracy": 0.08086785009861933,
+            "loss": 6.073802947998047,
+            "n_queries": 4056
+          }
+        }
+      },
+      "mixed_K4": {
+        "accuracy": 0.259521484375,
+        "bins": {
+          "[0,32)": {
+            "accuracy": 1.0,
+            "loss": 0.0003696370986290276,
+            "n_queries": 453
+          },
+          "[128,256)": {
+            "accuracy": 0.01652089407191448,
+            "loss": 6.28176212310791,
+            "n_queries": 2058
+          },
+          "[32,64)": {
+            "accuracy": 1.0,
+            "loss": 0.0003131019475404173,
+            "n_queries": 538
+          },
+          "[64,128)": {
+            "accuracy": 0.03629417382999045,
+            "loss": 6.1699323654174805,
+            "n_queries": 1047
+          }
+        },
+        "loss": 4.733428001403809,
+        "n_queries": 4096,
+        "n_sequences": 1024,
+        "residue_mod4": {
+          "0": {
+            "accuracy": 0.2543859649122807,
+            "loss": 4.769937992095947,
+            "n_queries": 1026
+          },
+          "1": {
+            "accuracy": 0.2514910536779324,
+            "loss": 4.836874485015869,
+            "n_queries": 1006
+          },
+          "2": {
+            "accuracy": 0.2497560975609756,
+            "loss": 4.736583232879639,
+            "n_queries": 1025
+          },
+          "3": {
+            "accuracy": 0.28200192492781523,
+            "loss": 4.594101428985596,
+            "n_queries": 1039
+          }
+        }
+      },
+      "mixed_K8": {
+        "accuracy": 0.1654052734375,
+        "bins": {
+          "[0,32)": {
+            "accuracy": 0.6174142480211082,
+            "loss": 2.906104326248169,
+            "n_queries": 758
+          },
+          "[128,256)": {
+            "accuracy": 0.01803998049731838,
+            "loss": 6.2679314613342285,
+            "n_queries": 4102
+          },
+          "[32,64)": {
+            "accuracy": 0.6712580348943985,
+            "loss": 2.442117929458618,
+            "n_queries": 1089
+          },
+          "[64,128)": {
+            "accuracy": 0.036558181007579134,
+            "loss": 6.234206676483154,
+            "n_queries": 2243
+          }
+        },
+        "loss": 5.439046859741211,
+        "n_queries": 8192,
+        "n_sequences": 1024,
+        "residue_mod4": {
+          "0": {
+            "accuracy": 0.16466634661545848,
+            "loss": 5.44145393371582,
+            "n_queries": 2083
+          },
+          "1": {
+            "accuracy": 0.16633858267716536,
+            "loss": 5.418816566467285,
+            "n_queries": 2032
+          },
+          "2": {
+            "accuracy": 0.15906838453914768,
+            "loss": 5.506453037261963,
+            "n_queries": 2018
+          },
+          "3": {
+            "accuracy": 0.1714424477901894,
+            "loss": 5.390512943267822,
+            "n_queries": 2059
+          }
+        }
+      },
+      "near_K16": {
+        "accuracy": 0.3699951171875,
+        "bins": {
+          "[0,32)": {
+            "accuracy": 0.14837069563207766,
+            "loss": 7.057742595672607,
+            "n_queries": 4327
+          },
+          "[128,256)": {
+            "accuracy": null,
+            "loss": null,
+            "n_queries": 0
+          },
+          "[32,64)": {
+            "accuracy": 0.44953139255204444,
+            "loss": 3.9669525623321533,
+            "n_queries": 12057
+          },
+          "[64,128)": {
+            "accuracy": null,
+            "loss": null,
+            "n_queries": 0
+          }
+        },
+        "loss": 4.783227920532227,
+        "n_queries": 16384,
+        "n_sequences": 1024,
+        "residue_mod4": {
+          "0": {
+            "accuracy": 0.36800976800976803,
+            "loss": 4.7833638191223145,
+            "n_queries": 4095
+          },
+          "1": {
+            "accuracy": 0.3651809899039645,
+            "loss": 4.816999435424805,
+            "n_queries": 4061
+          },
+          "2": {
+            "accuracy": 0.38134810710988,
+            "loss": 4.665158271789551,
+            "n_queries": 4332
+          },
+          "3": {
+            "accuracy": 0.364476386036961,
+            "loss": 4.879164695739746,
+            "n_queries": 3896
+          }
+        }
+      },
+      "near_K4": {
+        "accuracy": 1.0,
+        "bins": {
+          "[0,32)": {
+            "accuracy": 1.0,
+            "loss": 0.00037731300108134747,
+            "n_queries": 1818
+          },
+          "[128,256)": {
+            "accuracy": null,
+            "loss": null,
+            "n_queries": 0
+          },
+          "[32,64)": {
+            "accuracy": 1.0,
+            "loss": 0.0003271287714596838,
+            "n_queries": 2278
+          },
+          "[64,128)": {
+            "accuracy": null,
+            "loss": null,
+            "n_queries": 0
+          }
+        },
+        "loss": 0.00034940289333462715,
+        "n_queries": 4096,
+        "n_sequences": 1024,
+        "residue_mod4": {
+          "0": {
+            "accuracy": 1.0,
+            "loss": 0.00037436047568917274,
+            "n_queries": 1010
+          },
+          "1": {
+            "accuracy": 1.0,
+            "loss": 0.0003320093674119562,
+            "n_queries": 990
+          },
+          "2": {
+            "accuracy": 1.0,
+            "loss": 0.0003523539926391095,
+            "n_queries": 1096
+          },
+          "3": {
+            "accuracy": 1.0,
+            "loss": 0.00033818103838711977,
+            "n_queries": 1000
+          }
+        }
+      },
+      "near_K8": {
+        "accuracy": 0.6856689453125,
+        "bins": {
+          "[0,32)": {
+            "accuracy": 0.6271186440677966,
+            "loss": 2.9484663009643555,
+            "n_queries": 3304
+          },
+          "[128,256)": {
+            "accuracy": null,
+            "loss": null,
+            "n_queries": 0
+          },
+          "[32,64)": {
+            "accuracy": 0.7252454991816694,
+            "loss": 2.0162172317504883,
+            "n_queries": 4888
+          },
+          "[64,128)": {
+            "accuracy": null,
+            "loss": null,
+            "n_queries": 0
+          }
+        },
+        "loss": 2.392212152481079,
+        "n_queries": 8192,
+        "n_sequences": 1024,
+        "residue_mod4": {
+          "0": {
+            "accuracy": 0.6976744186046512,
+            "loss": 2.248647689819336,
+            "n_queries": 2064
+          },
+          "1": {
+            "accuracy": 0.6737967914438503,
+            "loss": 2.50128173828125,
+            "n_queries": 2057
+          },
+          "2": {
+            "accuracy": 0.6774647887323944,
+            "loss": 2.423754930496216,
+            "n_queries": 2130
+          },
+          "3": {
+            "accuracy": 0.6944873776403916,
+            "loss": 2.394672393798828,
+            "n_queries": 1941
+          }
+        }
+      }
+    }
+  },
+  "train_wall_note": "sum of CUDA-synchronized update times; evaluation, logging and checkpoint writing excluded",
+  "train_wall_s": 67.92277722702102,
+  "updated_time": "2026-11-27T20:14:00.989256+00:00",
+  "updates_done": 4500
+}

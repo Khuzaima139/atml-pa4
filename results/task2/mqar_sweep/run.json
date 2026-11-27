@@ -1,0 +1,125 @@
+{
+  "concurrent_jobs": {
+    "alive_at_start": [],
+    "end": "2026-11-27T20:35:10.523789+00:00",
+    "gpu": "0",
+    "job": "mqar_sweep",
+    "method": "intervals written by the job wrapper into the status directory: start before this job's end and end after its start (or no end yet)",
+    "overlapping": [],
+    "overlapping_same_gpu": [],
+    "start": "2026-11-27T20:35:00.786394+00:00",
+    "status_dir": "notes/kaggle_status"
+  },
+  "config": {
+    "B": 2,
+    "H": 4,
+    "d_model": 128,
+    "device": "cuda:0",
+    "dtype": "float32",
+    "forward_only": "torch.no_grad; no autograd graph",
+    "head_dim": 32,
+    "input": "torch.randn (B, T, 128) FP32 on CPU from a generator seeded 6304 per T; fed to forward_embeddings (blocks, final norm, head) without token or positional embeddings",
+    "layers": 2,
+    "lengths": [
+      256,
+      1024,
+      4096,
+      8192
+    ],
+    "limited": false,
+    "limits": {
+      "lengths": null,
+      "reps": null
+    },
+    "mechanisms": [
+      "dense",
+      "window",
+      "local_dilated",
+      "linear"
+    ],
+    "model_init": "build_model(mechanism, 6304): identical weights for every mechanism",
+    "output_files": {
+      "rows": "sweep_rows.jsonl",
+      "run": "run.json"
+    },
+    "repetitions": 10,
+    "seed": 6304,
+    "version": "task2-part-b-sweep-v1",
+    "warmup": 3
+  },
+  "elapsed_wall_s": 7.232435197999621,
+  "end_time": "2026-11-27T20:35:10.062388+00:00",
+  "environment": {
+    "cpu_threads": 2,
+    "cudnn_allow_tf32": false,
+    "cudnn_sdp_enabled": true,
+    "device": "cuda:0",
+    "env": {
+      "CUDA_VISIBLE_DEVICES": "0",
+      "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+    },
+    "flash_sdp_enabled": true,
+    "float32_matmul_precision": "highest",
+    "gpu_capability": [
+      7,
+      5
+    ],
+    "gpu_name": "Tesla T4",
+    "gpu_total_memory_bytes": 15636037632,
+    "math_sdp_enabled": true,
+    "matmul_allow_fp16_reduced_precision_reduction": true,
+    "matmul_allow_tf32": false,
+    "mem_efficient_sdp_enabled": true,
+    "sdpa_backends_enumerated": [
+      "MATH",
+      "FLASH_ATTENTION",
+      "EFFICIENT_ATTENTION",
+      "CUDNN_ATTENTION",
+      "OVERRIDEABLE"
+    ]
+  },
+  "meta": {
+    "cuda_available": true,
+    "device_count": 1,
+    "device_names": [
+      "Tesla T4"
+    ],
+    "git_commit": "c99b65d62946dc71440b76d4524bcd10695c08e6",
+    "git_dirty": false,
+    "hostname": "101b9c8f8961",
+    "mps_available": false,
+    "package_versions": {
+      "accelerate": "1.16.0",
+      "datasets": "4.8.5",
+      "huggingface_hub": "0.36.2",
+      "lm_eval": "0.4.13",
+      "matplotlib": "3.10.0",
+      "numpy": "2.4.6",
+      "peft": "0.21.2",
+      "safetensors": "0.8.0",
+      "scipy": "1.16.3",
+      "tokenizers": "0.22.2",
+      "torch": "2.11.0+cu130",
+      "transformers": "4.57.1"
+    },
+    "platform": "Linux-6.18.55+-x86_64-with-glibc2.39",
+    "python_version": "3.13.16",
+    "torch_cuda_build": "13.0",
+    "torch_cudnn_build": 92700,
+    "torch_version": "2.11.0+cu130"
+  },
+  "n_rows": 16,
+  "peak_vram_allocated_bytes": {
+    "0": 883832832
+  },
+  "peak_vram_reserved_bytes": {
+    "0": 905969664
+  },
+  "start_time": "2026-11-27T20:35:02.862837+00:00",
+  "status": "ok",
+  "status_counts": {
+    "ok": 16
+  },
+  "step": "done",
+  "updated_time": "2026-11-27T20:35:10.062726+00:00"
+}
