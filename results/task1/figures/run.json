@@ -1,0 +1,141 @@
+{
+  "F4_point_labels": {
+    "c4_validation": {
+      "shown": [
+        "P1 75%",
+        "P2 75%",
+        "2:4 50%",
+        "P1 50%",
+        "P3 75%",
+        "Q1 3b"
+      ],
+      "skipped": [
+        "P1 25%",
+        "Q1 4b",
+        "P2 25%",
+        "Q3 INT3",
+        "P3 50%",
+        "P2 50%",
+        "Q2 3b",
+        "Q2 4b",
+        "Q3 INT4",
+        "FP16",
+        "Q1 8b",
+        "Q2 8b"
+      ]
+    },
+    "wikitext2_test": {
+      "shown": [
+        "P1 75%",
+        "P2 75%",
+        "2:4 50%",
+        "P1 50%",
+        "P3 75%",
+        "P1 25%",
+        "Q3 INT3"
+      ],
+      "skipped": [
+        "Q1 3b",
+        "Q1 4b",
+        "P2 25%",
+        "P3 50%",
+        "P2 50%",
+        "Q2 3b",
+        "Q2 4b",
+        "Q3 INT4",
+        "Q1 8b",
+        "FP16",
+        "Q2 8b"
+      ]
+    }
+  },
+  "config": {
+    "analysis_id": "t1-analysis-v1",
+    "args": {
+      "allow_uncommitted": false,
+      "analysis": "/Users/khuzaimairshad/atml-pa4/results/task1/analysis",
+      "expect_hellaswag_full": 2000,
+      "expect_hellaswag_subset": 512,
+      "expect_tokens": 50000,
+      "figures_only": true,
+      "hellaswag_file": null,
+      "no_figures": false,
+      "out": "results/task1/figures",
+      "results": "/Users/khuzaimairshad/atml-pa4/results/task1"
+    },
+    "entry_point": "task1.analysis --figures-only"
+  },
+  "elapsed_wall_s": 0.7978779159893747,
+  "end_time": "2026-11-27T13:43:26.334966+00:00",
+  "figures": [
+    "F1_quality_vs_resource.pdf",
+    "F2_p3_allocation.pdf",
+    "F3_q3_allocation.pdf",
+    "F3_full_q3_allocation.pdf",
+    "F4_calibration_vs_heldout.pdf",
+    "F5_magnitude_vs_wanda.pdf"
+  ],
+  "inputs_committed": {
+    "head": "36f1e9d7ed0ae0f0c21315a2107862aa85e3e5c7",
+    "identical_to_head": true,
+    "n_files": 188,
+    "tracked": true
+  },
+  "meta": {
+    "cuda_available": false,
+    "device_count": 0,
+    "device_names": [],
+    "git_commit": "36f1e9d7ed0ae0f0c21315a2107862aa85e3e5c7",
+    "git_dirty": false,
+    "hostname": "Khuzaimas-MacBook-Pro.local",
+    "mps_available": true,
+    "package_versions": {
+      "accelerate": "1.16.0",
+      "datasets": "4.8.5",
+      "huggingface_hub": "0.36.2",
+      "lm_eval": "0.4.13",
+      "matplotlib": "3.11.2",
+      "numpy": "2.4.6",
+      "peft": null,
+      "safetensors": "0.8.0",
+      "scipy": "1.17.1",
+      "tokenizers": "0.22.2",
+      "torch": "2.15.0",
+      "transformers": "4.57.1"
+    },
+    "platform": "macOS-27.2.1-arm64-arm-64bit",
+    "python_version": "3.11.18",
+    "torch_cuda_build": null,
+    "torch_cudnn_build": null,
+    "torch_version": "2.15.0"
+  },
+  "size_inches": {
+    "F1_quality_vs_resource.pdf": [
+      5.457,
+      4.557
+    ],
+    "F2_p3_allocation.pdf": [
+      5.457,
+      5.143
+    ],
+    "F3_full_q3_allocation.pdf": [
+      5.447,
+      7.457
+    ],
+    "F3_q3_allocation.pdf": [
+      5.446,
+      3.457
+    ],
+    "F4_calibration_vs_heldout.pdf": [
+      5.453,
+      2.687
+    ],
+    "F5_magnitude_vs_wanda.pdf": [
+      5.495,
+      2.543
+    ]
+  },
+  "start_time": "2026-11-27T13:43:26.334375+00:00",
+  "status": "ok",
+  "updated_time": "2026-11-27T13:43:26.335039+00:00"
+}
