@@ -1086,11 +1086,16 @@ def main(argv=None):
         return 0
     if a.cmd == "check":
         problems = check(meta, status, a.logs or DEFAULTS["main"]["logs"])
+        bad = [j["name"] for j in meta if any(p.startswith(j["name"] + ":") for p in problems)]
         for x in problems:
-            print("PROBLEM:", x)
-        print(f"check: {len(meta)} jobs, {len(problems)} problems")
+            print("FAIL:", x)
+        if problems:
+            print(f"==== CHECK: FAIL: {len(problems)} problems in {len(bad)} of {len(meta)} jobs ====")
+            print("FAILED JOBS: " + ", ".join(bad))
+        else:
+            print(f"==== CHECK: PASS: {len(meta)} jobs, 0 problems ====")
         if a.out:
-            _write_new(a.out, {"n_jobs": len(meta), "problems": problems})
+            _write_new(a.out, {"n_jobs": len(meta), "problems": problems, "failed_jobs": bad})
         return 1 if problems else 0
     if a.cmd == "final":
         reasons = final(meta, status, a.check_report, a.zip)

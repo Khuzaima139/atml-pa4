@@ -381,7 +381,8 @@ def test_e2e_summary_check_zip_final(e2e):
     assert any(x.startswith("sweep T 16:") for x in lines)
     c = e2e["check"]
     assert c.returncode == 0, c.stdout + c.stderr
-    assert json.loads((e2e["tmp"] / "check.json").read_text()) == {"n_jobs": 5, "problems": []}
+    assert json.loads((e2e["tmp"] / "check.json").read_text()) == {"n_jobs": 5, "problems": [], "failed_jobs": []}
+    assert "==== CHECK: PASS: 5 jobs, 0 problems ====" in c.stdout
     z = e2e["zip"]
     assert z.returncode == 0, z.stdout + z.stderr
     with zipfile.ZipFile(e2e["tmp"] / "nb1.zip") as zf:
@@ -409,3 +410,82 @@ def test_e2e_check_finds_problems(e2e, tmp_path):
     probs = N.check([j], e2e["status"], e2e["logs"])
     text = "\n".join(probs)
     assert "parameter count 1" in text and "test_file_opens" in text and "dev_queries_final.npz unreadable" in text
+
+
+def test_evaluation_failures_do_not_stop_later_phases(tmp_path):
+    """The notebook path after the queues start: wait-all over both GPU queues waits for every job despite a nonzero
+    exit and a killed job, prints their exit codes and log tails; the idle check then passes, the timing queue runs
+    with no overlapping job, check prints a FAIL list and final reports the run as not complete (nonzero exit codes,
+    no exception)."""
+    st, logs, jd = tmp_path / "status", tmp_path / "logs", tmp_path / "jobs"
+    jd.mkdir()
+
+    def spec(name, phase, kind, queue, sleep=0.0, code=0):
+        out = tmp_path / "res" / name
+        return {"name": name, "phase": phase, "kind": kind, "queue": queue, "gpu": queue[-1], "out": str(out),
+                "run": {"mechanism": "dense", "regime": "mixed", "K": 4, "seed": 6304}, "expect": {},
+                "cmd": _wrapped(name, st, out, sleep=sleep, code=code), "wait_for": []}
+
+    meta = [spec("t_bad", "eval", "train", "gpu0", code=3), spec("t_late", "eval", "train", "gpu0", sleep=2.0),
+            spec("t_slow", "eval", "train", "gpu1", sleep=120), spec("t_ok", "eval", "train", "gpu1"),
+            spec("part_a_bench", "timing", "bench", "timing_gpu0"), spec("mqar_sweep", "timing", "sweep",
+                                                                         "timing_gpu0")]
+    N.write_jobs("main", jd, meta)
+    q0 = subprocess.Popen(_queue_cmd(tmp_path, "gpu0", 0, jd / "main_gpu0.json", logs, st), cwd=REPO_ROOT,
+                          stdout=subprocess.DEVNULL, start_new_session=True)
+    q1 = subprocess.Popen(_queue_cmd(tmp_path, "gpu1", 1, jd / "main_gpu1.json", logs, st), cwd=REPO_ROOT,
+                          stdout=subprocess.DEVNULL, start_new_session=True)
+    for _ in range(400):
+        if (st / "t_slow.pid").exists() and (tmp_path / "res" / "t_slow" / "run.json").exists():
+            break
+        time.sleep(0.05)
+    os.kill(KQ.read_int(st / "t_slow.pid"), signal.SIGTERM)
+    ev = [j["name"] for j in meta if j["phase"] == "eval"]
+    w = _wait(st, logs, ev, mode="--wait-all", out=tmp_path / "wait.json", timeout=120)
+    assert w.returncode == 1
+    states = {r["name"]: (r["state"], r["exit"]) for r in json.loads((tmp_path / "wait.json").read_text())["jobs"]}
+    assert states == {"t_bad": ("failed", 3), "t_late": ("ok", 0), "t_slow": ("failed", -15), "t_ok": ("ok", 0)}
+    assert "--- t_bad: failed, exit 3" in w.stdout and "[job status] exit code 3" in w.stdout
+    assert "--- t_slow: failed, exit -15" in w.stdout and "2 of 4 jobs ok" in w.stdout
+    assert q0.wait(60) == 1 and q1.wait(60) == 1
+    idle = _nb("idle-check", "--jobs-dir", jd, "--status", st)
+    assert idle.returncode == 0, idle.stdout + idle.stderr
+    tq = subprocess.run(_queue_cmd(tmp_path, "timing_gpu0", 0, jd / "main_timing_gpu0.json", logs, st),
+                        cwd=REPO_ROOT, capture_output=True, text=True, timeout=120)
+    assert tq.returncode == 0
+    for n in ("part_a_bench", "mqar_sweep"):
+        assert json.loads((tmp_path / "res" / n / "run.json").read_text())[N.CONCURRENCY_KEY]["overlapping"] == []
+    c = _nb("check", "--jobs-dir", jd, "--status", st, "--logs", logs, "--out", tmp_path / "check.json")
+    assert c.returncode == 1 and c.stderr == ""
+    assert "FAIL: t_bad: exit 3, done False" in c.stdout and "==== CHECK: FAIL:" in c.stdout
+    assert "FAILED JOBS:" in c.stdout and "t_slow" in c.stdout.split("FAILED JOBS:")[1]
+    rep = json.loads((tmp_path / "check.json").read_text())
+    assert {"t_bad", "t_slow"} <= set(rep["failed_jobs"])
+    z = _nb("zip", "--jobs-dir", jd, "--out", tmp_path / "z.zip", "--include", tmp_path / "res", logs, st)
+    assert z.returncode == 0 and (tmp_path / "z.zip").is_file()
+    f = _nb("final", "--jobs-dir", jd, "--status", st, "--check-report", tmp_path / "check.json",
+            "--zip", tmp_path / "z.zip")
+    assert f.returncode == 1 and f.stderr == "" and "notebook not complete" in f.stdout
+    assert "NOT OK: job t_bad: exit 3" in f.stdout
+
+
+def test_idle_check_reports_live_job(tmp_path):
+    st, logs, jd = tmp_path / "status", tmp_path / "logs", tmp_path / "jobs"
+    jd.mkdir()
+    out = tmp_path / "res" / "t_run"
+    meta = [{"name": "t_run", "phase": "eval", "kind": "train", "queue": "gpu0", "gpu": "0", "out": str(out),
+             "run": None, "expect": {}, "cmd": _wrapped("t_run", st, out, sleep=120), "wait_for": []}]
+    N.write_jobs("main", jd, meta)
+    q = subprocess.Popen(_queue_cmd(tmp_path, "gpu0", 0, jd / "main_gpu0.json", logs, st), cwd=REPO_ROOT,
+                         stdout=subprocess.DEVNULL, start_new_session=True)
+    try:
+        for _ in range(400):
+            if (st / "t_run.interval.json").exists():
+                break
+            time.sleep(0.05)
+        idle = _nb("idle-check", "--jobs-dir", jd, "--status", st)
+        assert idle.returncode == 1 and "NOT IDLE: t_run: state running" in idle.stdout
+        assert "a queue process is alive" in idle.stdout
+    finally:
+        os.killpg(q.pid, signal.SIGTERM)
+        q.wait(60)
