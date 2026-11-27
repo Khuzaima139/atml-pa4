@@ -17,8 +17,14 @@ Evaluation: at updates 500, 1000, 1500, 2000, 3000 and 4500 on all 9 development
 and per distance bin). The test file is opened only after update 4500; all 9 test cells are evaluated, dense runs
 also with the eval-time window64 mask.
 
+Disjointness: the training stream is checked against the committed held-out hash list task2/heldout_hashes.json.gz
+(which must be tracked and unmodified); the development and test files are not opened for it. run.json records every
+opening of the development file (dev_file_opens) and of the test file (test_file_opens, empty until the final
+evaluation), each with the update count after which it happened.
+
 Outputs under --out: run.json, train_log.jsonl (one row per update), dev_curve.jsonl (one row per checkpoint, cell and
-mask condition), dev_queries_final.jsonl.gz and test_queries.jsonl.gz (one row per query), model_final.safetensors.
+mask condition), dev_queries_final.npz and test_queries.npz (one row per query, format in task2.query_npz),
+model_final.safetensors.
 """
 import argparse
 import sys
@@ -30,13 +36,15 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from common.io import sha256_file, write_jsonl_gz
+from common.freeze import require_committed
+from common.io import sha256_file
 from common.paths import REPO_ROOT, RESULTS_DIR
 from common.runmeta import RunRecorder
 from common.seeding import seed_everything
 
 from . import mqar_data as D
 from . import mqar_model as M
+from . import query_npz as Q
 from .part_a import cleanup, environment, is_cuda, under
 from .rows import RowWriter
 
@@ -61,11 +69,8 @@ LEARNED_MAX_DISTANCE = 64
 SCORER = "64-way cross-entropy and argmax over logits 128..191 at query positions; label = answer id - 128"
 
 OUTPUT_FILES = {"run": "run.json", "train_log": "train_log.jsonl", "dev_curve": "dev_curve.jsonl",
-                "dev_queries": "dev_queries_final.jsonl.gz", "test_queries": "test_queries.jsonl.gz",
+                "dev_queries": "dev_queries_final.npz", "test_queries": "test_queries.npz",
                 "checkpoint": "model_final.safetensors"}
-QUERY_ROW_KEYS = ("version", "split", "cell", "K", "regime", "id", "sequence_index", "mask_condition",
-                  "query_position", "source_position", "distance", "answer_id", "predicted_id", "correct",
-                  "answer_logit", "query_loss")
 
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -147,27 +152,6 @@ def summarize(cell: dict, res: dict) -> dict:
     return {**stats(every), "n_sequences": len(cell["ids"]),
             "bins": {bin_name(lo, hi): stats((dist >= lo) & (dist < hi)) for lo, hi in BINS},
             "residue_mod4": {str(r): stats((dist - 1) % 4 == r) for r in range(4)}}
-
-
-def f32(x) -> float:
-    """A float32 value as the Python float of its shortest round-trip decimal string."""
-    return float(np.format_float_positional(np.float32(x), unique=True))
-
-
-def query_rows(cell: dict, res: dict, condition: str) -> list:
-    rows = []
-    for n in range(len(cell["ids"])):
-        for j in range(cell["K"]):
-            rows.append({
-                "version": VERSION, "split": cell["split"], "cell": cell["cell"], "K": cell["K"],
-                "regime": cell["regime"], "id": cell["ids"][n], "sequence_index": int(cell["sequence_index"][n]),
-                "mask_condition": condition, "query_position": int(cell["query_position"][n, j]),
-                "source_position": int(cell["source_position"][n, j]), "distance": int(cell["distance"][n, j]),
-                "answer_id": int(cell["answer_id"][n, j]), "predicted_id": int(res["predicted_id"][n, j]),
-                "correct": bool(res["correct"][n, j]),
-                "answer_logit": f32(res["answer_logit"][n, j]),
-                "query_loss": f32(res["query_loss"][n, j])})
-    return rows
 
 
 def pooled_bins(cells: dict, results: dict) -> dict:
@@ -272,6 +256,8 @@ def main(argv=None):
         "theoretical_costs_all": M.all_theoretical_costs(D.T),
         "learned_rule": "protocol B6: final development accuracy >= 0.5 on distance < 64 queries of the run's own "
                         "(K, regime) cell",
+        "query_file_format": Q.codes(),
+        "heldout_list": str(D.HELDOUT_LIST),
     }
     out.mkdir(parents=True)
     rec = RunRecorder(out / OUTPUT_FILES["run"], config)
@@ -289,20 +275,24 @@ def main(argv=None):
 def _run(args, chk, out, rec, model, device, warmup, checkpoints, start, stop, conditions):
     n_updates = chk["n_updates"]
     gen, gen_info = D.load_generator()
-    dev_info = D.file_info(D.DEV_FILE, D.DEV_REL)
-    test_info = D.file_info(D.TEST_FILE, D.TEST_REL)
+    dev_opens, test_opens = [], []
+    list_git = require_committed(D.HELDOUT_LIST, "held-out hash list")
+    ref_hashes, list_info = D.load_heldout_list(D.HELDOUT_LIST)
+    list_info.update(tracked=list_git["tracked"], clean=list_git["clean"], commits=list_git["commits"])
     arr, stream = D.load_or_build_stream(args.cache_dir, gen, gen_info, args.K, args.regime, start, stop)
     t0 = time.perf_counter()
     stream["validation"] = D.validate_stream(gen, arr, args.K, args.regime, start)
     stream["validation"]["seconds"] = time.perf_counter() - t0
-    ref_hashes = D.heldout_hashes([D.DEV_FILE, D.TEST_FILE])
     stream["disjointness"] = {**D.check_disjoint(arr, ref_hashes, start, args.K, args.regime),
-                              "reference_files": [dev_info, test_info],
-                              "note": "only the token arrays of the development and test files are hashed here"}
+                              "heldout_list": list_info,
+                              "note": "checked against the committed list only; no development or test file opened"}
     del ref_hashes
-    rec.update(generator=gen_info, dev_file=dev_info, stream=stream, step="stream_ready")
+    rec.update(generator=gen_info, stream=stream, dev_file_opens=dev_opens, test_file_opens=test_opens,
+               step="stream_ready")
 
-    dev = D.read_eval_file(D.DEV_FILE, "development", gen=gen, limit_per_cell=args.limit_eval)
+    dev = D.read_eval_file(D.DEV_FILE, "development", gen=gen, limit_per_cell=args.limit_eval, audit=dev_opens,
+                           after_update=0, manifest_rel=D.DEV_REL)
+    rec.update(dev_file_opens=dev_opens, test_file_opens=test_opens, step="dev_loaded")
     data = torch.from_numpy(arr).to(device)
     K, Tn = args.K, D.T
     model.to(device).train()
@@ -352,43 +342,47 @@ def _run(args, chk, out, rec, model, device, warmup, checkpoints, start, stop, c
                 if is_cuda(device):
                     peak_eval = max(peak_eval, torch.cuda.max_memory_allocated(device))
                     torch.cuda.reset_peak_memory_stats(device)
-                rec.update(dev_curve=curve, updates_done=u, train_wall_s=train_s, step=f"checkpoint_{u}")
+                rec.update(dev_curve=curve, updates_done=u, train_wall_s=train_s, dev_file_opens=dev_opens,
+                           test_file_opens=test_opens, step=f"checkpoint_{u}")
         n_log, n_curve = log.n_rows, dcw.n_rows
 
     final_dev = results
     learned = learned_flag(dev, final_dev, args.K, args.regime)
-    dev_rows = [r for c in D.cell_order() for r in query_rows(dev[c], final_dev[c], "native")]
-    write_jsonl_gz(out / OUTPUT_FILES["dev_queries"], dev_rows)
+    dev_cols = Q.concat([Q.cell_columns(dev[c], final_dev[c], "native") for c in D.cell_order()])
+    Q.write_query_npz(out / OUTPUT_FILES["dev_queries"], dev_cols, VERSION)
     from safetensors.torch import save_file
     save_file({k: v.detach().cpu().contiguous() for k, v in model.state_dict().items()},
               str(out / OUTPUT_FILES["checkpoint"]), metadata={"version": VERSION, "mechanism": args.mechanism})
-    rec.update(learned=learned, train_wall_s=train_s, step="training_done")
+    rec.update(learned=learned, train_wall_s=train_s, test_file_opens=test_opens, step="training_done")
 
     test_opened_after = n_updates
-    test = D.read_eval_file(D.TEST_FILE, "test", gen=gen, limit_per_cell=args.limit_eval)
+    test = D.read_eval_file(D.TEST_FILE, "test", gen=gen, limit_per_cell=args.limit_eval, audit=test_opens,
+                            after_update=n_updates, manifest_rel=D.TEST_REL)
     t_e = time.perf_counter()
-    test_rows, test_summary, test_pooled = [], {}, {}
+    test_parts, test_summary, test_pooled = [], {}, {}
     for cond in conditions:
         res = {c: eval_cell(model, test[c], device, cond) for c in D.cell_order()}
         test_summary[cond] = {c: summarize(test[c], res[c]) for c in D.cell_order()}
         test_pooled[cond] = pooled_bins(test, res)
-        test_rows += [r for c in D.cell_order() for r in query_rows(test[c], res[c], cond)]
+        test_parts += [Q.cell_columns(test[c], res[c], cond) for c in D.cell_order()]
     eval_s += time.perf_counter() - t_e
     if is_cuda(device):
         peak_eval = max(peak_eval, torch.cuda.max_memory_allocated(device))
-    write_jsonl_gz(out / OUTPUT_FILES["test_queries"], test_rows)
+    test_cols = Q.concat(test_parts)
+    Q.write_query_npz(out / OUTPUT_FILES["test_queries"], test_cols, VERSION)
 
     return {
         "learned": learned, "dev_curve": curve, "test_summary": test_summary, "test_pooled_bins": test_pooled,
         "test_opened_after_update": test_opened_after, "updates_done": n_updates,
+        "dev_file_opens": dev_opens, "test_file_opens": test_opens,
         "train_wall_s": train_s, "train_wall_note": "sum of CUDA-synchronized update times; evaluation, logging "
                                                     "and checkpoint writing excluded",
         "mean_ms_per_update": 1000.0 * train_s / n_updates, "eval_wall_s": eval_s,
         "peak_allocated_bytes_train": peak_train if is_cuda(device) else None,
         "peak_allocated_bytes_eval": peak_eval if is_cuda(device) else None,
         "parameter_count": M.count_params(model),
-        "n_rows": {"train_log": n_log, "dev_curve": n_curve, "dev_queries": len(dev_rows),
-                   "test_queries": len(test_rows)},
+        "n_rows": {"train_log": n_log, "dev_curve": n_curve, "dev_queries": int(dev_cols["split"].size),
+                   "test_queries": int(test_cols["split"].size)},
         "checkpoint_sha256": sha256_file(out / OUTPUT_FILES["checkpoint"]),
         "dev_eval_sequences_per_cell": {c: len(dev[c]["ids"]) for c in D.cell_order()},
         "test_eval_sequences_per_cell": {c: len(test[c]["ids"]) for c in D.cell_order()},

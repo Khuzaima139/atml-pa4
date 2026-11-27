@@ -6,7 +6,9 @@ import pytest
 import torch
 
 from task2 import mqar_data as D
+from task2 import make_heldout_hashes as MH
 from task2 import mqar_model as M
+from task2 import query_npz as Q
 from task2 import train_mqar as TR
 
 
@@ -251,7 +253,7 @@ def test_validate_stream_catches_corruption(gen):
 def test_disjointness_check_and_forced_collision(gen):
     mod, _ = gen
     arr = D.build_stream(mod, 4, "near", 0, 32)
-    ref = D.heldout_hashes([D.DEV_FILE, D.TEST_FILE])
+    ref, _ = D.load_heldout_list()
     assert len(ref) == 2304 + 9216
     info = D.check_disjoint(arr, ref, 0, 4, "near")
     assert info["collisions"] == 0 and info["n_train_hashed"] == 32
@@ -321,3 +323,122 @@ def test_read_eval_file_and_query_records(gen):
                             "distance", "answer_id"}
     full = D.read_eval_file(D.TEST_FILE, "test")
     assert all(len(c["ids"]) == 1024 for c in full.values())
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# Held-out hash list
+
+def test_committed_heldout_list_matches_rebuild(tmp_path):
+    from common.freeze import require_committed
+    from common.io import read_jsonl
+
+    rec = require_committed(D.HELDOUT_LIST, "held-out hash list")
+    assert rec["tracked"] and rec["clean"]
+    out = tmp_path / "rebuilt.json.gz"
+    assert MH.main(["--out", str(out)]) == 0
+    assert out.read_bytes() == D.HELDOUT_LIST.read_bytes()
+    obj = read_jsonl(D.HELDOUT_LIST)[0]
+    assert obj == D.build_heldout_list()
+    assert [f["name"] for f in obj["files"]] == ["mqar_development.jsonl.gz", "mqar_test.jsonl.gz"]
+    assert [f["n_sequences"] for f in obj["files"]] == [2304, 9216]
+    assert {f["sha256"] for f in obj["files"]} == {D.manifest_sha(D.DEV_REL), D.manifest_sha(D.TEST_REL)}
+    assert len(obj["sequences"]) == 11_520 and len({x["sha256"] for x in obj["sequences"]}) == 11_520
+    with pytest.raises(SystemExit, match="exists"):
+        MH.main(["--out", str(out)])
+
+
+def test_load_heldout_list_rejects_wrong_source_sha(tmp_path):
+    from common.io import read_jsonl
+
+    obj = read_jsonl(D.HELDOUT_LIST)[0]
+    obj["files"][1]["sha256"] = "0" * 64
+    bad = tmp_path / "bad.json.gz"
+    D.write_heldout_list(bad, obj)
+    with pytest.raises(RuntimeError, match="manifest"):
+        D.load_heldout_list(bad)
+
+
+def test_load_heldout_list_opens_no_heldout_file(monkeypatch):
+    import builtins
+    import io
+
+    opened = []
+    real_open, real_io_open = builtins.open, io.open
+
+    def watch(real):
+        def f(file, *a, **k):
+            opened.append(str(file))
+            return real(file, *a, **k)
+        return f
+
+    monkeypatch.setattr(builtins, "open", watch(real_open))
+    monkeypatch.setattr(io, "open", watch(real_io_open))
+    hashes, info = D.load_heldout_list()
+    assert len(hashes) == 11_520 and info["n_unique"] == 11_520
+    assert not any(p.endswith(("mqar_development.jsonl.gz", "mqar_test.jsonl.gz")) for p in opened)
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# Per-query npz files
+
+def _columns(n=37, seed=0):
+    rng = np.random.default_rng(seed)
+    return {"split": rng.integers(0, 2, n), "cell": rng.integers(0, 9, n), "K": rng.choice([4, 8, 16], n),
+            "regime": rng.integers(0, 3, n), "sequence_index": rng.integers(0, 1024, n),
+            "mask_condition": rng.integers(0, 2, n), "query_position": rng.integers(9, 256, n),
+            "source_position": rng.integers(0, 32, n), "distance": rng.integers(1, 251, n),
+            "answer_id": rng.integers(128, 192, n), "predicted_id": rng.integers(128, 192, n),
+            "correct": rng.integers(0, 2, n).astype(bool),
+            "answer_logit": rng.standard_normal(n).astype(np.float32),
+            "query_loss": rng.exponential(size=n).astype(np.float32)}
+
+
+def test_query_npz_round_trip(tmp_path):
+    cols = _columns()
+    path = Q.write_query_npz(tmp_path / "q.npz", cols, TR.VERSION)
+    back = Q.read_query_npz(path)
+    assert set(back) == set(Q.FIELDS) | {"format_version", "version"}
+    assert back["version"] == TR.VERSION and back["format_version"] == Q.FORMAT_VERSION
+    for k, dtype in Q.FIELDS.items():
+        assert back[k].dtype == np.dtype(dtype), k
+        assert np.array_equal(back[k], np.asarray(cols[k]).astype(dtype)), k
+    assert np.array_equal(back["answer_logit"], cols["answer_logit"])
+    with np.load(path, allow_pickle=False) as z:
+        assert all(z[k].dtype.kind in "iuf" for k in z.files)
+    rows = Q.to_rows(back)
+    inv_split = {v: k for k, v in Q.SPLIT_CODES.items()}
+    inv_regime = {v: k for k, v in Q.REGIME_CODES.items()}
+    r0 = rows[0]
+    assert r0["id"] == (f"{inv_split[int(cols['split'][0])]}-{inv_regime[int(cols['regime'][0])]}-"
+                        f"K{int(cols['K'][0])}-{int(cols['sequence_index'][0]):05d}")
+    assert r0["correct"] is bool(cols["correct"][0]) and r0["answer_logit"] == float(cols["answer_logit"][0])
+    with pytest.raises(FileExistsError):
+        Q.write_query_npz(path, cols, TR.VERSION)
+
+
+def test_query_npz_rejects_bad_columns(tmp_path):
+    cols = _columns()
+    with pytest.raises(ValueError, match="columns"):
+        Q.write_query_npz(tmp_path / "a.npz", {k: v for k, v in cols.items() if k != "query_loss"}, TR.VERSION)
+    over = dict(cols, sequence_index=np.full(37, 2 ** 40))
+    with pytest.raises(ValueError, match="fit"):
+        Q.write_query_npz(tmp_path / "b.npz", over, TR.VERSION)
+    np.savez_compressed(tmp_path / "c.npz", extra=np.zeros(3), **{k: np.asarray(v) for k, v in cols.items()})
+    with pytest.raises(ValueError, match="differ"):
+        Q.read_query_npz(tmp_path / "c.npz")
+
+
+def test_cell_columns_match_eval_file(gen):
+    mod, _ = gen
+    cells = D.read_eval_file(D.TEST_FILE, "test", limit_per_cell=2)
+    c = cells["far_K8"]
+    res = {"predicted_id": c["answer_id"].copy(), "correct": np.ones_like(c["answer_id"], dtype=bool),
+           "answer_logit": np.zeros(c["answer_id"].shape, np.float32),
+           "query_loss": np.zeros(c["answer_id"].shape, np.float32)}
+    cols = Q.cell_columns(c, res, "window64")
+    arrays = {k: np.asarray(v).astype(Q.FIELDS[k]) for k, v in cols.items()}
+    ids = Q.record_ids(arrays)
+    assert ids == [i for i in c["ids"] for _ in range(8)]
+    recs = [r for r in D.query_records({"far_K8": c})]
+    assert [r["query_position"] for r in recs] == arrays["query_position"].tolist()
+    assert set(arrays["mask_condition"].tolist()) == {Q.MASK_CODES["window64"]}

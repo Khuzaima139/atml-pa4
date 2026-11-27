@@ -14,9 +14,13 @@ positions[T+K:T+2K], answer ids[T+2K:T+3K], each sorted by query position as the
 are below 256). A cache file is used only if its sidecar matches the requested stream, its sha256 matches the sidecar,
 and 18 spot-checked rows equal freshly generated ones; otherwise it is rebuilt. Builds are serialized by a lock file.
 
-Disjointness. Every training sequence is hashed (sha256 of its 256 token bytes) and compared with the hashes of every
-sequence in the supplied development and test files; any match raises DisjointnessError. Only the token arrays of
-those files are read for this check.
+Disjointness. Every training sequence is hashed (sha256 of its 256 token bytes) and compared with the committed list
+task2/heldout_hashes.json.gz (one hash per sequence of the supplied development and test files, written once by
+python -m task2.make_heldout_hashes); any match raises DisjointnessError. The check never opens the development or
+test files.
+
+Held-out file opens. read_eval_file appends one entry per call to an optional audit list, so a run can record when
+each development or test file was opened.
 """
 import fcntl
 import hashlib
@@ -30,8 +34,8 @@ from pathlib import Path
 
 import numpy as np
 
-from common.io import read_jsonl, sha256_file
-from common.paths import DATA_REPO_DIR
+from common.io import read_jsonl, sha256_file, write_jsonl_gz
+from common.paths import DATA_REPO_DIR, REPO_ROOT
 
 GENERATOR_REL = "scripts/mqar_generator.py"
 DEV_REL = "data/mqar/mqar_development.jsonl.gz"
@@ -39,6 +43,8 @@ TEST_REL = "data/mqar/mqar_test.jsonl.gz"
 SHA_MANIFEST = "SHA256SUMS.json"
 DEV_FILE = DATA_REPO_DIR / DEV_REL
 TEST_FILE = DATA_REPO_DIR / TEST_REL
+HELDOUT_LIST = REPO_ROOT / "task2" / "heldout_hashes.json.gz"
+HELDOUT_VERSION = "task2-heldout-hashes-v1"
 
 T = 256
 BATCH = 32
@@ -268,13 +274,40 @@ def file_info(path, rel=None, data_root=DATA_REPO_DIR) -> dict:
     return info
 
 
-def heldout_hashes(paths) -> dict:
-    """Map sequence hash -> record id for every record of the given JSONL files (token arrays only)."""
-    out = {}
-    for p in paths:
-        for rec in read_jsonl(p):
-            out[sequence_hash(rec["tokens"])] = rec["id"]
-    return out
+def build_heldout_list(data_root=DATA_REPO_DIR) -> dict:
+    """The held-out hash list: sha256 per sequence of the supplied development and test files, in file order, with
+    the source file names and their sha256 (checked against the data repository manifest)."""
+    files, seqs = [], []
+    for rel in (DEV_REL, TEST_REL):
+        path = Path(data_root) / rel
+        info = file_info(path, rel, data_root)
+        recs = read_jsonl(path)
+        files.append({"name": Path(rel).name, "rel": rel, "sha256": info["sha256"], "n_sequences": len(recs)})
+        seqs += [{"id": r["id"], "sha256": sequence_hash(r["tokens"])} for r in recs]
+    return {"version": HELDOUT_VERSION, "hash": HASH_NAME, "files": files, "sequences": seqs}
+
+
+def write_heldout_list(path, obj) -> Path:
+    """One JSON object as a single-line gzip file (mtime 0); refuses an existing path."""
+    return write_jsonl_gz(path, [obj])
+
+
+def load_heldout_list(path=HELDOUT_LIST, data_root=DATA_REPO_DIR):
+    """Hash -> id map of the committed list, and a record of the list. Opens only the list and the data repository's
+    manifest (whose sha256 values for the source files must equal those in the list), never the held-out files."""
+    recs = read_jsonl(path)
+    if len(recs) != 1 or recs[0].get("version") != HELDOUT_VERSION or recs[0].get("hash") != HASH_NAME:
+        raise RuntimeError(f"{path}: not a {HELDOUT_VERSION} list")
+    obj = recs[0]
+    for f in obj["files"]:
+        expected = manifest_sha(f["rel"], data_root)
+        if f["sha256"] != expected:
+            raise RuntimeError(f"{path}: {f['name']} sha256 {f['sha256']} != manifest {expected}")
+    hashes = {s["sha256"]: s["id"] for s in obj["sequences"]}
+    if len(obj["sequences"]) != sum(f["n_sequences"] for f in obj["files"]):
+        raise RuntimeError(f"{path}: sequence count differs from the file counts")
+    return hashes, {"path": str(path), "sha256": sha256_file(path), "version": obj["version"],
+                    "files": obj["files"], "n_sequences": len(obj["sequences"]), "n_unique": len(hashes)}
 
 
 def check_disjoint(arr: np.ndarray, ref_hashes: dict, start: int, K: int, regime: str) -> dict:
@@ -298,13 +331,20 @@ def cell_order():
     return [cell_name(r, K) for K in KS for r in EVAL_REGIMES]
 
 
-def read_eval_file(path, split: str, gen=None, limit_per_cell=None) -> dict:
+def read_eval_file(path, split: str, gen=None, limit_per_cell=None, audit=None, after_update=None,
+                   manifest_rel=None) -> dict:
     """Cells of a supplied development or test file: cell -> arrays of one (K, regime).
 
     Each cell holds ids, sequence_index (from the id), tokens (n, T) uint8, and (n, K) int arrays query_position,
     source_position, distance and answer_id, plus K and regime. Records are validated with the generator when given.
-    limit_per_cell keeps the first records of each cell in file order (tests only).
+    limit_per_cell keeps the first records of each cell in file order (tests only). If audit is a list, an entry with
+    the path, split and after_update is appended before the file is opened, and the file's sha256 (checked against the
+    data repository manifest when manifest_rel is given) is added to it.
     """
+    entry = {"path": str(path), "split": split, "after_update": after_update}
+    if audit is not None:
+        audit.append(entry)
+    entry.update(file_info(path, manifest_rel))
     groups = {}
     for rec in read_jsonl(path):
         m = ID_RE.match(rec["id"])

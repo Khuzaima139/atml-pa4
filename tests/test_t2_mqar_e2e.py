@@ -12,6 +12,7 @@ from common.paths import REPO_ROOT, RESULTS_DIR
 from task2 import mqar_data as D
 from task2 import mqar_model as M
 from task2 import mqar_sweep as SW
+from task2 import query_npz as Q
 from task2 import train_mqar as TR
 
 UPDATES, EVAL = 9, 2
@@ -20,14 +21,14 @@ RUNS = {"dense": ("4", "near", "6305"), "window": ("4", "near", "6305"), "local_
         "linear": ("4", "near", "6305")}
 
 TOP_KEYS = {"config", "meta", "start_time", "status", "elapsed_wall_s", "updated_time", "end_time", "environment",
-            "step", "generator", "dev_file", "stream", "dev_curve", "updates_done", "train_wall_s", "learned",
+            "step", "generator", "dev_file_opens", "test_file_opens", "stream", "dev_curve", "updates_done", "train_wall_s", "learned",
             "test_summary", "test_pooled_bins", "test_opened_after_update", "train_wall_note", "mean_ms_per_update",
             "eval_wall_s", "peak_allocated_bytes_train", "peak_allocated_bytes_eval", "parameter_count", "n_rows",
             "checkpoint_sha256", "dev_eval_sequences_per_cell", "test_eval_sequences_per_cell"}
 CONFIG_KEYS = {"version", "scorer", "mechanism", "K", "regime", "seed", "device", "dtype", "cache_dir", "limits",
                "limited", "output_files", "updates", "batch", "train_index_range", "optimizer", "schedule",
                "grad_clip_global_norm", "checkpoints", "eval_batch", "distance_bins", "mask_conditions", "model",
-               "theoretical_costs", "theoretical_costs_all", "learned_rule"}
+               "theoretical_costs", "theoretical_costs_all", "learned_rule", "query_file_format", "heldout_list"}
 STREAM_KEYS = {"built", "rebuild_reason", "build_seconds", "path", "sha256", "K", "regime", "start", "stop",
                "n_sequences", "shape", "cache_version", "spot_checked_indices", "load_seconds", "validation",
                "disjointness"}
@@ -87,8 +88,13 @@ def test_train_outputs(train_dirs, mech):
     assert st["validation"]["batches_checked"] == UPDATES
     dj = st["disjointness"]
     assert dj["collisions"] == 0 and dj["n_train_hashed"] == UPDATES * 32 and dj["n_reference_hashes"] == 11_520
+    assert dj["heldout_list"]["sha256"] == sha256_file(D.HELDOUT_LIST) and dj["heldout_list"]["clean"] is True
     assert run["generator"]["sha256"] == run["generator"]["manifest_sha256"]
     assert run["test_opened_after_update"] == UPDATES == run["updates_done"]
+    assert [(o["split"], o["after_update"]) for o in run["dev_file_opens"]] == [("development", 0)]
+    assert [(o["split"], o["after_update"]) for o in run["test_file_opens"]] == [("test", UPDATES)]
+    assert all(o["sha256"] == o["manifest_sha256"] for o in run["dev_file_opens"] + run["test_file_opens"])
+    assert cfg["query_file_format"] == json.loads(json.dumps(Q.codes()))
 
     log = read_jsonl(out / "train_log.jsonl")
     assert [r["update"] for r in log] == list(range(1, UPDATES + 1))
@@ -114,12 +120,14 @@ def test_train_outputs(train_dirs, mech):
     n_q = EVAL * (4 + 8 + 16) * 3
     assert run["n_rows"] == {"train_log": UPDATES, "dev_curve": len(curve), "dev_queries": n_q,
                              "test_queries": n_q * len(conds)}
-    for name, split, n in (("dev_queries_final.jsonl.gz", "development", n_q),
-                           ("test_queries.jsonl.gz", "test", n_q * len(conds))):
-        rows = read_jsonl(out / name)
+    for name, split, n in (("dev_queries_final.npz", "development", n_q),
+                           ("test_queries.npz", "test", n_q * len(conds))):
+        arrays = Q.read_query_npz(out / name)
+        assert arrays["version"] == TR.VERSION
+        rows = Q.to_rows(arrays)
         assert len(rows) == n
         for r in rows:
-            assert set(r) == set(TR.QUERY_ROW_KEYS) and r["split"] == split and r["version"] == TR.VERSION
+            assert set(r) == set(Q.FIELDS) | {"version", "id"} and r["split"] == split
             assert r["distance"] == r["query_position"] - r["source_position"]
             assert r["correct"] == (r["predicted_id"] == r["answer_id"]) and 128 <= r["predicted_id"] < 192
             assert r["id"].startswith(f"{split}-{r['regime']}-K{r['K']}-")
@@ -143,7 +151,7 @@ def test_checkpoint_reproduces_recorded_predictions(train_dirs):
     model = M.MQARModel("dense")
     model.load_state_dict(load_file(str(out / "model_final.safetensors")))
     model.eval()
-    rows = read_jsonl(out / "test_queries.jsonl.gz")
+    rows = Q.to_rows(Q.read_query_npz(out / "test_queries.npz"))
     test = D.read_eval_file(D.TEST_FILE, "test", limit_per_cell=EVAL)
     for cond in ("native", "window64"):
         for r in [x for x in rows if x["mask_condition"] == cond and x["cell"] == "mixed_K16"][:20]:
@@ -156,25 +164,59 @@ def test_checkpoint_reproduces_recorded_predictions(train_dirs):
             assert float(logits[r["answer_id"] - 128]) == pytest.approx(r["answer_logit"], abs=1e-5)
 
 
-def test_test_file_opened_only_after_training(tmp_path, monkeypatch):
-    calls = {"updates": 0, "test_read_at": None}
-    real_loss, real_read = TR.query_loss, D.read_eval_file
+def test_no_heldout_file_opened_before_its_use(tmp_path, monkeypatch):
+    """Every opening of the development or test file is recorded with the update count at that moment: the test
+    file is first opened after the last update, the development file only after the stream (and its disjointness
+    check) is ready, and run.json lists no test-file open until the final evaluation."""
+    import builtins
+    import io
+
+    from common.runmeta import RunRecorder
+
+    state = {"updates": 0, "step": None}
+    events, snapshots = [], []
+    real_loss = TR.query_loss
+    real_open, real_io_open = builtins.open, io.open
+    real_update = RunRecorder.update
+    targets = {str(D.DEV_FILE): "development", str(D.TEST_FILE): "test"}
 
     def counting_loss(*a, **k):
-        calls["updates"] += 1
+        state["updates"] += 1
         return real_loss(*a, **k)
 
-    def watched_read(path, split, **k):
-        if split == "test":
-            calls["test_read_at"] = calls["updates"]
-        return real_read(path, split, **k)
+    def watch(real):
+        def f(file, *a, **k):
+            split = targets.get(str(file))
+            if split is not None:
+                events.append((split, state["updates"], state["step"]))
+            return real(file, *a, **k)
+        return f
+
+    def recording_update(self, **fields):
+        if "step" in fields:
+            state["step"] = fields["step"]
+        if "test_file_opens" in fields:
+            snapshots.append((fields.get("step"), [dict(o) for o in fields["test_file_opens"]]))
+        return real_update(self, **fields)
 
     monkeypatch.setattr(TR, "query_loss", counting_loss)
-    monkeypatch.setattr(D, "read_eval_file", watched_read)
+    monkeypatch.setattr(builtins, "open", watch(real_open))
+    monkeypatch.setattr(io, "open", watch(real_io_open))
+    monkeypatch.setattr(RunRecorder, "update", recording_update)
+    n = 3
     assert TR.main(["--mechanism", "window", "--K", "4", "--regime", "near", "--seed", "6304", "--out",
                     str(tmp_path / "w"), "--cache-dir", str(tmp_path / "c"), "--device", "cpu",
-                    "--limit-updates", "3", "--limit-eval", "1"]) == 0
-    assert calls["test_read_at"] == 3 == calls["updates"]
+                    "--limit-updates", str(n), "--limit-eval", "1"]) == 0
+    assert state["updates"] == n
+    test_events = [e for e in events if e[0] == "test"]
+    dev_events = [e for e in events if e[0] == "development"]
+    assert test_events and all(u == n for _, u, _ in test_events)
+    assert all(step == "training_done" for _, _, step in test_events)
+    assert dev_events and all(u == 0 and step == "stream_ready" for _, u, step in dev_events)
+    before_final = [opens for step, opens in snapshots if step != "done"]
+    assert before_final and all(opens == [] for opens in before_final)
+    run = json.loads((tmp_path / "w" / "run.json").read_text())
+    assert [(o["split"], o["after_update"]) for o in run["test_file_opens"]] == [("test", n)]
 
 
 def test_train_refuses_existing_out(tmp_path):
