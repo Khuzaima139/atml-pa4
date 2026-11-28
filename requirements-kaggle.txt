@@ -5,6 +5,7 @@ huggingface_hub==0.36.2
 datasets==4.8.5
 accelerate==1.16.0
 safetensors==0.8.0
+peft==0.22.0
 lm_eval==0.4.13
 # Direct dependencies of lm_eval 0.4.13 (base requirements; datasets is pinned above)
 numpy==2.4.6

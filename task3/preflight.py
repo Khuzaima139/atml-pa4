@@ -6,7 +6,8 @@ extended by a sampled continuation of at most --cap tokens (that model, shared D
 (b) prefill then chunks of gamma + 1 tokens (verification windows) versus the full forward;
 (c) full sequence into the cache, crop to several lengths and re-forward the rest, versus the full forward;
 (d) one exact speculative generation per prompt (target with the student, gamma --gamma): after every round, the
-    next-token logits from each cache versus a fresh full forward of the emitted sequence.
+    next-token logits from each cache versus a fresh full forward of the emitted sequence, and the cache lengths
+    (target = context - 1, draft <= context - 1) after every round (protocol AM1).
 Each check reports the max abs logit difference, the max total-variation distance of the fp32 softmaxes and the
 argmax agreement; it passes when max abs diff <= LOGIT_TOL and max TV <= TV_TOL.
 
@@ -105,6 +106,7 @@ def main(argv=None):
               "draft": D.load_model(a.draft_path, a.device, a.dtype)}
     rec.update(model_revisions={k: pv for k, (_, pv) in models.items()})
 
+    n_rounds, length_violations = [0], []
     per_prompt, agg = [], {name: {"split_prefill": [], "verify_windows": [], "crop_reforward": [],
                                   "speculative_cache": []} for name in models}
     for i, pr in enumerate(prompts):
@@ -124,6 +126,10 @@ def main(argv=None):
         spec_stats = {"target": [], "draft": []}
 
         def probe(_rec, ctx, _out):
+            n_rounds[0] += 1
+            if t_lm.length != len(ctx) - 1 or d_lm.length > len(ctx) - 1:
+                length_violations.append({"prompt_id": pr["prompt_id"], "round": _rec["round"], "ctx": len(ctx),
+                                          "target": t_lm.length, "draft": d_lm.length})
             for name, lm in (("target", t_lm), ("draft", d_lm)):
                 with torch.inference_mode():
                     fresh = hf_full_logits(models[name][0], ctx)[-1:]
@@ -140,8 +146,11 @@ def main(argv=None):
         rec.update(per_prompt=per_prompt)
     summary = {name: {check: merge(v) for check, v in checks.items()} for name, checks in agg.items()}
     passes = {f"{name}_{check}": s["pass"] for name, checks in summary.items() for check, s in checks.items()}
+    cache_lengths = {"rounds_checked": n_rounds[0], "violations": length_violations,
+                     "pass": bool(n_rounds[0] > 0 and not length_violations)}
+    passes["speculative_cache_lengths"] = cache_lengths["pass"]
     all_pass = bool(passes) and all(passes.values())
-    rec.finish("ok", summary=summary, passes=passes, all_pass=all_pass)
+    rec.finish("ok", summary=summary, cache_lengths=cache_lengths, passes=passes, all_pass=all_pass)
     for name, checks in summary.items():
         for check, s in checks.items():
             print(f"{name:6s} {check:18s} max|d|={s['max_abs_diff']:.3g} maxTV={s['max_tv']:.3g} "

@@ -51,6 +51,7 @@ numpy==2.4.6
 packaging==26.4
 pandas==3.1.1
 pathvalidate==3.3.1
+peft==0.22.0
 pillow==13.0.0
 pluggy==1.7.0
 portalocker==4.4.2

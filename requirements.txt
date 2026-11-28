@@ -4,6 +4,7 @@ huggingface_hub==0.36.2
 datasets==4.8.5
 accelerate==1.16.0
 safetensors==0.8.0
+peft==0.22.0
 numpy==2.4.6
 scipy==1.17.1
 matplotlib==3.11.2

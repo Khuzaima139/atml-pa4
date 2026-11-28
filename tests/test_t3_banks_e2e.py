@@ -67,7 +67,9 @@ def test_preflight_outputs(preflight_json):
     d = json.loads(preflight_json.read_text())
     assert d["status"] == "ok" and d["all_pass"] is True
     checks = ("split_prefill", "verify_windows", "crop_reforward", "speculative_cache")
-    assert set(d["passes"]) == {f"{m}_{c}" for m in ("target", "draft") for c in checks}
+    assert set(d["passes"]) == {f"{m}_{c}" for m in ("target", "draft") for c in checks} | {
+        "speculative_cache_lengths"}
+    assert d["cache_lengths"]["rounds_checked"] > 0 and d["cache_lengths"]["violations"] == []
     for m in ("target", "draft"):
         for c in checks:
             s = d["summary"][m][c]

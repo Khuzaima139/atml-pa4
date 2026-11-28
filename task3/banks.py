@@ -157,6 +157,9 @@ def main(argv=None):
     }
     rec = RunRecorder(run_json, config)
 
+    import time
+
+    t_load = time.perf_counter()
     models = {}
     if a.kind in ("teacher", "exact_spec_original_gamma4"):
         models["target"] = D.load_model(a.target_path, a.device, a.dtype)
@@ -168,9 +171,11 @@ def main(argv=None):
     revisions = {name: pv for name, (_, pv) in models.items()}
     rec.update(model_revisions=revisions)
     lms = {name: HFCachedLM(m, expect_vocab=VOCAB_SIZE) for name, (m, _) in models.items()}
+    timing = {"load_s": time.perf_counter() - t_load, "prompt_s": []}
 
     records, terminations, lengths = [], Counter(), []
     for j, pr in enumerate(prompts):
+        t_prompt = time.perf_counter()
         pid = pr["prompt_id"]
         ids = D.chat_ids(tok, pr["prompt"])
         seed = generation_seed(j, a.kind, a.run_name)
@@ -196,7 +201,8 @@ def main(argv=None):
                             "response_prefix_token_ids": seq[: p - 1], "sampled_token_id": seq[p - 1]})
         terminations[term] += 1
         lengths.append(len(seq))
-        rec.update(progress={"prompts_done": j + 1, "terminations": dict(terminations),
+        timing["prompt_s"].append(time.perf_counter() - t_prompt)
+        rec.update(timing=timing, progress={"prompts_done": j + 1, "terminations": dict(terminations),
                              "positions": sum(1 for r in records if r["record_type"] == "position")})
     write_jsonl_gz(out, records)
     from common.io import sha256_gz_content
