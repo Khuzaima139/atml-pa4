@@ -1,0 +1,92 @@
+{
+  "config": {
+    "analysis_id": "t2-analysis-v1",
+    "args": {
+      "allow_uncommitted": false,
+      "analysis": "/Users/khuzaimairshad/atml-pa4/results/task2/analysis",
+      "figures_only": true,
+      "no_figures": false,
+      "out": "results/task2/figures",
+      "results": "/Users/khuzaimairshad/atml-pa4/results/task2"
+    },
+    "entry_point": "task2.analysis --figures-only"
+  },
+  "elapsed_wall_s": 1.3863050829968415,
+  "end_time": "2026-11-28T11:41:23.906160+00:00",
+  "figures": [
+    "A1_error_latency_memory.pdf",
+    "A2_gradient_error.pdf",
+    "B1_dev_curves.pdf",
+    "B2_distance_load_heatmap.pdf",
+    "B3_sweep.pdf",
+    "C1_accuracy_nll_breakdown.pdf",
+    "C2_bench.pdf"
+  ],
+  "inputs_committed": {
+    "head": "0ed00541531ad85f1995ee816e3cb4f0258d9aae",
+    "identical_to_head": true,
+    "n_files": 439,
+    "tracked": true
+  },
+  "meta": {
+    "cuda_available": false,
+    "device_count": 0,
+    "device_names": [],
+    "git_commit": "0ed00541531ad85f1995ee816e3cb4f0258d9aae",
+    "git_dirty": false,
+    "hostname": "Khuzaimas-MacBook-Pro.local",
+    "mps_available": true,
+    "package_versions": {
+      "accelerate": "1.16.0",
+      "datasets": "4.8.5",
+      "huggingface_hub": "0.36.2",
+      "lm_eval": "0.4.13",
+      "matplotlib": "3.11.2",
+      "numpy": "2.4.6",
+      "peft": null,
+      "safetensors": "0.8.0",
+      "scipy": "1.17.1",
+      "tokenizers": "0.22.2",
+      "torch": "2.15.0",
+      "transformers": "4.57.1"
+    },
+    "platform": "macOS-27.2.1-arm64-arm-64bit",
+    "python_version": "3.11.18",
+    "torch_cuda_build": null,
+    "torch_cudnn_build": null,
+    "torch_version": "2.15.0"
+  },
+  "size_inches": {
+    "A1_error_latency_memory.pdf": [
+      5.457,
+      2.693
+    ],
+    "A2_gradient_error.pdf": [
+      2.657,
+      2.543
+    ],
+    "B1_dev_curves.pdf": [
+      5.456,
+      4.343
+    ],
+    "B2_distance_load_heatmap.pdf": [
+      5.456,
+      5.037
+    ],
+    "B3_sweep.pdf": [
+      5.457,
+      2.53
+    ],
+    "C1_accuracy_nll_breakdown.pdf": [
+      5.457,
+      4.143
+    ],
+    "C2_bench.pdf": [
+      5.457,
+      2.643
+    ]
+  },
+  "start_time": "2026-11-28T11:41:23.905774+00:00",
+  "status": "ok",
+  "updated_time": "2026-11-28T11:41:23.906213+00:00"
+}
