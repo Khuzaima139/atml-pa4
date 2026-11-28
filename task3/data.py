@@ -75,6 +75,31 @@ def training_prompts_head(n_math=2, n_short=2):
     return out, prov
 
 
+def training_items(limit_math=None, limit_short=None):
+    """Training prompts (protocol D11): all 500 GSM8K training questions in manifest order (GSM8K-train-{order:04d})
+    and all 300 short-form training inputs in file order, duplicates included. limit_* keep the first n (tests only).
+
+    Returns (items, provenance); each item is dict(prompt_id, domain, category, prompt, gold, family, split).
+    """
+    rows = sorted(read_jsonl(GSM8K_TRAIN_LOCKED), key=lambda r: r["order"])
+    math = [{"prompt_id": f"GSM8K-train-{r['order']:04d}", "domain": "math", "category": "math",
+             "prompt": r["example"]["question"], "gold": r["example"]["answer"], "family": None, "split": "train"}
+            for r in rows]
+    short = [{"prompt_id": x["id"], "domain": "short", "category": "short", "prompt": x["input"], "gold": x["answer"],
+              "family": x["family"], "split": x["split"]} for x in read_jsonl(SHORT_TRAIN)]
+    if len(math) != 500 or len(short) != 300:
+        raise RuntimeError(f"training sets have {len(math)} / {len(short)} items, expected 500 / 300")
+    if any(x["split"] != "train" for x in short):
+        raise RuntimeError("short-form training file holds a non-training split")
+    if limit_math is not None:
+        math = math[:limit_math]
+    if limit_short is not None:
+        short = short[:limit_short]
+    prov = {"gsm8k_train_locked_content_sha256": _check_locked_gz(GSM8K_TRAIN_LOCKED),
+            "short_train_sha256": _check_release_file(SHORT_TRAIN)}
+    return math + short, prov
+
+
 def chat_ids(tokenizer, text) -> list:
     """Single user message, chat template, add_generation_prompt=True, no explicit system message (D4)."""
     ids = tokenizer.apply_chat_template([{"role": "user", "content": text}], tokenize=True,
