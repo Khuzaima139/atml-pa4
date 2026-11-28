@@ -1,0 +1,7 @@
+config,label,n,n_correct,accuracy,mean_answer_nll,mean_kl_post_prefill,mean_kl_teacher_forced,mean_k_recon,mean_v_recon,n_no_match,n_hit_max_new_tokens,post_hoc,status
+fp16,fp16 reference,18,18,1.0,0.0014531400653747066,0.0,0.0,0.0,0.0,0,0,True,AM4 post hoc diagnostic; not a matched-budget condition
+k_int4_token,"(a) K INT4 token-wise, V FP16",18,0,0.0,4.212834278742473,4.817181693183051,4.211044232050578,0.12991282772568483,0.0,17,18,True,AM4 post hoc diagnostic; not a matched-budget condition
+v_int4_token,"(b) K FP16, V INT4 token-wise",18,18,1.0,0.001816358739840022,0.00046235841707837407,9.256174618915086e-05,0.0,0.10630496317845962,0,0,True,AM4 post hoc diagnostic; not a matched-budget condition
+kv_int8_token,(c) K and V INT8 token-wise,18,18,1.0,0.0014023961589878632,7.414905712089926e-05,1.4831036138850272e-05,0.007527341989482503,0.00624994810352782,0,0,True,AM4 post hoc diagnostic; not a matched-budget condition
+int4_token,(d) int4_token as evaluated,18,0,0.0,4.340185973379347,5.023811591996087,4.337961620754665,0.12991282772568483,0.10630496317845962,18,18,True,AM4 post hoc diagnostic; not a matched-budget condition
+int4_channel_k,(e) int4_channel_k as evaluated,18,18,1.0,0.0019474967476627273,0.001474931740934456,0.00029529190447242907,0.039778130623975776,0.10630496317845962,0,0,True,AM4 post hoc diagnostic; not a matched-budget condition

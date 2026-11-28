@@ -1,0 +1,193 @@
+implementation,dtype,L,pass,status,error,repetitions,warmup,timer,median_ms,min_ms,max_ms,peak_allocated_bytes,baseline_allocated_bytes,added_peak_bytes
+dense,fp16,256,forward,ok,,10,3,cuda_event,0.5592800080776215,0.49375998973846436,0.6163520216941833,13049856,1048576,12001280
+dense,fp16,256,forward_backward,ok,,10,3,cuda_event,1.3885279893875122,1.2759040594100952,1.610592007637024,25237504,9568256,15669248
+dense,fp32,256,forward,ok,,10,3,cuda_event,0.5503360033035278,0.4880320131778717,0.6109439730644226,26034176,19136512,6897664
+dense,fp32,256,forward_backward,ok,,10,3,cuda_event,1.331775963306427,1.282047986984253,1.4485440254211426,33368064,19136512,14231552
+tiled_128x128,fp16,256,forward,ok,,10,3,cuda_event,2.002959966659546,1.931839942932129,2.0849599838256836,20877312,18087936,2789376
+tiled_128x128,fp16,256,forward_backward,ok,,10,3,cuda_event,4.450127840042114,4.1993279457092285,4.696000099182129,22853632,18087936,4765696
+tiled_128x128,fp32,256,forward,ok,,10,3,cuda_event,1.8203679919242859,1.7343039512634277,1.9109760522842407,22319104,19136512,3182592
+tiled_128x128,fp32,256,forward_backward,ok,,10,3,cuda_event,3.932911992073059,3.7603518962860107,4.581600189208984,24142848,19136512,5006336
+sdpa_default,fp16,256,forward,ok,,10,3,cuda_event,0.0748319998383522,0.07283200323581696,0.08601599931716919,18350080,18087936,262144
+sdpa_default,fp16,256,forward_backward,ok,,10,3,cuda_event,0.35918399691581726,0.31379199028015137,0.3993600010871887,19939840,18087936,1851904
+sdpa_default,fp32,256,forward,ok,,10,3,cuda_event,0.1756800040602684,0.17164799571037292,0.19062399864196777,19660800,19136512,524288
+sdpa_default,fp32,256,forward_backward,ok,,10,3,cuda_event,0.6224959790706635,0.6004800200462341,0.6738240122795105,22306816,19136512,3170304
+sdpa_MATH,fp16,256,forward,ok,,10,3,cuda_event,0.4811200052499771,0.45468801259994507,0.5109760165214539,25168384,18087936,7080448
+sdpa_MATH,fp16,256,forward_backward,ok,,10,3,cuda_event,1.1342560052871704,1.079584002494812,1.2041280269622803,28311552,18087936,10223616
+sdpa_MATH,fp32,256,forward,ok,,10,3,cuda_event,0.4289439916610718,0.4123519957065582,0.48022401332855225,24644096,19136512,5507584
+sdpa_MATH,fp32,256,forward_backward,ok,,10,3,cuda_event,0.9243839979171753,0.8683519959449768,0.9932479858398438,29622272,19136512,10485760
+sdpa_FLASH_ATTENTION,fp16,256,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp16,256,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp32,256,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp32,256,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_EFFICIENT_ATTENTION,fp16,256,forward,ok,,10,3,cuda_event,0.10825600102543831,0.10268799960613251,0.17577600479125977,18350080,18087936,262144
+sdpa_EFFICIENT_ATTENTION,fp16,256,forward_backward,ok,,10,3,cuda_event,0.5121279954910278,0.4508799910545349,0.5362240076065063,19939840,18087936,1851904
+sdpa_EFFICIENT_ATTENTION,fp32,256,forward,ok,,10,3,cuda_event,0.21142400056123734,0.20364800095558167,0.2452159970998764,19660800,19136512,524288
+sdpa_EFFICIENT_ATTENTION,fp32,256,forward_backward,ok,,10,3,cuda_event,0.7472480237483978,0.7274240255355835,0.8011199831962585,22306816,19136512,3170304
+sdpa_CUDNN_ATTENTION,fp16,256,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp16,256,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp32,256,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp32,256,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp16,256,forward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp16,256,forward_backward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp32,256,forward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp32,256,forward_backward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+tiled_128x128,fp16,512,forward,ok,,10,3,cuda_event,7.022351980209351,6.836832046508789,7.824031829833984,22450176,19136512,3313664
+tiled_128x128,fp16,512,forward_backward,ok,,10,3,cuda_event,15.326128005981445,15.040063858032227,15.833855628967285,30519296,19136512,11382784
+tiled_128x128,fp32,512,forward,ok,,10,3,cuda_event,6.568688154220581,6.302303791046143,7.566880226135254,25722880,21233664,4489216
+tiled_128x128,fp32,512,forward_backward,ok,,10,3,cuda_event,15.556816577911377,13.306624412536621,22.29827117919922,33381376,21233664,12147712
+sdpa_default,fp16,512,forward,ok,,10,3,cuda_event,0.15985599905252457,0.15440000593662262,0.1839359998703003,19660800,19136512,524288
+sdpa_default,fp16,512,forward_backward,ok,,10,3,cuda_event,0.5640479922294617,0.5426560044288635,0.582431972026825,22840320,19136512,3703808
+sdpa_default,fp32,512,forward,ok,,10,3,cuda_event,0.45347200334072113,0.4429120123386383,0.46112000942230225,22282240,21233664,1048576
+sdpa_default,fp32,512,forward_backward,ok,,10,3,cuda_event,1.6113120317459106,1.602463960647583,1.6179200410842896,27574272,21233664,6340608
+sdpa_MATH,fp16,512,forward,ok,,10,3,cuda_event,1.0620799660682678,1.0425920486450195,1.1083519458770752,43258368,19136512,24121856
+sdpa_MATH,fp16,512,forward_backward,ok,,10,3,cuda_event,2.2755839824676514,2.2430078983306885,2.3023359775543213,56360960,19136512,37224448
+sdpa_MATH,fp32,512,forward,ok,,10,3,cuda_event,0.9855680167675018,0.9557440280914307,1.0365439653396606,42209792,21233664,20976128
+sdpa_MATH,fp32,512,forward_backward,ok,,10,3,cuda_event,2.12227201461792,2.081792116165161,2.1834559440612793,58982400,21233664,37748736
+sdpa_FLASH_ATTENTION,fp16,512,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp16,512,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp32,512,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp32,512,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_EFFICIENT_ATTENTION,fp16,512,forward,ok,,10,3,cuda_event,0.19235199689865112,0.18585599958896637,0.21606400609016418,19660800,19136512,524288
+sdpa_EFFICIENT_ATTENTION,fp16,512,forward_backward,ok,,10,3,cuda_event,0.609935998916626,0.5934079885482788,0.6758080124855042,22840320,19136512,3703808
+sdpa_EFFICIENT_ATTENTION,fp32,512,forward,ok,,10,3,cuda_event,0.49188800156116486,0.480320006608963,0.5168960094451904,22282240,21233664,1048576
+sdpa_EFFICIENT_ATTENTION,fp32,512,forward_backward,ok,,10,3,cuda_event,1.6536960005760193,1.6435840129852295,1.7062400579452515,27574272,21233664,6340608
+sdpa_CUDNN_ATTENTION,fp16,512,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp16,512,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp32,512,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp32,512,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp16,512,forward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp16,512,forward_backward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp32,512,forward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp32,512,forward_backward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+dense,fp16,512,forward,ok,,10,3,cuda_event,0.7450079917907715,0.7066559791564941,0.8023679852485657,32522240,19136512,13385728
+dense,fp16,512,forward_backward,ok,,10,3,cuda_event,1.7545759677886963,1.6857279539108276,1.8128639459609985,46149632,19136512,27013120
+dense,fp32,512,forward,ok,,10,3,cuda_event,1.1300640106201172,1.1127359867095947,1.1632000207901,47742976,21233664,26509312
+dense,fp32,512,forward_backward,ok,,10,3,cuda_event,2.8883039951324463,2.866368055343628,2.932543992996216,74993664,21233664,53760000
+sdpa_default,fp16,1024,forward,ok,,10,3,cuda_event,0.3054399937391281,0.2900800108909607,0.31411200761795044,22282240,21233664,1048576
+sdpa_default,fp16,1024,forward_backward,ok,,10,3,cuda_event,1.1915679574012756,1.171072006225586,1.2201919555664062,28641280,21233664,7407616
+sdpa_default,fp32,1024,forward,ok,,10,3,cuda_event,1.0897279977798462,1.078752040863037,1.1451200246810913,27525120,25427968,2097152
+sdpa_default,fp32,1024,forward_backward,ok,,10,3,cuda_event,4.356672048568726,4.272831916809082,4.405375957489014,38109184,25427968,12681216
+sdpa_MATH,fp16,1024,forward,ok,,10,3,cuda_event,2.8145920038223267,2.777184009552002,2.846911907196045,109322752,21233664,88089088
+sdpa_MATH,fp16,1024,forward_backward,ok,,10,3,cuda_event,5.790447950363159,5.769184112548828,5.806272029876709,162791424,21233664,141557760
+sdpa_MATH,fp32,1024,forward,ok,,10,3,cuda_event,2.5616480112075806,2.5433599948883057,2.603519916534424,107225600,25427968,81797632
+sdpa_MATH,fp32,1024,forward_backward,ok,,10,3,cuda_event,5.44702410697937,5.422463893890381,5.556159973144531,168034304,25427968,142606336
+sdpa_FLASH_ATTENTION,fp16,1024,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp16,1024,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp32,1024,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp32,1024,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_EFFICIENT_ATTENTION,fp16,1024,forward,ok,,10,3,cuda_event,0.3296319991350174,0.3210560083389282,0.34863999485969543,22282240,21233664,1048576
+sdpa_EFFICIENT_ATTENTION,fp16,1024,forward_backward,ok,,10,3,cuda_event,1.2332960367202759,1.2204480171203613,1.2685760259628296,28641280,21233664,7407616
+sdpa_EFFICIENT_ATTENTION,fp32,1024,forward,ok,,10,3,cuda_event,1.1507039666175842,1.096992015838623,1.1869440078735352,27525120,25427968,2097152
+sdpa_EFFICIENT_ATTENTION,fp32,1024,forward_backward,ok,,10,3,cuda_event,4.384335994720459,4.305759906768799,4.457888126373291,38109184,25427968,12681216
+sdpa_CUDNN_ATTENTION,fp16,1024,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp16,1024,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp32,1024,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp32,1024,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp16,1024,forward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp16,1024,forward_backward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp32,1024,forward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp32,1024,forward_backward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+dense,fp16,1024,forward,ok,,10,3,cuda_event,1.8808159828186035,1.8506239652633667,1.8984639644622803,73695232,21233664,52461568
+dense,fp16,1024,forward_backward,ok,,10,3,cuda_event,4.727872133255005,4.701024055480957,4.75113582611084,126115840,21233664,104882176
+dense,fp32,1024,forward,ok,,10,3,cuda_event,3.100511908531189,3.086303949356079,3.1237759590148926,129302528,25427968,103874560
+dense,fp32,1024,forward_backward,ok,,10,3,cuda_event,8.3023681640625,8.282784461975098,8.348480224609375,234135552,25427968,208707584
+tiled_128x128,fp16,1024,forward,ok,,10,3,cuda_event,22.880800247192383,22.502208709716797,25.255775451660156,25722880,21233664,4489216
+tiled_128x128,fp16,1024,forward_backward,ok,,10,3,cuda_event,49.694353103637695,48.30364990234375,54.002750396728516,56626176,21233664,35392512
+tiled_128x128,fp32,1024,forward,ok,,10,3,cuda_event,19.9203519821167,19.715167999267578,22.636415481567383,33062912,25427968,7634944
+tiled_128x128,fp32,1024,forward_backward,ok,,10,3,cuda_event,42.81340789794922,41.85542297363281,45.007102966308594,57674752,25427968,32246784
+sdpa_MATH,fp16,2048,forward,ok,,10,3,cuda_event,10.235312461853027,10.212224006652832,10.254912376403809,360989184,25427968,335561216
+sdpa_MATH,fp16,2048,forward_backward,ok,,10,3,cuda_event,17.593120574951172,15.675647735595703,19.911840438842773,576978944,25427968,551550976
+sdpa_MATH,fp32,2048,forward,ok,,10,3,cuda_event,7.164063930511475,7.047232151031494,7.279967784881592,356794880,33816576,322978304
+sdpa_MATH,fp32,2048,forward_backward,ok,,10,3,cuda_event,14.965007781982422,14.314335823059082,15.059743881225586,587464704,33816576,553648128
+sdpa_FLASH_ATTENTION,fp16,2048,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp16,2048,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp32,2048,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp32,2048,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_EFFICIENT_ATTENTION,fp16,2048,forward,ok,,10,3,cuda_event,0.3946560025215149,0.3738560080528259,0.441536009311676,27525120,25427968,2097152
+sdpa_EFFICIENT_ATTENTION,fp16,2048,forward_backward,ok,,10,3,cuda_event,1.510975956916809,1.4710719585418701,1.5301120281219482,40243200,25427968,14815232
+sdpa_EFFICIENT_ATTENTION,fp32,2048,forward,ok,,10,3,cuda_event,1.4374080300331116,1.382591962814331,1.5096319913864136,38010880,33816576,4194304
+sdpa_EFFICIENT_ATTENTION,fp32,2048,forward_backward,ok,,10,3,cuda_event,6.3754401206970215,5.6236162185668945,6.556352138519287,59179008,33816576,25362432
+sdpa_CUDNN_ATTENTION,fp16,2048,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp16,2048,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp32,2048,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp32,2048,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp16,2048,forward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp16,2048,forward_backward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp32,2048,forward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp32,2048,forward_backward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+dense,fp16,2048,forward,ok,,10,3,cuda_event,6.525424003601074,6.505472183227539,6.544191837310791,233111552,25427968,207683584
+dense,fp16,2048,forward_backward,ok,,10,3,cuda_event,14.839392185211182,14.768704414367676,17.01215934753418,438616064,25427968,413188096
+dense,fp32,2048,forward,ok,,10,3,cuda_event,9.092000007629395,9.048704147338867,9.118240356445312,444989440,33816576,411172864
+dense,fp32,2048,forward_backward,ok,,10,3,cuda_event,24.934783935546875,24.866527557373047,25.049375534057617,855982080,33816576,822165504
+tiled_128x128,fp16,2048,forward,ok,,10,3,cuda_event,80.34320068359375,79.5929946899414,83.3172836303711,33062912,25427968,7634944
+tiled_128x128,fp16,2048,forward_backward,ok,,10,3,cuda_event,174.11354064941406,169.9034881591797,182.1265869140625,147352576,25427968,121924608
+tiled_128x128,fp32,2048,forward,ok,,10,3,cuda_event,69.58135986328125,68.18605041503906,71.70982360839844,47742976,33816576,13926400
+tiled_128x128,fp32,2048,forward_backward,ok,,10,3,cuda_event,152.3522720336914,146.4407958984375,159.92691040039062,131623936,33816576,97807360
+sdpa_default,fp16,2048,forward,ok,,10,3,cuda_event,0.540479987859726,0.5267199873924255,0.5537599921226501,27525120,25427968,2097152
+sdpa_default,fp16,2048,forward_backward,ok,,10,3,cuda_event,2.2294400930404663,2.19270396232605,2.2534079551696777,40243200,25427968,14815232
+sdpa_default,fp32,2048,forward,ok,,10,3,cuda_event,2.1521921157836914,2.0751678943634033,2.2944960594177246,38010880,33816576,4194304
+sdpa_default,fp32,2048,forward_backward,ok,,10,3,cuda_event,8.407984256744385,8.282208442687988,8.504608154296875,59179008,33816576,25362432
+sdpa_FLASH_ATTENTION,fp16,4096,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp16,4096,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp32,4096,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp32,4096,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_EFFICIENT_ATTENTION,fp16,4096,forward,ok,,10,3,cuda_event,2.8937119245529175,2.7987520694732666,2.937311887741089,38010880,33816576,4194304
+sdpa_EFFICIENT_ATTENTION,fp16,4096,forward_backward,ok,,10,3,cuda_event,12.180335998535156,12.100704193115234,12.251680374145508,63447040,33816576,29630464
+sdpa_EFFICIENT_ATTENTION,fp32,4096,forward,ok,,10,3,cuda_event,6.601871967315674,6.50278377532959,6.800576210021973,58982400,50593792,8388608
+sdpa_EFFICIENT_ATTENTION,fp32,4096,forward_backward,ok,,10,3,cuda_event,25.718463897705078,25.00092887878418,27.84444808959961,101318656,50593792,50724864
+sdpa_CUDNN_ATTENTION,fp16,4096,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp16,4096,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp32,4096,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp32,4096,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp16,4096,forward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp16,4096,forward_backward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp32,4096,forward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp32,4096,forward_backward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+dense,fp16,4096,forward,ok,,10,3,cuda_event,24.157615661621094,19.298208236694336,24.94812774658203,860225536,33816576,826408960
+dense,fp16,4096,forward_backward,ok,,10,3,cuda_event,51.43315315246582,51.27827072143555,51.745662689208984,1673887744,33816576,1640071168
+dense,fp32,4096,forward,ok,,10,3,cuda_event,35.84969520568848,35.70169448852539,36.01619338989258,1686634496,50593792,1636040704
+dense,fp32,4096,forward_backward,ok,,10,3,cuda_event,97.71252822875977,97.44172668457031,97.9031982421875,3313926144,50593792,3263332352
+tiled_128x128,fp16,4096,forward,ok,,10,3,cuda_event,330.6568145751953,326.3113098144531,358.420654296875,47742976,33816576,13926400
+tiled_128x128,fp16,4096,forward_backward,ok,,10,3,cuda_event,669.3003540039062,657.6674194335938,710.1380004882812,480586752,33816576,446770176
+tiled_128x128,fp32,4096,forward,ok,,10,3,cuda_event,258.9814453125,256.9176330566406,266.3089904785156,77103104,50593792,26509312
+tiled_128x128,fp32,4096,forward_backward,ok,,10,3,cuda_event,578.114990234375,567.9049072265625,603.3241577148438,380972032,50593792,330378240
+sdpa_default,fp16,4096,forward,ok,,10,3,cuda_event,1.1112319827079773,1.0888960361480713,1.1735039949417114,38010880,33816576,4194304
+sdpa_default,fp16,4096,forward_backward,ok,,10,3,cuda_event,6.071696043014526,4.980288028717041,6.617824077606201,63447040,33816576,29630464
+sdpa_default,fp32,4096,forward,ok,,10,3,cuda_event,5.991568088531494,4.904384136199951,6.411168098449707,58982400,50593792,8388608
+sdpa_default,fp32,4096,forward_backward,ok,,10,3,cuda_event,26.360831260681152,25.87830352783203,27.510143280029297,101318656,50593792,50724864
+sdpa_MATH,fp16,4096,forward,ok,,10,3,cuda_event,31.725232124328613,31.436800003051758,32.039329528808594,1342472704,33816576,1308656128
+sdpa_MATH,fp16,4096,forward_backward,ok,,10,3,cuda_event,61.37526512145996,60.70729446411133,63.49030303955078,2210660352,33816576,2176843776
+sdpa_MATH,fp32,4096,forward,ok,,10,3,cuda_event,28.9302396774292,28.44060707092285,29.112415313720703,1334084096,50593792,1283490304
+sdpa_MATH,fp32,4096,forward_backward,ok,,10,3,cuda_event,59.073551177978516,58.6080322265625,60.20380783081055,2231631872,50593792,2181038080
+sdpa_EFFICIENT_ATTENTION,fp16,8192,forward,ok,,10,3,cuda_event,4.651360034942627,3.88371205329895,5.891839981079102,58982400,50593792,8388608
+sdpa_EFFICIENT_ATTENTION,fp16,8192,forward_backward,ok,,10,3,cuda_event,24.66438388824463,24.172927856445312,26.524831771850586,109854720,50593792,59260928
+sdpa_EFFICIENT_ATTENTION,fp32,8192,forward,ok,,10,3,cuda_event,24.009183883666992,23.483840942382812,25.7194881439209,100925440,84148224,16777216
+sdpa_EFFICIENT_ATTENTION,fp32,8192,forward_backward,ok,,10,3,cuda_event,100.81439971923828,100.25043487548828,101.43695831298828,185597952,84148224,101449728
+sdpa_CUDNN_ATTENTION,fp16,8192,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp16,8192,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp32,8192,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_CUDNN_ATTENTION,fp32,8192,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp16,8192,forward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp16,8192,forward_backward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp32,8192,forward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+sdpa_OVERRIDEABLE,fp32,8192,forward_backward,unsupported,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,10,3,cuda_event,,,,,,
+dense,fp16,8192,forward,ok,,10,3,cuda_event,78.8449592590332,77.16639709472656,79.25798034667969,3347578880,50593792,3296985088
+dense,fp16,8192,forward_backward,ok,,10,3,cuda_event,211.70539093017578,209.9402313232422,213.0281219482422,6585516032,50593792,6534922240
+dense,fp32,8192,forward,ok,,10,3,cuda_event,151.2635498046875,150.8534698486328,153.07891845703125,6611009536,84148224,6526861312
+dense,fp32,8192,forward_backward,ok,,10,3,cuda_event,424.5182342529297,419.7752380371094,428.2630615234375,13086818304,84148224,13002670080
+tiled_128x128,fp16,8192,forward,ok,,10,3,cuda_event,1145.30615234375,1134.076171875,1208.83056640625,77103104,50593792,26509312
+tiled_128x128,fp16,8192,forward_backward,ok,,10,3,cuda_event,2629.7591552734375,2617.140380859375,2672.137451171875,1754180608,50593792,1703586816
+tiled_128x128,fp32,8192,forward,ok,,10,3,cuda_event,1109.0751953125,1097.4759521484375,1144.4119873046875,135823360,84148224,51675136
+tiled_128x128,fp32,8192,forward_backward,ok,,10,3,cuda_event,2576.553955078125,2567.869140625,2623.483642578125,1285467136,84148224,1201318912
+sdpa_default,fp16,8192,forward,ok,,10,3,cuda_event,5.202816009521484,4.29420804977417,7.368768215179443,58982400,50593792,8388608
+sdpa_default,fp16,8192,forward_backward,ok,,10,3,cuda_event,27.89339256286621,27.664928436279297,30.325759887695312,109854720,50593792,59260928
+sdpa_default,fp32,8192,forward,ok,,10,3,cuda_event,27.024703979492188,26.50444793701172,28.696895599365234,100925440,84148224,16777216
+sdpa_default,fp32,8192,forward_backward,ok,,10,3,cuda_event,113.79706954956055,113.14256286621094,114.39507293701172,185597952,84148224,101449728
+sdpa_MATH,fp16,8192,forward,ok,,10,3,cuda_event,157.88777923583984,153.81039428710938,159.55075073242188,5218042368,50593792,5167448576
+sdpa_MATH,fp16,8192,forward_backward,ok,,10,3,cuda_event,321.45970153808594,314.91729736328125,324.23736572265625,8699248640,50593792,8648654848
+sdpa_MATH,fp32,8192,forward,ok,,10,3,cuda_event,149.44374084472656,145.61990356445312,153.5609588623047,5201265152,84148224,5117116928
+sdpa_MATH,fp32,8192,forward_backward,ok,,10,3,cuda_event,314.15167236328125,307.9290771484375,320.45477294921875,8741191680,84148224,8657043456
+sdpa_FLASH_ATTENTION,fp16,8192,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp16,8192,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp32,8192,forward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,
+sdpa_FLASH_ATTENTION,fp32,8192,forward_backward,unsupported,No available kernel. Aborting execution.,10,3,cuda_event,,,,,,

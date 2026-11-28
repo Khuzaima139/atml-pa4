@@ -1,0 +1,33 @@
+source,status,implementation,dtype,kind_or_pass,error,L,n_rows
+bench,unsupported,sdpa_CUDNN_ATTENTION,fp16,forward,No available kernel. Aborting execution.,"[256, 512, 1024, 2048, 4096, 8192]",6
+bench,unsupported,sdpa_CUDNN_ATTENTION,fp16,forward_backward,No available kernel. Aborting execution.,"[256, 512, 1024, 2048, 4096, 8192]",6
+bench,unsupported,sdpa_CUDNN_ATTENTION,fp32,forward,No available kernel. Aborting execution.,"[256, 512, 1024, 2048, 4096, 8192]",6
+bench,unsupported,sdpa_CUDNN_ATTENTION,fp32,forward_backward,No available kernel. Aborting execution.,"[256, 512, 1024, 2048, 4096, 8192]",6
+bench,unsupported,sdpa_FLASH_ATTENTION,fp16,forward,No available kernel. Aborting execution.,"[256, 512, 1024, 2048, 4096, 8192]",6
+bench,unsupported,sdpa_FLASH_ATTENTION,fp16,forward_backward,No available kernel. Aborting execution.,"[256, 512, 1024, 2048, 4096, 8192]",6
+bench,unsupported,sdpa_FLASH_ATTENTION,fp32,forward,No available kernel. Aborting execution.,"[256, 512, 1024, 2048, 4096, 8192]",6
+bench,unsupported,sdpa_FLASH_ATTENTION,fp32,forward_backward,No available kernel. Aborting execution.,"[256, 512, 1024, 2048, 4096, 8192]",6
+bench,unsupported,sdpa_OVERRIDEABLE,fp16,forward,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,"[256, 512, 1024, 2048, 4096, 8192]",6
+bench,unsupported,sdpa_OVERRIDEABLE,fp16,forward_backward,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,"[256, 512, 1024, 2048, 4096, 8192]",6
+bench,unsupported,sdpa_OVERRIDEABLE,fp32,forward,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,"[256, 512, 1024, 2048, 4096, 8192]",6
+bench,unsupported,sdpa_OVERRIDEABLE,fp32,forward_backward,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,"[256, 512, 1024, 2048, 4096, 8192]",6
+verify,unsupported,sdpa_CUDNN_ATTENTION,fp16,accuracy,No available kernel. Aborting execution.,"[256, 512, 1024, 2048, 4096, 8192]",6
+verify,unsupported,sdpa_CUDNN_ATTENTION,fp16,edge_extreme,No available kernel. Aborting execution.,"[256, 256]",2
+verify,unsupported,sdpa_CUDNN_ATTENTION,fp16,edge_masked_row,No available kernel. Aborting execution.,[256],1
+verify,unsupported,sdpa_CUDNN_ATTENTION,fp32,accuracy,No available kernel. Aborting execution.,"[256, 512, 1024, 2048, 4096, 8192]",6
+verify,unsupported,sdpa_CUDNN_ATTENTION,fp32,edge_extreme,No available kernel. Aborting execution.,"[256, 256]",2
+verify,unsupported,sdpa_CUDNN_ATTENTION,fp32,edge_masked_row,No available kernel. Aborting execution.,[256],1
+verify,unsupported,sdpa_FLASH_ATTENTION,fp16,accuracy,No available kernel. Aborting execution.,"[256, 512, 1024, 2048, 4096, 8192]",6
+verify,unsupported,sdpa_FLASH_ATTENTION,fp16,edge_extreme,No available kernel. Aborting execution.,"[256, 256]",2
+verify,unsupported,sdpa_FLASH_ATTENTION,fp16,edge_masked_row,No available kernel. Aborting execution.,[256],1
+verify,unsupported,sdpa_FLASH_ATTENTION,fp32,accuracy,No available kernel. Aborting execution.,"[256, 512, 1024, 2048, 4096, 8192]",6
+verify,unsupported,sdpa_FLASH_ATTENTION,fp32,edge_extreme,No available kernel. Aborting execution.,"[256, 256]",2
+verify,unsupported,sdpa_FLASH_ATTENTION,fp32,edge_masked_row,No available kernel. Aborting execution.,[256],1
+verify,unsupported,sdpa_OVERRIDEABLE,fp16,accuracy,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,"[256, 512, 1024, 2048, 4096, 8192]",6
+verify,unsupported,sdpa_OVERRIDEABLE,fp16,edge_extreme,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,"[256, 256]",2
+verify,unsupported,sdpa_OVERRIDEABLE,fp16,edge_masked_row,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,[256],1
+verify,unsupported,sdpa_OVERRIDEABLE,fp32,accuracy,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,"[256, 512, 1024, 2048, 4096, 8192]",6
+verify,unsupported,sdpa_OVERRIDEABLE,fp32,edge_extreme,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,"[256, 256]",2
+verify,unsupported,sdpa_OVERRIDEABLE,fp32,edge_masked_row,No viable backend for scaled_dot_product_attention was found. This is likely due to turning off both the math kernel and the fused kernels.,[256],1
+verify and bench,skipped,,,,no row with this status,[],0
+verify and bench,oom,,,,no row with this status,[],0

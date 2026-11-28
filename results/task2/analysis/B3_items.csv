@@ -1,0 +1,7 @@
+item,value,source
+extra persistent state,none (AM3.4); the curriculum changes only the batch composition,protocol AM3.4
+attended positions,"{""dilated"": 64, ""window"": 64}","run.json theoretical_costs (local_dilated, T 256): positions per query at the last position by head type; two window heads and two dilated heads per layer"
+attended pairs per layer at T 256,45376,run.json theoretical_costs
+trainable parameters,462336,run.json parameter_count (0% change from the dense baseline)
+"sequences consumed (near, mixed)","[[47984, 96016], [47984, 96016], [47984, 96016]]",run.json curriculum_consumed per seed
+development-selection rule,AM3.3: the intervention and its schedule were chosen from the B1/B2 development learning curves (AM3.2) and fixed in protocol amendment AM3 before any B3 run; no B3 setting is selected on any data and no B3 checkpoint is chosen (the update-4500 model is the B3 model),protocol AM3.3

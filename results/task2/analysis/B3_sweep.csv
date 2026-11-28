@@ -1,0 +1,17 @@
+mechanism,label,T,B,dtype,median_ms,min_ms,max_ms,repetitions,warmup,peak_allocated_bytes,baseline_allocated_bytes,mask_bytes,mask_shape,linear_prefix_bytes_per_layer,linear_prefix_shape,note
+dense,Dense,256,2,float32,0.9481119811534882,0.887391984462738,1.1241919994354248,10,3,14301184,2111488,0,,0,,SDPA is_causal=True; no mask tensor
+dense,Dense,1024,2,float32,2.517248034477234,2.478048086166382,2.6052160263061523,10,3,22951936,12466176,0,,0,,SDPA is_causal=True; no mask tensor
+dense,Dense,4096,2,float32,18.092080116271973,17.781856536865234,18.298240661621094,10,3,57554944,15611904,0,,0,,SDPA is_causal=True; no mask tensor
+dense,Dense,8192,2,float32,45.72110366821289,45.281280517578125,46.565345764160156,10,3,103692288,19806208,0,,0,,SDPA is_causal=True; no mask tensor
+window,Window 64,256,2,float32,1.1053919792175293,1.045375943183899,1.2558720111846924,10,3,14366720,11679744,65536,"[256, 256]",0,,explicit dense boolean mask through SDPA (correctness implementation)
+window,Window 64,1024,2,float32,3.682671904563904,3.6574079990386963,3.909343957901001,10,3,24000512,12466176,1048576,"[1024, 1024]",0,,explicit dense boolean mask through SDPA (correctness implementation)
+window,Window 64,4096,2,float32,26.421232223510742,25.604095458984375,27.787071228027344,10,3,124663808,15611904,16777216,"[4096, 4096]",0,,explicit dense boolean mask through SDPA (correctness implementation)
+window,Window 64,8192,2,float32,96.93539428710938,96.74540710449219,97.93724822998047,10,3,405682176,19806208,67108864,"[8192, 8192]",0,,explicit dense boolean mask through SDPA (correctness implementation)
+local_dilated,Local + dilated,256,2,float32,1.1017760038375854,1.0475519895553589,1.1673599481582642,10,3,14563328,11679744,262144,"[4, 256, 256]",0,,explicit dense per-head boolean mask through SDPA (correctness implementation)
+local_dilated,Local + dilated,1024,2,float32,3.869312047958374,3.831808090209961,3.8993918895721436,10,3,39729152,12466176,4194304,"[4, 1024, 1024]",0,,explicit dense per-head boolean mask through SDPA (correctness implementation)
+local_dilated,Local + dilated,4096,2,float32,28.335887908935547,27.818912506103516,30.45894432067871,10,3,376322048,15611904,67108864,"[4, 4096, 4096]",0,,explicit dense per-head boolean mask through SDPA (correctness implementation)
+local_dilated,Local + dilated,8192,2,float32,105.94416046142578,105.78534698486328,106.21686553955078,10,3,1412315136,19806208,268435456,"[4, 8192, 8192]",0,,explicit dense per-head boolean mask through SDPA (correctness implementation)
+linear,Linear,256,2,float32,1.7029280066490173,1.6509120464324951,1.8132799863815308,10,3,38680576,11679744,0,,8388608,"[2, 4, 256, 32, 32]","cumulative-sum prefix tensor of phi(k) v^T, FP32, one per layer"
+linear,Linear,1024,2,float32,4.877408027648926,4.841055870056152,5.243103981018066,10,3,120469504,12466176,0,,33554432,"[2, 4, 1024, 32, 32]","cumulative-sum prefix tensor of phi(k) v^T, FP32, one per layer"
+linear,Linear,4096,2,float32,16.41038417816162,16.253183364868164,16.590848922729492,10,3,447625216,15611904,0,,134217728,"[2, 4, 4096, 32, 32]","cumulative-sum prefix tensor of phi(k) v^T, FP32, one per layer"
+linear,Linear,8192,2,float32,32.6715202331543,31.98975944519043,33.28249740600586,10,3,883832832,19806208,0,,268435456,"[2, 4, 8192, 32, 32]","cumulative-sum prefix tensor of phi(k) v^T, FP32, one per layer"
