@@ -3,8 +3,9 @@ training or collection process loads, and a record of every held-out file the pr
 
 Hash definition: sha256 of the UTF-8 prompt text exactly as released, and sha256 of its normalised form (Unicode
 NFKC, lower case, runs of whitespace collapsed to one space, stripped). An item is refused when either hash is listed.
-The list file is one gzip JSON object (mtime 0): version, hash definition, source files with their sha256, and per
-prompt its ID, domain, group and both hashes, in release order.
+The list file is one gzip JSON object (mtime 0): version, hash definition, source files with their sha256 (a gzip
+file by its decompressed content, content_sha256, since data preparation regenerates it with a new header; any other
+file by its raw bytes, sha256), and per prompt its ID, domain, group and both hashes, in release order.
 """
 import gzip
 import hashlib
@@ -16,7 +17,7 @@ import unicodedata
 from pathlib import Path
 
 from common.freeze import require_committed
-from common.io import sha256_file
+from common.io import sha256_file, sha256_gz_content
 from common.paths import REPO_ROOT, RESULTS_DIR
 
 HELDOUT_ID = "t3-heldout-hash-v1"
@@ -46,13 +47,20 @@ def heldout_dirs() -> list:
     return [RESULTS_DIR / "task3" / "banks"]
 
 
+def file_record(path, root) -> dict:
+    """Name relative to root and hash: decompressed content for a .gz file, raw bytes otherwise."""
+    name = Path(path).relative_to(root).as_posix()
+    if name.endswith(".gz"):
+        return {"name": name, "content_sha256": sha256_gz_content(path)}
+    return {"name": name, "sha256": sha256_file(path)}
+
+
 def build_heldout_list() -> dict:
     from . import data as D
 
     prompts, prov = D.heldout_prompts()
     return {"heldout_id": HELDOUT_ID, "hash_definition": HASH_DEFINITION,
-            "files": [{"name": Path(p).relative_to(D.DATA_REPO_DIR).as_posix(), "sha256": sha256_file(p)}
-                      for p in heldout_files()],
+            "files": [file_record(p, D.DATA_REPO_DIR) for p in heldout_files()],
             "data_provenance": prov, "n": len(prompts),
             "prompts": [{"prompt_id": p["prompt_id"], "domain": p["domain"], "group": p["group"],
                          **text_hashes(p["prompt"])} for p in prompts]}

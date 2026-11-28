@@ -226,3 +226,43 @@ def test_zip_excludes_smoke(tmp_path):
     (tmp_path / "a" / "smoke_x.json").write_text("{}")
     res = K.make_zip(tmp_path / "o.zip", [tmp_path / "a", tmp_path / "missing"])
     assert res["n_files"] == 1 and res["missing"] == [str(tmp_path / "missing")]
+
+
+def _regzip(path, mtime):
+    import gzip
+
+    with gzip.open(path, "rb") as fh:
+        data = fh.read()
+    path.unlink()
+    with open(path, "xb") as raw:
+        with gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=mtime, compresslevel=6) as gz:
+            gz.write(data)
+
+
+@pytest.mark.skipif(not D.GSM8K_TEST_LOCKED.is_file(), reason="course data repository not prepared")
+def test_data_check_passes_after_regzip_with_new_mtime(tmp_path, monkeypatch):
+    """Data preparation regenerates the locked gzip files with a new header; the data check compares content."""
+    import shutil
+
+    from common.io import sha256_file
+    from task3 import heldout as H
+
+    root = tmp_path / "datasets"
+    names = {"GSM8K_TEST_LOCKED": D.GSM8K_TEST_LOCKED, "GSM8K_TRAIN_LOCKED": D.GSM8K_TRAIN_LOCKED,
+             "GSM8K_TEST_IDS": D.GSM8K_TEST_IDS, "SHORT_TEST": D.SHORT_TEST, "SHORT_TRAIN": D.SHORT_TRAIN,
+             "RELEASE_SUMS": D.RELEASE_SUMS}
+    for attr, src in names.items():
+        dst = root / Path(src).relative_to(D.DATA_REPO_DIR)
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src, dst)
+        monkeypatch.setattr(D, attr, dst)
+    monkeypatch.setattr(D, "DATA_REPO_DIR", root)
+    for attr in ("GSM8K_TEST_LOCKED", "GSM8K_TRAIN_LOCKED"):
+        before = sha256_file(getattr(D, attr))
+        _regzip(getattr(D, attr), mtime=1_700_000_000)
+        assert sha256_file(getattr(D, attr)) != before
+    res = K.data_check()
+    assert res["heldout_list_equals_rebuild"] is True
+    assert res["training_items"] == {"math": 500, "short": 300}
+    gz = [f for f in H.read_heldout_list()["files"] if f["name"].endswith(".gz")]
+    assert gz and all("content_sha256" in f and "sha256" not in f for f in gz)
