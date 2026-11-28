@@ -1,0 +1,751 @@
+{
+  "concurrent_jobs": {
+    "alive_at_start": [],
+    "end": "2026-11-28T00:40:28.304012+00:00",
+    "gpu": "0",
+    "job": "kv_diag",
+    "method": "intervals written by the job wrapper into the status directory: start before this job's end and end after its start (or no end yet)",
+    "overlapping": [],
+    "overlapping_same_gpu": [],
+    "start": "2026-11-28T00:37:23.604482+00:00",
+    "status_dir": "notes/kaggle_status"
+  },
+  "config": {
+    "attn_implementation": "sdpa",
+    "configs": [
+      "fp16",
+      "k_int4_token",
+      "v_int4_token",
+      "kv_int8_token",
+      "int4_token",
+      "int4_channel_k"
+    ],
+    "control_specs": {
+      "k_int4_token": {
+        "k": "int4_token",
+        "v": "fp16"
+      },
+      "kv_int8_token": {
+        "k": "int8_token",
+        "v": "int8_token"
+      },
+      "v_int4_token": {
+        "k": "fp16",
+        "v": "int4_token"
+      }
+    },
+    "data": {
+      "manifest_sha256": "6e2c12dae84805ed54666ff647a06e51d9412adde65729635ce07a0caa64fc13",
+      "path": "/kaggle/working/atml-pa4/external/atml-pa4-datasets/data/kv_retrieval/kv_retrieval_cases.jsonl.gz",
+      "rel": "data/kv_retrieval/kv_retrieval_cases.jsonl.gz",
+      "sha256": "6e2c12dae84805ed54666ff647a06e51d9412adde65729635ce07a0caa64fc13",
+      "sha256_decompressed": "e12679b6a07e03cb6330b4a5987bd149953e46907dd9a1ebaa4936cdfca2b1d9"
+    },
+    "device": "cuda:0",
+    "diagnostic_prompt_ids": [
+      "KV-2048-end-0-00",
+      "KV-2048-end-2-00",
+      "KV-2048-end-8-00",
+      "KV-2048-middle-0-00",
+      "KV-2048-middle-2-00",
+      "KV-2048-middle-8-00",
+      "KV-2048-start-0-00",
+      "KV-2048-start-2-00",
+      "KV-2048-start-8-00",
+      "KV-4096-end-0-00",
+      "KV-4096-end-2-00",
+      "KV-4096-end-8-00",
+      "KV-4096-middle-0-00",
+      "KV-4096-middle-2-00",
+      "KV-4096-middle-8-00",
+      "KV-4096-start-0-00",
+      "KV-4096-start-2-00",
+      "KV-4096-start-8-00"
+    ],
+    "dtype": "float16",
+    "evaluated_code_path": [
+      "fp16",
+      "int4_token",
+      "int4_channel_k"
+    ],
+    "generation": {
+      "decoder": "argmax loop task2.kv_cache_ops.greedy_decode; the last generated token is not fed back",
+      "settings": {
+        "do_sample": false,
+        "eos_token_id": [
+          151645,
+          151643
+        ],
+        "max_new_tokens": 32,
+        "num_beams": 1,
+        "pad_token_id": 151643,
+        "repetition_penalty": 1.0,
+        "temperature": null,
+        "top_k": null,
+        "top_p": null
+      },
+      "stop": "EOS ids or max_new_tokens"
+    },
+    "group_size": 64,
+    "int8_storage": "one uint8 code per element, no packing; FP16 scale and offset per group",
+    "labels": {
+      "fp16": "fp16 reference",
+      "int4_channel_k": "(e) int4_channel_k as evaluated",
+      "int4_token": "(d) int4_token as evaluated",
+      "k_int4_token": "(a) K INT4 token-wise, V FP16",
+      "kv_int8_token": "(c) K and V INT8 token-wise",
+      "v_int4_token": "(b) K FP16, V INT4 token-wise"
+    },
+    "limited": false,
+    "limits": {
+      "model_path": null,
+      "prompts": null
+    },
+    "median_rule": "torch.quantile(q=0.5, linear): mean of the two middle values for an even count",
+    "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+    "model_path": null,
+    "model_revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306",
+    "n_prompts": 18,
+    "npz_arrays": {
+      "masks": [
+        "k_top",
+        "v_top"
+      ],
+      "per_channel": [
+        "k_abs_max",
+        "k_abs_median",
+        "v_abs_max",
+        "v_abs_median",
+        "k_norm",
+        "v_norm",
+        "k_err_token",
+        "k_err_channel",
+        "v_err_token"
+      ],
+      "per_head": [
+        "k_ratio",
+        "v_ratio",
+        "k_err_token_top",
+        "k_err_token_rest",
+        "k_err_channel_top",
+        "k_err_channel_rest",
+        "v_err_token_top",
+        "v_err_token_rest"
+      ],
+      "scalars": [
+        "context_len",
+        "n_top",
+        "format_version",
+        "version_ascii"
+      ]
+    },
+    "npz_format_version": 1,
+    "order_rule": "task2.kv_diag.CONFIGS rotated left by (prompt_index mod 6); prompt_index = rank of the id",
+    "output_files": {
+      "npz_dir": "npz",
+      "prompts": "prompt_rows.jsonl",
+      "rows": "control_rows.jsonl",
+      "run": "run.json"
+    },
+    "pipeline_version": "task2-part-c-v1",
+    "predictions": {
+      "a_k_only": "k_int4_token exact match at most 0.1",
+      "b_v_only": "v_int4_token exact match within 5 points of fp16",
+      "c_int8": "kv_int8_token exact match within 5 points of fp16 and mean teacher-forced KL below 0.05",
+      "k_ratio": "mean K channel max/median ratio at least 3 times the mean V ratio",
+      "k_rest_error": "token-wise K error on the non-outlier channels at least 3 times channel-K's",
+      "rival_token_path_defect": "kv_int8_token prediction does not hold"
+    },
+    "prompt_ids": [
+      "KV-2048-end-0-00",
+      "KV-2048-end-2-00",
+      "KV-2048-end-8-00",
+      "KV-2048-middle-0-00",
+      "KV-2048-middle-2-00",
+      "KV-2048-middle-8-00",
+      "KV-2048-start-0-00",
+      "KV-2048-start-2-00",
+      "KV-2048-start-8-00",
+      "KV-4096-end-0-00",
+      "KV-4096-end-2-00",
+      "KV-4096-end-8-00",
+      "KV-4096-middle-0-00",
+      "KV-4096-middle-2-00",
+      "KV-4096-middle-8-00",
+      "KV-4096-start-0-00",
+      "KV-4096-start-2-00",
+      "KV-4096-start-8-00"
+    ],
+    "protocol": "task2/PROTOCOL.md AM4",
+    "quant": {
+      "fp16": [
+        "fp16",
+        "fp16"
+      ],
+      "int4_channel_k": [
+        "int4_channel",
+        "int4_token"
+      ],
+      "int4_token": [
+        "int4_token",
+        "int4_token"
+      ],
+      "k_int4_token": [
+        "int4_token",
+        "fp16"
+      ],
+      "kv_int8_token": [
+        "int8_token",
+        "int8_token"
+      ],
+      "v_int4_token": [
+        "fp16",
+        "int4_token"
+      ]
+    },
+    "scorer": "task2-kv-scorer-v1: first match of (?<!\\d)\\d{5}(?!\\d) in the generated text equals the gold code; no match is incorrect and flagged",
+    "seed": 6304,
+    "teacher_forced_session_device": "cpu",
+    "top_channels_rule": "ceil(top_fraction * head_dim) per layer and KV head by channel max |x|; ties to the lower channel index",
+    "top_fraction": 0.01,
+    "version": "task2-kv-diag-v1"
+  },
+  "elapsed_wall_s": 180.23087245,
+  "end_time": "2026-11-28T00:40:25.905628+00:00",
+  "environment": {
+    "cpu_threads": 2,
+    "cudnn_allow_tf32": true,
+    "cudnn_sdp_enabled": true,
+    "device": "cuda:0",
+    "env": {
+      "CUDA_VISIBLE_DEVICES": "0",
+      "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"
+    },
+    "flash_sdp_enabled": true,
+    "float32_matmul_precision": "highest",
+    "gpu_capability": [
+      7,
+      5
+    ],
+    "gpu_name": "Tesla T4",
+    "gpu_total_memory_bytes": 15636037632,
+    "math_sdp_enabled": true,
+    "matmul_allow_fp16_reduced_precision_reduction": true,
+    "matmul_allow_tf32": false,
+    "mem_efficient_sdp_enabled": true,
+    "sdpa_backends_enumerated": [
+      "MATH",
+      "FLASH_ATTENTION",
+      "EFFICIENT_ATTENTION",
+      "CUDNN_ATTENTION",
+      "OVERRIDEABLE"
+    ],
+    "seed": 6304
+  },
+  "kv_shape": {
+    "channels": 14336,
+    "head_dim": 128,
+    "n_kv_heads": 2,
+    "n_layers": 28
+  },
+  "meta": {
+    "cuda_available": true,
+    "device_count": 1,
+    "device_names": [
+      "Tesla T4"
+    ],
+    "git_commit": "c3e3d062ba4d4a572f1dd8ad0d9de76203a044c2",
+    "git_dirty": false,
+    "hostname": "171ab0ec1b9f",
+    "mps_available": false,
+    "package_versions": {
+      "accelerate": "1.16.0",
+      "datasets": "4.8.5",
+      "huggingface_hub": "0.36.2",
+      "lm_eval": "0.4.13",
+      "matplotlib": "3.10.0",
+      "numpy": "2.4.6",
+      "peft": "0.21.2",
+      "safetensors": "0.8.0",
+      "scipy": "1.16.3",
+      "tokenizers": "0.22.2",
+      "torch": "2.11.0+cu130",
+      "transformers": "4.57.1"
+    },
+    "platform": "Linux-6.18.55+-x86_64-with-glibc2.39",
+    "python_version": "3.13.16",
+    "torch_cuda_build": "13.0",
+    "torch_cudnn_build": 92700,
+    "torch_version": "2.11.0+cu130"
+  },
+  "model": {
+    "attn_implementation_requested": "sdpa",
+    "device": "cuda:0",
+    "model_class": "Qwen2ForCausalLM",
+    "model_id": "Qwen/Qwen2.5-1.5B-Instruct",
+    "model_path": null,
+    "parameter_dtypes": [
+      "torch.float16"
+    ],
+    "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+  },
+  "model_facts": {
+    "attn_implementation_effective": "sdpa",
+    "head_dim": 128,
+    "hidden_size": 1536,
+    "model_generation_config_file_values": {
+      "bos_token_id": 151643,
+      "do_sample": true,
+      "eos_token_id": [
+        151645,
+        151643
+      ],
+      "pad_token_id": 151643,
+      "repetition_penalty": 1.1,
+      "temperature": 0.7,
+      "top_k": 20,
+      "top_p": 0.8,
+      "transformers_version": "4.57.1"
+    },
+    "num_attention_heads": 12,
+    "num_hidden_layers": 28,
+    "num_key_value_heads": 2,
+    "parameter_dtypes": [
+      "torch.float16"
+    ],
+    "rope_theta": 1000000.0,
+    "vocab_size": 151936
+  },
+  "peak_vram_allocated_bytes": {
+    "0": 3667148800
+  },
+  "peak_vram_reserved_bytes": {
+    "0": 6765412352
+  },
+  "prompts_done": 18,
+  "row_files": {
+    "prompts": {
+      "n_rows": 18,
+      "path": "prompt_rows.jsonl.gz",
+      "sha256": "d27ae0524613523f61f64e7bd713f01a0f2cc57f0171d58171bba1ff4f9584f9",
+      "sha256_decompressed": "9ed9184dee347a7155c9d0f1c1b3ed1ee724400baddc4f8e254b5a2b0dee881e"
+    },
+    "rows": {
+      "n_rows": 108,
+      "path": "control_rows.jsonl.gz",
+      "sha256": "a456ad078b584b2689094bb274480db4fa83f3234594cbe58f1b2bc0c78c5d48",
+      "sha256_decompressed": "5e5cb357bc305ab03e608dd70a841b98d7561935d479d91c5a74b20613b1cd98"
+    }
+  },
+  "start_time": "2026-11-28T00:37:25.706951+00:00",
+  "status": "ok",
+  "step": "done",
+  "summary": {
+    "channel": {
+      "n_prompts": 18,
+      "n_top_channels": 2,
+      "n_zero_norm_channels": 0,
+      "overall": {
+        "k_err_channel_rest": 0.05943559030336993,
+        "k_err_channel_top": 0.021084580649455478,
+        "k_err_token_rest": 0.5041629352739879,
+        "k_err_token_top": 0.02250929216513344,
+        "k_ratio": 7.4857557245663235,
+        "v_err_token_rest": 0.128860065979617,
+        "v_err_token_top": 0.04734067106619477,
+        "v_ratio": 2.502727585179465
+      },
+      "per_layer": {
+        "k_err_channel_rest": [
+          0.05508248880505562,
+          0.05340202525258064,
+          0.06060560420155525,
+          0.06260915845632553,
+          0.062440574169158936,
+          0.06274759024381638,
+          0.06375549733638763,
+          0.055595848709344864,
+          0.055708348751068115,
+          0.06455045938491821,
+          0.05794936418533325,
+          0.06162579730153084,
+          0.05924434959888458,
+          0.058810412883758545,
+          0.05775028467178345,
+          0.05672498419880867,
+          0.05520368739962578,
+          0.05789077281951904,
+          0.05857368931174278,
+          0.05390915647149086,
+          0.05721990391612053,
+          0.05917253717780113,
+          0.06150925159454346,
+          0.058958038687705994,
+          0.062224823981523514,
+          0.06455539166927338,
+          0.06453388184309006,
+          0.06184260547161102
+        ],
+        "k_err_channel_top": [
+          0.0004082733066752553,
+          0.0036966924089938402,
+          0.010546773672103882,
+          0.028023937717080116,
+          0.007601892575621605,
+          0.029895540326833725,
+          0.01618686132133007,
+          0.013539435341954231,
+          0.019613076001405716,
+          0.01301609817892313,
+          0.017308229580521584,
+          0.025451118126511574,
+          0.036514099687337875,
+          0.011638961732387543,
+          0.0492924340069294,
+          0.006853761151432991,
+          0.02848261222243309,
+          0.01227541919797659,
+          0.008994076400995255,
+          0.030925218015909195,
+          0.032594118267297745,
+          0.021665699779987335,
+          0.020972508937120438,
+          0.04508137330412865,
+          0.025569401681423187,
+          0.015589077956974506,
+          0.024781091138720512,
+          0.033850476145744324
+        ],
+        "k_err_token_rest": [
+          6.463655471801758,
+          1.352115511894226,
+          0.3131154477596283,
+          0.23798805475234985,
+          0.20817723870277405,
+          0.16830140352249146,
+          0.17360658943653107,
+          0.4119170010089874,
+          0.1688748002052307,
+          0.21391621232032776,
+          0.20485708117485046,
+          0.21700961887836456,
+          0.16258099675178528,
+          0.16118256747722626,
+          0.24744278192520142,
+          0.6352136135101318,
+          0.22049827873706818,
+          0.22323060035705566,
+          0.23820818960666656,
+          0.2591589689254761,
+          0.20574185252189636,
+          0.20816519856452942,
+          0.22056323289871216,
+          0.23649801313877106,
+          0.22398622334003448,
+          0.23495422303676605,
+          0.25939905643463135,
+          0.2462039589881897
+        ],
+        "k_err_token_top": [
+          0.008352365344762802,
+          0.016147922724485397,
+          0.01744358241558075,
+          0.02638440579175949,
+          0.0008171176887117326,
+          0.03471282869577408,
+          0.014889568090438843,
+          0.02121264673769474,
+          0.012786366045475006,
+          0.02290184795856476,
+          0.024227378889918327,
+          0.026570361107587814,
+          0.024110520258545876,
+          0.014091353863477707,
+          0.04105173796415329,
+          0.005322037264704704,
+          0.030141068622469902,
+          0.0062624006532132626,
+          0.009659988805651665,
+          0.05573717877268791,
+          0.02669331058859825,
+          0.03196593374013901,
+          0.015744559466838837,
+          0.04685579240322113,
+          0.02702205628156662,
+          0.00782028865069151,
+          0.028983401134610176,
+          0.03235216066241264
+        ],
+        "k_ratio": [
+          72.45936584472656,
+          18.74127960205078,
+          6.51833438873291,
+          5.644761562347412,
+          4.26771879196167,
+          3.5759735107421875,
+          3.1751585006713867,
+          7.886988162994385,
+          3.432511329650879,
+          4.6271891593933105,
+          4.574972152709961,
+          4.427855968475342,
+          3.2308011054992676,
+          2.918187141418457,
+          5.238661766052246,
+          9.438233375549316,
+          3.60119366645813,
+          4.028192520141602,
+          4.803005218505859,
+          4.915489196777344,
+          3.9961459636688232,
+          3.8181653022766113,
+          3.858487129211426,
+          4.291020393371582,
+          3.7147789001464844,
+          4.067785263061523,
+          3.628694772720337,
+          4.72020959854126
+        ],
+        "v_err_token_rest": [
+          0.19272316992282867,
+          0.15172059834003448,
+          0.115049809217453,
+          0.12330194562673569,
+          0.11407021433115005,
+          0.16278119385242462,
+          0.16405747830867767,
+          0.14755117893218994,
+          0.14620861411094666,
+          0.13718566298484802,
+          0.1229672059416771,
+          0.1408776193857193,
+          0.13335180282592773,
+          0.13831165432929993,
+          0.148664653301239,
+          0.11184300482273102,
+          0.1312982141971588,
+          0.11425953358411789,
+          0.12829814851284027,
+          0.11998298764228821,
+          0.10190394520759583,
+          0.11951147019863129,
+          0.1042160764336586,
+          0.10963950306177139,
+          0.13105745613574982,
+          0.10269248485565186,
+          0.09609082341194153,
+          0.09846539795398712
+        ],
+        "v_err_token_top": [
+          0.015909947454929352,
+          0.057201165705919266,
+          0.038145776838064194,
+          0.041331902146339417,
+          0.06805851310491562,
+          0.03745253384113312,
+          0.025026170536875725,
+          0.034256234765052795,
+          0.032715246081352234,
+          0.0348578542470932,
+          0.04598669335246086,
+          0.04388776794075966,
+          0.040768470615148544,
+          0.04755227267742157,
+          0.03745236247777939,
+          0.06311149895191193,
+          0.0356299914419651,
+          0.04586230590939522,
+          0.025595679879188538,
+          0.05842898413538933,
+          0.06365673243999481,
+          0.0522293746471405,
+          0.057023704051971436,
+          0.05900518596172333,
+          0.04323538392782211,
+          0.0674758329987526,
+          0.07109872251749039,
+          0.08258248120546341
+        ],
+        "v_ratio": [
+          4.458475589752197,
+          2.9791460037231445,
+          2.299309015274048,
+          2.3593909740448,
+          2.646721363067627,
+          3.429774522781372,
+          3.8658130168914795,
+          2.7883048057556152,
+          2.8869261741638184,
+          2.5515758991241455,
+          2.521160840988159,
+          2.952392339706421,
+          2.5904760360717773,
+          2.52054500579834,
+          2.637869119644165,
+          1.9497125148773193,
+          2.202165126800537,
+          2.128726005554199,
+          2.198420763015747,
+          2.392990827560425,
+          1.978055715560913,
+          2.408816337585449,
+          1.969246506690979,
+          2.100565195083618,
+          2.2045531272888184,
+          1.5809440612792969,
+          1.7284305095672607,
+          1.745864987373352
+        ]
+      }
+    },
+    "n_rows": 108,
+    "per_config": {
+      "fp16": {
+        "accuracy": 1.0,
+        "label": "fp16 reference",
+        "mean_answer_nll": 0.0014531400653747066,
+        "mean_k_recon": 0.0,
+        "mean_kl_post_prefill": 0.0,
+        "mean_kl_teacher_forced": 0.0,
+        "mean_v_recon": 0.0,
+        "n": 18,
+        "n_correct": 18,
+        "n_hit_max_new_tokens": 0,
+        "n_no_match": 0,
+        "n_positions_preserved": 18
+      },
+      "int4_channel_k": {
+        "accuracy": 1.0,
+        "label": "(e) int4_channel_k as evaluated",
+        "mean_answer_nll": 0.0019474967476627273,
+        "mean_k_recon": 0.03977813062397578,
+        "mean_kl_post_prefill": 0.001474931740934456,
+        "mean_kl_teacher_forced": 0.00029529190447242907,
+        "mean_v_recon": 0.10630496317845961,
+        "n": 18,
+        "n_correct": 18,
+        "n_hit_max_new_tokens": 0,
+        "n_no_match": 0,
+        "n_positions_preserved": 18
+      },
+      "int4_token": {
+        "accuracy": 0.0,
+        "label": "(d) int4_token as evaluated",
+        "mean_answer_nll": 4.340185973379347,
+        "mean_k_recon": 0.12991282772568483,
+        "mean_kl_post_prefill": 5.023811591996087,
+        "mean_kl_teacher_forced": 4.337961620754665,
+        "mean_v_recon": 0.10630496317845961,
+        "n": 18,
+        "n_correct": 0,
+        "n_hit_max_new_tokens": 18,
+        "n_no_match": 18,
+        "n_positions_preserved": 18
+      },
+      "k_int4_token": {
+        "accuracy": 0.0,
+        "label": "(a) K INT4 token-wise, V FP16",
+        "mean_answer_nll": 4.212834278742473,
+        "mean_k_recon": 0.12991282772568483,
+        "mean_kl_post_prefill": 4.817181693183051,
+        "mean_kl_teacher_forced": 4.211044232050578,
+        "mean_v_recon": 0.0,
+        "n": 18,
+        "n_correct": 0,
+        "n_hit_max_new_tokens": 18,
+        "n_no_match": 17,
+        "n_positions_preserved": 18
+      },
+      "kv_int8_token": {
+        "accuracy": 1.0,
+        "label": "(c) K and V INT8 token-wise",
+        "mean_answer_nll": 0.0014023961589878632,
+        "mean_k_recon": 0.007527341989482501,
+        "mean_kl_post_prefill": 7.414905712089926e-05,
+        "mean_kl_teacher_forced": 1.4831036138850272e-05,
+        "mean_v_recon": 0.00624994810352782,
+        "n": 18,
+        "n_correct": 18,
+        "n_hit_max_new_tokens": 0,
+        "n_no_match": 0,
+        "n_positions_preserved": 18
+      },
+      "v_int4_token": {
+        "accuracy": 1.0,
+        "label": "(b) K FP16, V INT4 token-wise",
+        "mean_answer_nll": 0.001816358739840022,
+        "mean_k_recon": 0.0,
+        "mean_kl_post_prefill": 0.00046235841707837407,
+        "mean_kl_teacher_forced": 9.256174618915086e-05,
+        "mean_v_recon": 0.10630496317845961,
+        "n": 18,
+        "n_correct": 18,
+        "n_hit_max_new_tokens": 0,
+        "n_no_match": 0,
+        "n_positions_preserved": 18
+      }
+    },
+    "readout": {
+      "a_k_only": true,
+      "b_v_only": true,
+      "c_int8": true,
+      "definitions": {
+        "a_k_only": "k_int4_token exact match at most 0.1",
+        "b_v_only": "v_int4_token exact match within 5 points of fp16",
+        "c_int8": "kv_int8_token exact match within 5 points of fp16 and mean teacher-forced KL below 0.05",
+        "k_ratio": "mean K channel max/median ratio at least 3 times the mean V ratio",
+        "k_rest_error": "token-wise K error on the non-outlier channels at least 3 times channel-K's",
+        "rival_token_path_defect": "kv_int8_token prediction does not hold"
+      },
+      "k_ratio": false,
+      "k_rest_error": true,
+      "rival_token_path_defect": false,
+      "values": {
+        "k_err_channel_rest": 0.05943559030336993,
+        "k_err_token_rest": 0.5041629352739879,
+        "k_ratio": 7.4857557245663235,
+        "v_ratio": 2.502727585179465
+      }
+    }
+  },
+  "timing": {
+    "load_s": 11.503858982999986,
+    "prompt_s": {
+      "KV-2048-end-0-00": 6.869011531000069,
+      "KV-2048-end-2-00": 6.5535460450000755,
+      "KV-2048-end-8-00": 6.708815109999932,
+      "KV-2048-middle-0-00": 6.699260588000016,
+      "KV-2048-middle-2-00": 6.6409033569999565,
+      "KV-2048-middle-8-00": 6.676743754000086,
+      "KV-2048-start-0-00": 6.568786114999966,
+      "KV-2048-start-2-00": 6.690574623999964,
+      "KV-2048-start-8-00": 6.726315418000013,
+      "KV-4096-end-0-00": 11.857839285000068,
+      "KV-4096-end-2-00": 12.073349752000013,
+      "KV-4096-end-8-00": 12.072603921999985,
+      "KV-4096-middle-0-00": 12.363097642999946,
+      "KV-4096-middle-2-00": 12.335512021999989,
+      "KV-4096-middle-8-00": 12.060634612999934,
+      "KV-4096-start-0-00": 12.00686577800002,
+      "KV-4096-start-2-00": 11.746999253000013,
+      "KV-4096-start-8-00": 11.835537122000005
+    }
+  },
+  "tokenizer": {
+    "chat_template_sha256": "cd8e9439f0570856fd70470bf8889ebd8b5d1107207f67a5efb46e342330527f",
+    "eos_ids_used": [
+      151645,
+      151643
+    ],
+    "eos_token": "<|im_end|>",
+    "files_sha256": {
+      "merges.txt": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "tokenizer.json": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+      "tokenizer_config.json": "5b5d4f65d0acd3b2d56a35b56d374a36cbc1c8fa5cf3b3febbbfabf22f359583",
+      "vocab.json": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+    },
+    "pad_token": "<|endoftext|>",
+    "tokenizer_class": "Qwen2TokenizerFast"
+  },
+  "updated_time": "2026-11-28T00:40:25.905959+00:00"
+}

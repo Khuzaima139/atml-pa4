@@ -1,0 +1,329 @@
+{
+  "checkpoints_not_committed": [],
+  "checkpoints_note": "notebook 3 trains nothing and writes no checkpoint",
+  "checks": {
+    "check_nb3": {
+      "failed_jobs": [],
+      "n_jobs": 1,
+      "problems": []
+    },
+    "code_commit": "c3e3d062ba4d4a572f1dd8ad0d9de76203a044c2",
+    "control_rows": 108,
+    "dirty": false,
+    "npz_readable_allow_pickle_false": 18,
+    "run_status": "ok",
+    "run_step": "done"
+  },
+  "files": [
+    {
+      "bytes": 53513,
+      "path": "results/task2/part_c/diag/control_rows.jsonl.gz",
+      "sha256": "a456ad078b584b2689094bb274480db4fa83f3234594cbe58f1b2bc0c78c5d48",
+      "zip_path": "results/task2/part_c/diag/control_rows.jsonl.gz"
+    },
+    {
+      "bytes": 196777,
+      "path": "results/task2/part_c/diag/npz/KV-2048-end-0-00.npz",
+      "sha256": "d51b9a66fe988818ae2d830544853ad83bb6caf6a3f92ea55158d4b71fc1aa8f",
+      "zip_path": "results/task2/part_c/diag/npz/KV-2048-end-0-00.npz"
+    },
+    {
+      "bytes": 196723,
+      "path": "results/task2/part_c/diag/npz/KV-2048-end-2-00.npz",
+      "sha256": "b5a046c1fe6af738c0471cbaef92171e3608e3728c92181ae281ebe315fd2171",
+      "zip_path": "results/task2/part_c/diag/npz/KV-2048-end-2-00.npz"
+    },
+    {
+      "bytes": 196563,
+      "path": "results/task2/part_c/diag/npz/KV-2048-end-8-00.npz",
+      "sha256": "e0fbe69d446c2b55fa06c2004a286c12a19ad9aedbe389823c84431e22c682d5",
+      "zip_path": "results/task2/part_c/diag/npz/KV-2048-end-8-00.npz"
+    },
+    {
+      "bytes": 196819,
+      "path": "results/task2/part_c/diag/npz/KV-2048-middle-0-00.npz",
+      "sha256": "577c268924cc43f81a79d2903a83d6c5f20c1a626f99bb2787f6be32d6a7060b",
+      "zip_path": "results/task2/part_c/diag/npz/KV-2048-middle-0-00.npz"
+    },
+    {
+      "bytes": 194507,
+      "path": "results/task2/part_c/diag/npz/KV-2048-middle-2-00.npz",
+      "sha256": "2023151faf0612e8463eef1777413b1b10781d161d0a528995c85e5d9cbd71ed",
+      "zip_path": "results/task2/part_c/diag/npz/KV-2048-middle-2-00.npz"
+    },
+    {
+      "bytes": 194496,
+      "path": "results/task2/part_c/diag/npz/KV-2048-middle-8-00.npz",
+      "sha256": "c8238711dcb180468042c849f72a49223dc23df1c2da111307ca6c72d31b121a",
+      "zip_path": "results/task2/part_c/diag/npz/KV-2048-middle-8-00.npz"
+    },
+    {
+      "bytes": 194497,
+      "path": "results/task2/part_c/diag/npz/KV-2048-start-0-00.npz",
+      "sha256": "a324fc88ce819ef662cd471da827ec5d4c0e31f7606e079d0efc87134b3bd193",
+      "zip_path": "results/task2/part_c/diag/npz/KV-2048-start-0-00.npz"
+    },
+    {
+      "bytes": 194433,
+      "path": "results/task2/part_c/diag/npz/KV-2048-start-2-00.npz",
+      "sha256": "27be64a3029479c32cf69383f95e41011d0d23e5cd2db61d8e256fb8b0ff6637",
+      "zip_path": "results/task2/part_c/diag/npz/KV-2048-start-2-00.npz"
+    },
+    {
+      "bytes": 194411,
+      "path": "results/task2/part_c/diag/npz/KV-2048-start-8-00.npz",
+      "sha256": "045a95a5b619279860028c908a475abde5ada5390282c99e00a9a5e7798d854e",
+      "zip_path": "results/task2/part_c/diag/npz/KV-2048-start-8-00.npz"
+    },
+    {
+      "bytes": 194751,
+      "path": "results/task2/part_c/diag/npz/KV-4096-end-0-00.npz",
+      "sha256": "b43245aed94ef24f325e0405daa40d9f84aa621c3a8a9318b3d15793799904d3",
+      "zip_path": "results/task2/part_c/diag/npz/KV-4096-end-0-00.npz"
+    },
+    {
+      "bytes": 194620,
+      "path": "results/task2/part_c/diag/npz/KV-4096-end-2-00.npz",
+      "sha256": "e6f47afaa0c5b12fbd6d7227c4a3d40c1baa1fa606dc26f56f68d81cdb96552b",
+      "zip_path": "results/task2/part_c/diag/npz/KV-4096-end-2-00.npz"
+    },
+    {
+      "bytes": 194644,
+      "path": "results/task2/part_c/diag/npz/KV-4096-end-8-00.npz",
+      "sha256": "89cef5fe6e60431466925fdb75bc66aa6718966fe8c4fdc47f357a04ea29cf43",
+      "zip_path": "results/task2/part_c/diag/npz/KV-4096-end-8-00.npz"
+    },
+    {
+      "bytes": 196756,
+      "path": "results/task2/part_c/diag/npz/KV-4096-middle-0-00.npz",
+      "sha256": "594d7ea1847abeade0898733e87108c04a5c07c392533419dcb63db9c145b8ad",
+      "zip_path": "results/task2/part_c/diag/npz/KV-4096-middle-0-00.npz"
+    },
+    {
+      "bytes": 196715,
+      "path": "results/task2/part_c/diag/npz/KV-4096-middle-2-00.npz",
+      "sha256": "781a2d629d20c566f7a81660dd7ae1fc8f1939596519f5562bd69c01837ddf9b",
+      "zip_path": "results/task2/part_c/diag/npz/KV-4096-middle-2-00.npz"
+    },
+    {
+      "bytes": 194543,
+      "path": "results/task2/part_c/diag/npz/KV-4096-middle-8-00.npz",
+      "sha256": "d73a6531a90b7867e085e386ef78621919a8273740d53a053956b48c69eec2a1",
+      "zip_path": "results/task2/part_c/diag/npz/KV-4096-middle-8-00.npz"
+    },
+    {
+      "bytes": 194617,
+      "path": "results/task2/part_c/diag/npz/KV-4096-start-0-00.npz",
+      "sha256": "628e1ddd4ec84f6c624f01b0c0c2404b1f5d5114ede4485142842fd2f2cbdd6e",
+      "zip_path": "results/task2/part_c/diag/npz/KV-4096-start-0-00.npz"
+    },
+    {
+      "bytes": 196787,
+      "path": "results/task2/part_c/diag/npz/KV-4096-start-2-00.npz",
+      "sha256": "ae6a624746c9d59654181c71ef74e3d63b87eddf4a036405246fedb670f00247",
+      "zip_path": "results/task2/part_c/diag/npz/KV-4096-start-2-00.npz"
+    },
+    {
+      "bytes": 194555,
+      "path": "results/task2/part_c/diag/npz/KV-4096-start-8-00.npz",
+      "sha256": "0b46f059f81ebd8744d76d31f230e95ee32ca9a6bb0e57927528880b4834c15c",
+      "zip_path": "results/task2/part_c/diag/npz/KV-4096-start-8-00.npz"
+    },
+    {
+      "bytes": 3122,
+      "path": "results/task2/part_c/diag/prompt_rows.jsonl.gz",
+      "sha256": "d27ae0524613523f61f64e7bd713f01a0f2cc57f0171d58171bba1ff4f9584f9",
+      "zip_path": "results/task2/part_c/diag/prompt_rows.jsonl.gz"
+    },
+    {
+      "bytes": 23020,
+      "path": "results/task2/part_c/diag/run.json",
+      "sha256": "b43a0048a0220e3eafb50ed17c0559dc7c688114b0e77128b1a35c3910d1eff6",
+      "zip_path": "results/task2/part_c/diag/run.json"
+    }
+  ],
+  "logs_and_status_not_committed": [
+    {
+      "bytes": 403,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_jobs/main_gpu0.json",
+      "sha256": "d421ee22448a1386c1e0618bf08e7ce2cb6bdbb625e1b7b45e49752fdb94ec54",
+      "zip_path": "notes/kaggle_jobs/main_gpu0.json"
+    },
+    {
+      "bytes": 611,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_jobs/main_meta.json",
+      "sha256": "fc5bed33d7febdb3e4e8096f27aa5924d7af2756b4c32f3636ab82bc233e39f7",
+      "zip_path": "notes/kaggle_jobs/main_meta.json"
+    },
+    {
+      "bytes": 57,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_logs/check_nb3.json",
+      "sha256": "8a803a546cf6ed3c7475e5bbacba0d4349926be6e94b0dafbb9e5a5a2aae7faf",
+      "zip_path": "notes/kaggle_logs/check_nb3.json"
+    },
+    {
+      "bytes": 2223,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_logs/data_check.json",
+      "sha256": "3dd0b20a0357610bad2761a3072e7288bb2515469943f9a84df30577f0572dc7",
+      "zip_path": "notes/kaggle_logs/data_check.json"
+    },
+    {
+      "bytes": 2155,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_logs/data_check.log",
+      "sha256": "e62f745daadf34f38d942e5874066d95a4c68711d8e6c8143cc088a7b1c9fa82",
+      "zip_path": "notes/kaggle_logs/data_check.log"
+    },
+    {
+      "bytes": 792,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_logs/env_check.log",
+      "sha256": "fefffd8cbe40144dbe06020f417290ddb3b3a7af7ef4517b95f4ce10936e490d",
+      "zip_path": "notes/kaggle_logs/env_check.log"
+    },
+    {
+      "bytes": 163,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_logs/gpu_info.log",
+      "sha256": "118962e6426eba61062f82fffa8438843d4fa8244a6bd86d5cc60e6b81749143",
+      "zip_path": "notes/kaggle_logs/gpu_info.log"
+    },
+    {
+      "bytes": 664,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_logs/kv_diag.log",
+      "sha256": "1c176e8da69d87239eb8aaefe6dc0d0faf19d40444395f08965fc4464ea70101",
+      "zip_path": "notes/kaggle_logs/kv_diag.log"
+    },
+    {
+      "bytes": 1814,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_logs/model_files.json",
+      "sha256": "f7a5c1a722a357052a068ad51cd7d47676c58b154ef3b7ce934bea0331e33494",
+      "zip_path": "notes/kaggle_logs/model_files.json"
+    },
+    {
+      "bytes": 1388,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_logs/model_files.log",
+      "sha256": "cf01edf70ec3b95f055d5ea5c99fcec6dcc98e95e32d89e9050db3a7e52169a8",
+      "zip_path": "notes/kaggle_logs/model_files.log"
+    },
+    {
+      "bytes": 2057,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_logs/nvidia_smi.txt",
+      "sha256": "cb1e546a1cac33eabed28337c2f80988a073590a1fe0474fde22caac788e1f86",
+      "zip_path": "notes/kaggle_logs/nvidia_smi.txt"
+    },
+    {
+      "bytes": 18354,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_logs/pip_freeze.txt",
+      "sha256": "533c2279e7d02c531ab67e4c1fab4901f20561618539b377e2348ea996923756",
+      "zip_path": "notes/kaggle_logs/pip_freeze.txt"
+    },
+    {
+      "bytes": 469,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_logs/plan_nb3.json",
+      "sha256": "2ccf8c805ad63791869d4277d1d6c0ea7da9593b02911baae786af8aff860e55",
+      "zip_path": "notes/kaggle_logs/plan_nb3.json"
+    },
+    {
+      "bytes": 206,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_logs/plan_nb3.log",
+      "sha256": "a355964514b5eaed6db52e648484165d74be42985e261e73e838b974d9928ed1",
+      "zip_path": "notes/kaggle_logs/plan_nb3.log"
+    },
+    {
+      "bytes": 3842,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_logs/prepare_data.log",
+      "sha256": "994130c8f04e64271b5c4e23bdf1f135d964844ca5300ef0c67f894bbf770046",
+      "zip_path": "notes/kaggle_logs/prepare_data.log"
+    },
+    {
+      "bytes": 745,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_logs/queue_gpu0.log",
+      "sha256": "b4c58a620428f032f01379037283eb929dcd2c4e251e841b82fc81567e80a29f",
+      "zip_path": "notes/kaggle_logs/queue_gpu0.log"
+    },
+    {
+      "bytes": 2457,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_logs/summary_nb3.txt",
+      "sha256": "dd40e85e92aa938469511a23249a25261564ee6b51fdc2b085ca610c128ad9b8",
+      "zip_path": "notes/kaggle_logs/summary_nb3.txt"
+    },
+    {
+      "bytes": 161,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_logs/wait_nb3.json",
+      "sha256": "fa08efcd271c9c069e7cd1116e0b10bff4bc857d1a58937c45f26fa6d36676f7",
+      "zip_path": "notes/kaggle_logs/wait_nb3.json"
+    },
+    {
+      "bytes": 15,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_status/gpu0.queue.exit",
+      "sha256": "308ff9169c263d199fdd2180ead0e22df976e4f5d8311d09575253019de5538a",
+      "zip_path": "notes/kaggle_status/gpu0.queue.exit"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_status/gpu0.queue.pid",
+      "sha256": "e4355a05c3a4b156700c4a1a32867d8f7a25a0dd24c6146c2deb2a1c96a6c93c",
+      "zip_path": "notes/kaggle_status/gpu0.queue.pid"
+    },
+    {
+      "bytes": 33,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_status/kv_diag.done",
+      "sha256": "e0628d149a683bedffab8c3067028733ed24dc96fd6d8743baed10bee9299179",
+      "zip_path": "notes/kaggle_status/kv_diag.done"
+    },
+    {
+      "bytes": 2,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_status/kv_diag.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "zip_path": "notes/kaggle_status/kv_diag.exit"
+    },
+    {
+      "bytes": 227,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_status/kv_diag.interval.json",
+      "sha256": "af6cc0702a428a2d3cca95c2aa4753968e1a1407bafb75d7d9c016d273bb10d9",
+      "zip_path": "notes/kaggle_status/kv_diag.interval.json"
+    },
+    {
+      "bytes": 664,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_status/kv_diag.json",
+      "sha256": "5797cb77d8241ae725d8fc8077a392311cca8402569250b3bfcbaab582fbc2e4",
+      "zip_path": "notes/kaggle_status/kv_diag.json"
+    },
+    {
+      "bytes": 4,
+      "committed": false,
+      "path": "notes/kaggle_logs/t2_nb3/kaggle_status/kv_diag.pid",
+      "sha256": "d5c6c5db0511989f8b2db87038d1fc6952a2f828e46aef7f3836d4a5d457b775",
+      "zip_path": "notes/kaggle_status/kv_diag.pid"
+    }
+  ],
+  "n_files": 21,
+  "source": {
+    "bytes": 3560603,
+    "name": "task2_nb3_results.zip",
+    "notebook_output": "t2_nb3 (Kaggle notebook 3 of Task 2: protocol AM4 post hoc diagnostic of the int4_token result, python -m task2.kv_diag)",
+    "sha256": "33eea8816ed84d389f675248d69c55ea79ae1d896e2048d424660a2db9f05ae5"
+  }
+}
