@@ -6,6 +6,8 @@ import pytest
 
 from common import nbbuild
 
+FULL = "4d428227d24b43ab0841896afe9e1808b328a862"
+
 MD = """# Title
 
 Intro text.
@@ -28,10 +30,10 @@ x = 1
 
 
 def test_build_cells(tmp_path):
-    nb = nbbuild.build(MD, {"COMMIT": "abc123"})
+    nb = nbbuild.build(MD, {"COMMIT": FULL})
     kinds = [c["cell_type"] for c in nb["cells"]]
     assert kinds == ["markdown", "markdown", "code", "markdown", "code"]
-    assert "".join(nb["cells"][2]["source"]) == 'EXPECTED = "abc123"\nprint(EXPECTED)'
+    assert "".join(nb["cells"][2]["source"]) == f'EXPECTED = "{FULL}"\nprint(EXPECTED)'
     assert "".join(nb["cells"][1]["source"]).startswith("## Cell 1: Setup")
     assert nb["nbformat"] == 4 and all(c["id"] for c in nb["cells"])
     assert len({c["id"] for c in nb["cells"]}) == len(nb["cells"])
@@ -48,14 +50,14 @@ def test_placeholders_and_refusals(tmp_path):
     md = tmp_path / "c.md"
     md.write_text(MD)
     out = tmp_path / "nb" / "n.ipynb"
-    assert nbbuild.main(["--cells", str(md), "--out", str(out), "--set", "COMMIT=f00"]) == 0
-    assert 'EXPECTED = "f00"' in "".join(json.loads(out.read_text())["cells"][2]["source"])
+    assert nbbuild.main(["--cells", str(md), "--out", str(out), "--set", f"COMMIT={FULL}"]) == 0
+    assert f'EXPECTED = "{FULL}"' in "".join(json.loads(out.read_text())["cells"][2]["source"])
     with pytest.raises(FileExistsError):
-        nbbuild.main(["--cells", str(md), "--out", str(out), "--set", "COMMIT=f00"])
+        nbbuild.main(["--cells", str(md), "--out", str(out), "--set", f"COMMIT={FULL}"])
 
 
 def test_code_cells_parse():
-    for c in nbbuild.build(MD, {"COMMIT": "x"})["cells"]:
+    for c in nbbuild.build(MD, {"COMMIT": FULL})["cells"]:
         if c["cell_type"] == "code":
             ast.parse("".join(c["source"]))
 
@@ -85,3 +87,23 @@ y = 2
     out = tmp_path / "s.ipynb"
     assert nbbuild.main(["--cells", str(f), "--out", str(out), "--section", "Second title"]) == 0
     assert "y = 2" in "".join(json.loads(out.read_text())["cells"][2]["source"])
+
+
+@pytest.mark.parametrize("value", ["4d42822", FULL[:39], FULL + "0", FULL.upper(), "", "HEAD", " " + FULL[1:]])
+def test_commit_needs_full_hash(value, tmp_path):
+    with pytest.raises(ValueError, match="COMMIT"):
+        nbbuild.build(MD, {"COMMIT": value})
+    md = tmp_path / "c.md"
+    md.write_text(MD)
+    out = tmp_path / "n.ipynb"
+    with pytest.raises(ValueError, match="COMMIT"):
+        nbbuild.main(["--cells", str(md), "--out", str(out), "--set", f"COMMIT={value}"])
+    assert not out.exists()
+
+
+def test_commit_full_hash_accepted(tmp_path):
+    md = tmp_path / "c.md"
+    md.write_text(MD)
+    out = tmp_path / "n.ipynb"
+    assert nbbuild.main(["--cells", str(md), "--out", str(out), "--set", f"COMMIT={FULL}"]) == 0
+    assert f'EXPECTED = "{FULL}"' in "".join(json.loads(out.read_text())["cells"][2]["source"])

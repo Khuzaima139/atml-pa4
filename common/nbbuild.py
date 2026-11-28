@@ -4,7 +4,8 @@ Usage: python -m common.nbbuild --cells FILE.md --out FILE.ipynb [--section TITL
 
 Format: text before the first "## Cell" heading becomes a markdown cell; every "## Cell ..." section becomes one
 markdown cell (heading and prose) followed by one code cell per ```python fenced block. {{NAME}} placeholders are
-replaced from --set; an unknown or unreplaced placeholder is an error. The output file must not exist.
+replaced from --set; an unknown or unreplaced placeholder is an error. A value for the placeholder COMMIT must be a
+full 40-character lowercase hexadecimal commit hash. The output file must not exist.
 --section TITLE uses only the part of the file from the top-level heading line "# TITLE" (outside code blocks) to the
 next top-level heading; a missing or repeated title is an error.
 """
@@ -16,6 +17,7 @@ import sys
 from pathlib import Path
 
 _PH = re.compile(r"\{\{([A-Z0-9_]+)\}\}")
+_FULL_HASH = re.compile(r"[0-9a-f]{40}")
 _FENCE_OPEN = "```python"
 _FENCE_CLOSE = "```"
 
@@ -88,6 +90,11 @@ def section(md: str, title: str) -> str:
     return secs[title]
 
 
+def check_values(values: dict) -> None:
+    if "COMMIT" in values and not _FULL_HASH.fullmatch(values["COMMIT"]):
+        raise ValueError(f"COMMIT must be a full 40-character commit hash, got {values['COMMIT']!r}")
+
+
 def substitute(text: str, values: dict) -> str:
     missing = sorted(set(_PH.findall(text)) - set(values))
     if missing:
@@ -96,6 +103,7 @@ def substitute(text: str, values: dict) -> str:
 
 
 def build(md: str, values: dict) -> dict:
+    check_values(values)
     cells = []
     for i, (kind, text) in enumerate(parse(md)):
         text = substitute(text, values)
