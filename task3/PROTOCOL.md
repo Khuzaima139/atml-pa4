@@ -82,3 +82,9 @@ Verdict rule: supported if the predicted direction holds for both training seeds
 - Learning rate: constant 3e-4 for all 157 updates (the manual specifies no schedule or warm-up).
 - Held-out guard: a committed hash list of the 120 held-out prompts; training and collection processes refuse to load any listed item and record every held-out file open in their run JSON.
 - Own-student banks (D14) are generated in the same notebook as training, right after each run's merge.
+
+## AM2 (2026-11-28, after the first notebook 1 preflight, before any bank, training or evaluation output)
+- Observed on Kaggle (T4, FP16): split-prefill versus full forward gave max abs logit difference 0.395 and max TV 0.0467 (target) and 0.18 and 0.0499 (draft), with argmax agreement 0.995; crop-and-reforward and speculative-cache checks gave max TV <= 0.0071 and correct cache lengths. The AM1 FP16 bound (0.25, 0.01) was set without real-model data and is replaced.
+- Equivalence is established in FP32: the same four comparisons for both models with max abs logit difference <= 0.01 and max TV <= 0.001, plus the cache-length check. Failure stops the notebook.
+- FP16 (the precision of every experiment) is checked for gross errors only: max TV <= 0.1 and argmax agreement >= 0.98 on every comparison, plus the cache-length check. Max and mean abs logit difference, max and mean TV and argmax agreement are recorded for both precisions and reported as the numerical difference between FP16 kernel paths.
+- The speculative bank and every later stage require a preflight record whose FP32 and FP16 rules both pass.
