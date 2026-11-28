@@ -83,7 +83,7 @@ def require_sampler_check(path) -> dict:
 
 
 def require_preflight(path) -> dict:
-    """The preflight record (protocol AM2) must pass both the FP32 equivalence rule and the FP16 gross-error rule."""
+    """The preflight record (protocol AM3) must pass both the FP32 equivalence rule and the FP16 gross-error rule."""
     from .preflight import PREFLIGHT_ID, REQUIRED_DTYPES, RULES, evaluate_record
 
     try:

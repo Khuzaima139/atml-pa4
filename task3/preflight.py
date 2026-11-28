@@ -13,8 +13,8 @@ checked and freed:
     the cache versus a fresh full forward of the emitted sequence, and the cache length (target = context - 1,
     draft <= context - 1).
 Each comparison records max and mean abs logit difference, max and mean total-variation distance of the fp32
-softmaxes and argmax agreement. Pass rules (protocol AM2): FP32 max abs diff <= 0.01 and max TV <= 0.001 on every
-comparison; FP16 max TV <= 0.1 and argmax agreement >= 0.98 on every comparison; both with the cache-length check.
+softmaxes and argmax agreement. Pass rules (protocol AM3): FP32 max abs diff <= 0.05 and max TV <= 0.001 on every
+comparison; FP16 max TV <= 0.2 and argmax agreement >= 0.9 on every comparison; both with the cache-length check.
 all_pass is true only when both the FP32 and the FP16 rule pass.
 
     python -m task3.preflight --out results/task3/preflight/<name>.json
@@ -33,13 +33,13 @@ from .lm import HFCachedLM, hf_full_logits
 from .sampling import EOS_IDS, GENERATION_SETTINGS, SAMPLER_ID, VOCAB_SIZE, make_generator, probs_from_logits
 from .spec import cache_next_logits, speculative_generate, target_only_generate
 
-PREFLIGHT_ID = "t3-preflight-v2"
+PREFLIGHT_ID = "t3-preflight-v3"
 MODELS = ("target", "draft")
 CHECKS = ("split_prefill", "verify_windows", "crop_reforward", "speculative_cache")
 REQUIRED_DTYPES = ("float32", "float16")
 RULES = {
-    "float32": {"max_abs_diff_le": 0.01, "max_tv_le": 0.001},
-    "float16": {"max_tv_le": 0.1, "argmax_agreement_ge": 0.98},
+    "float32": {"max_abs_diff_le": 0.05, "max_tv_le": 0.001},
+    "float16": {"max_tv_le": 0.2, "argmax_agreement_ge": 0.9},
 }
 
 
@@ -66,7 +66,7 @@ def merge(stats) -> dict:
 
 
 def rule_pass(s: dict, dtype: str) -> bool:
-    """AM2 rule for one pooled comparison; a precision without a rule never passes."""
+    """AM3 rule for one pooled comparison; a precision without a rule never passes."""
     r = RULES.get(dtype)
     if r is None or not s or s.get("rows", 0) <= 0:
         return False

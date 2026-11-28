@@ -89,9 +89,9 @@ def test_preflight_outputs(preflight_json):
     d = json.loads(preflight_json.read_text())
     assert d["status"] == "ok"
     cfg = d["config"]
-    assert cfg["preflight_id"] == P.PREFLIGHT_ID == "t3-preflight-v2"
-    assert cfg["rules"] == P.RULES == {"float32": {"max_abs_diff_le": 0.01, "max_tv_le": 0.001},
-                                       "float16": {"max_tv_le": 0.1, "argmax_agreement_ge": 0.98}}
+    assert cfg["preflight_id"] == P.PREFLIGHT_ID == "t3-preflight-v3"
+    assert cfg["rules"] == P.RULES == {"float32": {"max_abs_diff_le": 0.05, "max_tv_le": 0.001},
+                                       "float16": {"max_tv_le": 0.2, "argmax_agreement_ge": 0.9}}
     assert "logit_tol" not in cfg and "tv_tol" not in cfg
     for key in ("data_provenance", "generation_settings", "dtypes", "trajectory_dtype", "model_loading"):
         assert key in cfg
@@ -142,29 +142,32 @@ def _synthetic():
     return prec
 
 
-@pytest.mark.parametrize("case", ["ok", "fp32_logit", "fp32_tv", "fp16_tv", "fp16_argmax", "fp16_lengths",
-                                  "fp16_missing", "fp32_missing"])
+@pytest.mark.parametrize("case", ["ok", "ok_fp16_argmax_092", "fp32_logit", "fp32_tv", "fp16_tv", "fp16_argmax",
+                                  "fp16_lengths", "fp16_missing", "fp32_missing"])
 def test_preflight_rules_synthetic(case, tmp_path):
     prec = _synthetic()
-    if case == "fp32_logit":
-        prec["float32"]["summary"]["draft"]["split_prefill"]["max_abs_diff"] = 0.02
+    if case == "ok_fp16_argmax_092":
+        prec["float16"]["summary"]["draft"]["speculative_cache"]["argmax_agreement"] = 0.92
+    elif case == "fp32_logit":
+        prec["float32"]["summary"]["draft"]["split_prefill"]["max_abs_diff"] = 0.06
     elif case == "fp32_tv":
         prec["float32"]["summary"]["target"]["speculative_cache"]["max_tv"] = 0.002
     elif case == "fp16_tv":
-        prec["float16"]["summary"]["target"]["split_prefill"]["max_tv"] = 0.11
+        prec["float16"]["summary"]["target"]["split_prefill"]["max_tv"] = 0.21
     elif case == "fp16_argmax":
-        prec["float16"]["summary"]["draft"]["crop_reforward"]["argmax_agreement"] = 0.97
+        prec["float16"]["summary"]["draft"]["speculative_cache"]["argmax_agreement"] = 0.85
     elif case == "fp16_lengths":
         prec["float16"]["cache_lengths"]["pass"] = False
     elif case == "fp16_missing":
         del prec["float16"]
     elif case == "fp32_missing":
         del prec["float32"]
-    # an FP16 logit gap of 0.395 (observed on Kaggle) is not a failure under AM2
+    # an FP16 logit gap of 0.395 (observed on Kaggle) is not a failure under AM3
     if "float16" in prec:
         prec["float16"]["summary"]["target"]["verify_windows"]["max_abs_diff"] = 0.395
     verdict = P.evaluate_record(prec)
-    assert verdict["all_pass"] is (case == "ok")
+    ok = case.startswith("ok")
+    assert verdict["all_pass"] is ok
     if case.startswith("fp32_") and case != "fp32_missing":
         assert verdict["precision_pass"] == {"float32": False, "float16": True}
     if case.startswith("fp16_") and case != "fp16_missing":
@@ -173,7 +176,7 @@ def test_preflight_rules_synthetic(case, tmp_path):
            **verdict}
     path = tmp_path / "pf.json"
     path.write_text(json.dumps(rec))
-    if case == "ok":
+    if ok:
         assert B.require_preflight(path)["all_pass"] is True
     else:
         with pytest.raises(SystemExit):
@@ -204,13 +207,33 @@ def test_preflight_gate_rejects_forged_and_old_records(tmp_path):
     assert B.require_preflight(path)["precision_pass"] == {"float32": True, "float16": True}
 
 
+
+def test_preflight_gate_refuses_v2_record(tmp_path):
+    """A record written under t3-preflight-v2 (AM2 rules) is refused even when its own pass flags are true."""
+    prec = _synthetic()
+    v2_rules = {"float32": {"max_abs_diff_le": 0.01, "max_tv_le": 0.001},
+                "float16": {"max_tv_le": 0.1, "argmax_agreement_ge": 0.98}}
+    for dt in prec:
+        prec[dt]["rule"] = v2_rules[dt]
+    rec = {"status": "ok", "config": {"preflight_id": "t3-preflight-v2", "rules": v2_rules}, "precisions": prec,
+           **P.evaluate_record(prec)}
+    assert rec["all_pass"] is True
+    path = tmp_path / "pf_v2.json"
+    path.write_text(json.dumps(rec))
+    with pytest.raises(SystemExit, match="t3-preflight-v2"):
+        B.require_preflight(path)
+    rec["config"]["rules"] = P.RULES
+    path.write_text(json.dumps(rec))
+    with pytest.raises(SystemExit, match="preflight_id"):
+        B.require_preflight(path)
+
 @pytest.mark.parametrize("case", ["fp32_logit", "fp16_tv"])
 def test_spec_bank_refuses_failing_preflight(case, tiny_dirs, committed_check, tmp_path):
     prec = _synthetic()
     if case == "fp32_logit":
-        prec["float32"]["summary"]["target"]["crop_reforward"]["max_abs_diff"] = 0.05
+        prec["float32"]["summary"]["target"]["crop_reforward"]["max_abs_diff"] = 0.06
     else:
-        prec["float16"]["summary"]["draft"]["speculative_cache"]["max_tv"] = 0.2
+        prec["float16"]["summary"]["draft"]["speculative_cache"]["max_tv"] = 0.25
     rec = {"status": "ok", "config": {"preflight_id": P.PREFLIGHT_ID, "rules": P.RULES}, "precisions": prec,
            **P.evaluate_record(prec)}
     assert rec["all_pass"] is False

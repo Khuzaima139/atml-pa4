@@ -76,7 +76,7 @@ def smoke(env):
 
 @pytest.mark.parametrize("break_dtype", ["float32", "float16"])
 def test_jobs_refuse_failing_preflight(env, break_dtype, tmp_path):
-    """Every stage needs a preflight whose FP32 and FP16 rules both pass (protocol AM2)."""
+    """Every stage needs a preflight whose FP32 and FP16 rules both pass (protocol AM3)."""
     d = json.loads(Path(env["preflight"]).read_text())
     assert d["all_pass"] is True
     s = d["precisions"][break_dtype]["summary"]["target"]["split_prefill"]
