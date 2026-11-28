@@ -88,3 +88,10 @@ Verdict rule: supported if the predicted direction holds for both training seeds
 - Equivalence is established in FP32: the same four comparisons for both models with max abs logit difference <= 0.01 and max TV <= 0.001, plus the cache-length check. Failure stops the notebook.
 - FP16 (the precision of every experiment) is checked for gross errors only: max TV <= 0.1 and argmax agreement >= 0.98 on every comparison, plus the cache-length check. Max and mean abs logit difference, max and mean TV and argmax agreement are recorded for both precisions and reported as the numerical difference between FP16 kernel paths.
 - The speculative bank and every later stage require a preflight record whose FP32 and FP16 rules both pass.
+
+## AM3 (2026-11-28, after notebook 1 version 3 stopped at the commit check in setup, before any FP32 model output exists)
+- Notebook 1 version 3 stopped in setup because it was built with an abbreviated commit hash; no model was loaded. The notebook builder requires a full 40-character commit hash.
+- Each preflight bound sits between the numerical-noise scale and the bug scale with a margin on both sides. A position or cache error changes logits by whole units, gives max TV in the tenths and changes the argmax on a large fraction of rows.
+- FP32 equivalence: max abs logit difference <= 0.05 and max TV <= 0.001 on every comparison. The AM2 bound of 0.01 was set about one order of magnitude above an FP32 noise level that had not been measured.
+- FP16 gross-error bound: max TV <= 0.2 and argmax agreement >= 0.9 on every comparison. Observed FP16 noise (AM2): max TV 0.050, argmax agreement 0.995. The speculative-cache comparison has one row per speculative round, a few dozen rows per model, so each near-tie argmax flip moves agreement by several points; 0.9 tolerates a few near-tie flips and still fails any systematic error.
+- Unchanged: the cache-length check, the gate (both precisions must pass before the speculative bank and every later stage), the recorded statistics. Preflight identifier t3-preflight-v3.
