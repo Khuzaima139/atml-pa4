@@ -75,3 +75,10 @@ Verdict rule: supported if the predicted direction holds for both training seeds
 4. Teacher collection, the four training runs, merging and merged-versus-unmerged checks.
 5. Own-student banks, bank evaluation, speed benchmark, fixed-64 diagnostic, standalone accuracy.
 6. Analysis from committed results only.
+
+## AM1 (2026-11-28, before any real-model run)
+- Preflight pass rule: for both models in FP16, max abs logit difference <= 0.25 and max TV <= 0.01 between split-prefill and full forward and between crop-and-reforward and fresh forward, on the first 2 GSM8K and first 2 short-form training prompts extended by up to 32 sampled tokens, with cache lengths checked after every speculative round.
+- If a residual is all zero the sampler falls back to p and records it; this event has probability zero under exact arithmetic and is counted in every run.
+- Learning rate: constant 3e-4 for all 157 updates (the manual specifies no schedule or warm-up).
+- Held-out guard: a committed hash list of the 120 held-out prompts; training and collection processes refuse to load any listed item and record every held-out file open in their run JSON.
+- Own-student banks (D14) are generated in the same notebook as training, right after each run's merge.
