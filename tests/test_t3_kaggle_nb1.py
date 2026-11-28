@@ -53,7 +53,7 @@ def env(tmp_path_factory):
          "draft": _save_tiny(root / "draft", 6305, 1, 32, tok), "jobs": root / "jobs"}
     pf = root / "preflight.json"
     assert P.main(["--out", str(pf), "--target-path", str(e["target"]), "--draft-path", str(e["draft"]),
-                   "--device", "cpu", "--dtype", "float32", "--cap", "12"]) == 0
+                   "--device", "cpu", "--cap", "12"]) == 0
     e["preflight"] = pf
     return e
 
@@ -72,6 +72,30 @@ def smoke(env):
     meta = K.load_meta(env["jobs"], "smoke")
     rc = _run_queues(env["jobs"], "smoke", st, lg, [j["name"] for j in meta])
     return {"meta": meta, "rc": rc, "status": st, "logs": lg}
+
+
+@pytest.mark.parametrize("break_dtype", ["float32", "float16"])
+def test_jobs_refuse_failing_preflight(env, break_dtype, tmp_path):
+    """Every stage needs a preflight whose FP32 and FP16 rules both pass (protocol AM2)."""
+    d = json.loads(Path(env["preflight"]).read_text())
+    assert d["all_pass"] is True
+    s = d["precisions"][break_dtype]["summary"]["target"]["split_prefill"]
+    s["max_tv"] = 0.5
+    verdict = P.evaluate_record(d["precisions"])
+    assert verdict["all_pass"] is False and verdict["precision_pass"][break_dtype] is False
+    d.update(verdict)
+    bad = tmp_path / "preflight_bad.json"
+    bad.write_text(json.dumps(d))
+    jobs = tmp_path / "jobs"
+    for stage in ("smoke", "main"):
+        args = ["jobs", "--stage", stage, "--jobs-dir", str(jobs), "--results", str(tmp_path / "r"),
+                "--status", str(tmp_path / "st"), "--artifacts", str(tmp_path / "a"), "--device", "cpu",
+                "--preflight", str(bad)]
+        if stage == "main":
+            args += ["--plan", str(tmp_path / "no_plan.json")]
+        with pytest.raises(SystemExit, match="preflight"):
+            K.main(args)
+    assert not jobs.exists()
 
 
 def test_smoke_jobs_and_check(env, smoke):

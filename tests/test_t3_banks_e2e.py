@@ -54,34 +54,173 @@ def committed_check(tmp_path_factory):
     return {"good": good, "bad": bad, "uncommitted": uncommitted}
 
 
+def _cpu_fp16_supported() -> bool:
+    try:
+        a = torch.randn(4, 8, dtype=torch.float16)
+        return (a @ a.T).dtype == torch.float16
+    except RuntimeError:
+        return False
+
+
+CPU_FP16 = _cpu_fp16_supported()
+
+
 @pytest.fixture(scope="module")
 def preflight_json(tiny_dirs, tmp_path_factory):
+    """Real entry point, both precisions (FP16 only where the CPU supports it; otherwise FP32 alone, recorded)."""
     out = tmp_path_factory.mktemp("t3_pre") / "preflight.json"
+    dtypes = "float32,float16" if CPU_FP16 else "float32"
     rc = P.main(["--out", str(out), "--target-path", str(tiny_dirs["target"]), "--draft-path",
-                 str(tiny_dirs["draft"]), "--device", "cpu", "--dtype", "float32", "--cap", "12"])
-    assert rc == 0
+                 str(tiny_dirs["draft"]), "--device", "cpu", "--dtypes", dtypes, "--cap", "12",
+                 "--trajectory-dtype", "float16" if CPU_FP16 else "float32"])
+    assert rc == (0 if CPU_FP16 else 1)
     return out
+
+
+def _needs_fp16():
+    if not CPU_FP16:
+        pytest.skip("FP16 matmul is not supported on this CPU; only the FP32 preflight was run")
+
+
+STAT_KEYS = {"max_abs_diff", "mean_abs_diff", "max_tv", "mean_tv", "argmax_agreement", "rows"}
 
 
 def test_preflight_outputs(preflight_json):
     d = json.loads(preflight_json.read_text())
-    assert d["status"] == "ok" and d["all_pass"] is True
-    checks = ("split_prefill", "verify_windows", "crop_reforward", "speculative_cache")
-    assert set(d["passes"]) == {f"{m}_{c}" for m in ("target", "draft") for c in checks} | {
-        "speculative_cache_lengths"}
-    assert d["cache_lengths"]["rounds_checked"] > 0 and d["cache_lengths"]["violations"] == []
-    for m in ("target", "draft"):
-        for c in checks:
-            s = d["summary"][m][c]
-            assert set(s) == {"max_abs_diff", "max_tv", "argmax_agreement", "rows", "pass"}
-            assert s["max_abs_diff"] < 1e-4 and s["argmax_agreement"] == 1.0 and s["rows"] > 0
-    assert len(d["per_prompt"]) == 4
-    assert [r["prompt_id"] for r in d["per_prompt"]] == d["config"]["prompt_ids"]
-    for row in d["per_prompt"]:
-        assert {"prompt_tokens", "target", "draft", "speculative"} <= set(row)
-    for key in ("logit_tol", "tv_tol", "data_provenance", "generation_settings"):
-        assert key in d["config"]
+    assert d["status"] == "ok"
+    cfg = d["config"]
+    assert cfg["preflight_id"] == P.PREFLIGHT_ID == "t3-preflight-v2"
+    assert cfg["rules"] == P.RULES == {"float32": {"max_abs_diff_le": 0.01, "max_tv_le": 0.001},
+                                       "float16": {"max_tv_le": 0.1, "argmax_agreement_ge": 0.98}}
+    assert "logit_tol" not in cfg and "tv_tol" not in cfg
+    for key in ("data_provenance", "generation_settings", "dtypes", "trajectory_dtype", "model_loading"):
+        assert key in cfg
     assert set(d["model_revisions"]) == {"target", "draft"}
+    assert [t["prompt_id"] for t in d["trajectories"]] == cfg["prompt_ids"] and len(cfg["prompt_ids"]) == 4
+    for t in d["trajectories"]:
+        assert set(t["ops"]) == {"target", "draft"} and set(t["continuations"]) == {"target", "draft"}
+        assert any(op[0] == "round" for op in t["ops"]["target"])
+    assert set(d["precisions"]) == set(cfg["dtypes"])
+    for dt, block in d["precisions"].items():
+        assert block["rule"] == P.RULES[dt]
+        assert set(block["passes"]) == {f"{m}_{c}" for m in P.MODELS for c in P.CHECKS} | {
+            "speculative_cache_lengths"}
+        assert block["pass"] is True and d["precision_pass"][dt] is True
+        cl = block["cache_lengths"]
+        assert all(n > 0 for n in cl["rounds_checked"].values()) and cl["violations"] == []
+        for m in P.MODELS:
+            assert set(block["model_revisions"][m]) >= {"dtype"} and block["model_revisions"][m]["dtype"] == dt
+            for c in P.CHECKS:
+                s = block["summary"][m][c]
+                assert set(s) == STAT_KEYS and s["rows"] > 0
+                assert s["mean_abs_diff"] <= s["max_abs_diff"] and s["mean_tv"] <= s["max_tv"]
+                if dt == "float32":
+                    assert s["max_abs_diff"] < 1e-4 and s["argmax_agreement"] == 1.0
+        assert len(block["per_prompt"]) == 4
+        assert [r["prompt_id"] for r in block["per_prompt"]] == cfg["prompt_ids"]
+        for row in block["per_prompt"]:
+            for m in P.MODELS:
+                assert set(row[m]) == {"continuation_tokens", "rounds_checked", *P.CHECKS}
+    assert d["all_pass"] is (set(P.REQUIRED_DTYPES) <= set(d["precisions"]))
+
+
+def test_preflight_both_precisions(preflight_json):
+    _needs_fp16()
+    d = json.loads(preflight_json.read_text())
+    assert d["config"]["dtypes"] == ["float32", "float16"]
+    assert d["precision_pass"] == {"float32": True, "float16": True} and d["all_pass"] is True
+
+
+def _synthetic():
+    good = {"max_abs_diff": 0.001, "mean_abs_diff": 1e-4, "max_tv": 1e-4, "mean_tv": 1e-5,
+            "argmax_agreement": 1.0, "rows": 10}
+    prec = {}
+    for dt in P.REQUIRED_DTYPES:
+        summary = {m: {c: dict(good) for c in P.CHECKS} for m in P.MODELS}
+        prec[dt] = {"dtype": dt, "rule": P.RULES[dt], "summary": summary,
+                    "cache_lengths": {"rounds_checked": {"target": 3, "draft": 3}, "violations": [], "pass": True}}
+    return prec
+
+
+@pytest.mark.parametrize("case", ["ok", "fp32_logit", "fp32_tv", "fp16_tv", "fp16_argmax", "fp16_lengths",
+                                  "fp16_missing", "fp32_missing"])
+def test_preflight_rules_synthetic(case, tmp_path):
+    prec = _synthetic()
+    if case == "fp32_logit":
+        prec["float32"]["summary"]["draft"]["split_prefill"]["max_abs_diff"] = 0.02
+    elif case == "fp32_tv":
+        prec["float32"]["summary"]["target"]["speculative_cache"]["max_tv"] = 0.002
+    elif case == "fp16_tv":
+        prec["float16"]["summary"]["target"]["split_prefill"]["max_tv"] = 0.11
+    elif case == "fp16_argmax":
+        prec["float16"]["summary"]["draft"]["crop_reforward"]["argmax_agreement"] = 0.97
+    elif case == "fp16_lengths":
+        prec["float16"]["cache_lengths"]["pass"] = False
+    elif case == "fp16_missing":
+        del prec["float16"]
+    elif case == "fp32_missing":
+        del prec["float32"]
+    # an FP16 logit gap of 0.395 (observed on Kaggle) is not a failure under AM2
+    if "float16" in prec:
+        prec["float16"]["summary"]["target"]["verify_windows"]["max_abs_diff"] = 0.395
+    verdict = P.evaluate_record(prec)
+    assert verdict["all_pass"] is (case == "ok")
+    if case.startswith("fp32_") and case != "fp32_missing":
+        assert verdict["precision_pass"] == {"float32": False, "float16": True}
+    if case.startswith("fp16_") and case != "fp16_missing":
+        assert verdict["precision_pass"] == {"float32": True, "float16": False}
+    rec = {"status": "ok", "config": {"preflight_id": P.PREFLIGHT_ID, "rules": P.RULES}, "precisions": prec,
+           **verdict}
+    path = tmp_path / "pf.json"
+    path.write_text(json.dumps(rec))
+    if case == "ok":
+        assert B.require_preflight(path)["all_pass"] is True
+    else:
+        with pytest.raises(SystemExit):
+            B.require_preflight(path)
+
+
+def test_preflight_gate_rejects_forged_and_old_records(tmp_path):
+    verdict = P.evaluate_record(_synthetic())
+    prec = _synthetic()
+    prec["float32"]["summary"]["target"]["split_prefill"]["max_tv"] = 0.5
+    forged = {"status": "ok", "config": {"preflight_id": P.PREFLIGHT_ID, "rules": P.RULES}, "precisions": prec,
+              "all_pass": True, "precision_pass": {"float32": True, "float16": True}}
+    for dt in prec:
+        prec[dt]["pass"] = True
+    old = {"status": "ok", "config": {"preflight_id": "t3-preflight-v1", "logit_tol": 0.25, "tv_tol": 0.01},
+           "passes": {"x": True}, "all_pass": True}
+    good = {"status": "ok", "config": {"preflight_id": P.PREFLIGHT_ID, "rules": P.RULES},
+            "precisions": _synthetic(), **verdict}
+    P.evaluate_record(good["precisions"])
+    for name, rec in (("forged", forged), ("old", old), ("missing", None)):
+        path = tmp_path / f"{name}.json"
+        if rec is not None:
+            path.write_text(json.dumps(rec))
+        with pytest.raises(SystemExit):
+            B.require_preflight(path)
+    path = tmp_path / "good.json"
+    path.write_text(json.dumps(good))
+    assert B.require_preflight(path)["precision_pass"] == {"float32": True, "float16": True}
+
+
+@pytest.mark.parametrize("case", ["fp32_logit", "fp16_tv"])
+def test_spec_bank_refuses_failing_preflight(case, tiny_dirs, committed_check, tmp_path):
+    prec = _synthetic()
+    if case == "fp32_logit":
+        prec["float32"]["summary"]["target"]["crop_reforward"]["max_abs_diff"] = 0.05
+    else:
+        prec["float16"]["summary"]["draft"]["speculative_cache"]["max_tv"] = 0.2
+    rec = {"status": "ok", "config": {"preflight_id": P.PREFLIGHT_ID, "rules": P.RULES}, "precisions": prec,
+           **P.evaluate_record(prec)}
+    assert rec["all_pass"] is False
+    pf = tmp_path / "pf.json"
+    pf.write_text(json.dumps(rec))
+    out = tmp_path / "spec.jsonl.gz"
+    with pytest.raises(SystemExit, match="preflight"):
+        _run("exact_spec_original_gamma4", out, tiny_dirs, ["--sampler-check", str(committed_check["good"]),
+                                                           "--preflight", str(pf)])
+    assert not out.exists() and not out.with_name("spec.json").exists()
 
 
 def _run(kind, out, tiny_dirs, extra=()):
@@ -172,6 +311,7 @@ def test_bank_end_to_end(kind, tiny_dirs, committed_check, preflight_json, tmp_p
     if kind == "exact_spec_original_gamma4":
         assert cfg["gate"]["sampler_check"]["passes"] == {"a": True, "b": True}
         assert cfg["gate"]["preflight"]["all_pass"] is True
+        assert cfg["gate"]["preflight"]["precision_pass"] == {"float32": True, "float16": True}
     for key in ("git_commit", "git_dirty", "package_versions", "device_names"):
         assert key in run["meta"]
     assert "elapsed_wall_s" in run and run["progress"]["prompts_done"] == 2

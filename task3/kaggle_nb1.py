@@ -14,7 +14,8 @@ collection, merge, own-student bank; protocol AM1 puts the own bank right after 
 on_policy_6305 (train, merge, own bank); bank_teacher, bank_original_draft, bank_exact_spec_original_gamma4 (needs the
 passing preflight JSON and the committed sampler check). Two queues, one per GPU: the collection is first on GPU 0;
 the other units are assigned by the plan, which projects every job from the smoke JSONs and picks the assignment with
-the smallest makespan (off-policy units wait for the collection's .done). Smoke (outputs under /kaggle/tmp/t3_smoke):
+the smallest makespan (off-policy units wait for the collection's .done). `jobs` refuses to write any stage unless the
+preflight JSON passes both the FP32 and the FP16 rule (protocol AM2). Smoke (outputs under /kaggle/tmp/t3_smoke):
 the collection on 2 + 2 prompts with K_short 2, 2 updates of each method, the merge of the on-policy smoke adapter, and
 2 prompts of every bank kind (own bank from the smoke merge).
 """
@@ -730,6 +731,9 @@ def main(argv=None):
                          indent=1, default=str)[:4000])
         return 0
     if a.cmd == "jobs":
+        from .banks import require_preflight
+
+        require_preflight(a.preflight)  # every stage needs the FP32 and FP16 preflight rules to pass (AM2)
         plan = None
         if a.stage == "main":
             if not a.plan:

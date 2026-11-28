@@ -83,12 +83,41 @@ def require_sampler_check(path) -> dict:
 
 
 def require_preflight(path) -> dict:
-    d = json.loads(Path(path).read_text())
-    if d.get("status") != "ok" or d.get("all_pass") is not True:
-        raise SystemExit(f"preflight {path} does not pass: status={d.get('status')} all_pass={d.get('all_pass')}")
+    """The preflight record (protocol AM2) must pass both the FP32 equivalence rule and the FP16 gross-error rule."""
+    from .preflight import PREFLIGHT_ID, REQUIRED_DTYPES, RULES, evaluate_record
+
+    try:
+        d = json.loads(Path(path).read_text())
+    except (FileNotFoundError, json.JSONDecodeError, IsADirectoryError) as e:
+        raise SystemExit(f"preflight {path} cannot be read: {e}")
+    cfg = d.get("config") or {}
+    prec = d.get("precisions") or {}
+    problems = []
+    if d.get("status") != "ok":
+        problems.append(f"status={d.get('status')}")
+    if cfg.get("preflight_id") != PREFLIGHT_ID:
+        problems.append(f"preflight_id={cfg.get('preflight_id')} (need {PREFLIGHT_ID})")
+    if cfg.get("rules") != RULES:
+        problems.append("recorded rules differ from the current rules")
+    if d.get("all_pass") is not True:
+        problems.append(f"all_pass={d.get('all_pass')}")
+    for dt in REQUIRED_DTYPES:
+        if (d.get("precision_pass") or {}).get(dt) is not True or (prec.get(dt) or {}).get("pass") is not True:
+            problems.append(f"{dt} does not pass")
+    if not problems:
+        try:
+            again = evaluate_record(json.loads(json.dumps(prec)))
+        except (KeyError, TypeError, AttributeError) as e:
+            again = {"all_pass": False}
+            problems.append(f"record incomplete: {e!r}")
+        if again["all_pass"] is not True:
+            problems.append("recomputed pass flags do not pass")
+    if problems:
+        raise SystemExit(f"preflight {path} does not pass: " + "; ".join(problems))
     from common.io import sha256_file
 
-    return {"path": str(path), "sha256": sha256_file(path), "all_pass": True}
+    return {"path": str(path), "sha256": sha256_file(path), "preflight_id": PREFLIGHT_ID, "all_pass": True,
+            "precision_pass": {dt: True for dt in REQUIRED_DTYPES}}
 
 
 def _counts(res):
