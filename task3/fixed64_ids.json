@@ -1,0 +1,33 @@
+{
+  "fixed64_id": "t3-fixed64-v1",
+  "ids": [
+    "GSM8K-0057",
+    "GSM8K-0020",
+    "GSM8K-0035",
+    "GSM8K-0012",
+    "GSM8K-0052",
+    "GSM8K-0009",
+    "GSM8K-0031",
+    "GSM8K-0027",
+    "GSM8K-0000",
+    "GSM8K-0032",
+    "GSM8K-0037",
+    "GSM8K-0021",
+    "GSM8K-0002",
+    "GSM8K-0056",
+    "GSM8K-0019",
+    "GSM8K-0024",
+    "GSM8K-0010",
+    "GSM8K-0040",
+    "GSM8K-0013",
+    "GSM8K-0023",
+    "GSM8K-0043",
+    "GSM8K-0041",
+    "GSM8K-0003",
+    "GSM8K-0048"
+  ],
+  "n": 24,
+  "rule": "60 GSM8K test IDs in manifest order, permuted with numpy.random.default_rng(6304).permutation(60), first 24 kept (protocol D13)",
+  "source": "data/public_manifests/gsm8k_test_ids.jsonl",
+  "source_sha256": "b0ad559360962ffe9445161d9e01d3f1f2ab75aa54cba1ad2d91346366b6dd55"
+}

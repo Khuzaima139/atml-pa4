@@ -1,0 +1,682 @@
+{
+  "all_pass": true,
+  "config": {
+    "alpha": 0.01,
+    "batch_size": 1,
+    "cap": 3,
+    "check_id": "t3-sampler-check-v1",
+    "draft": {
+      "initial": [
+        0.2,
+        0.3,
+        0.5
+      ],
+      "transition": [
+        [
+          0.2,
+          0.3,
+          0.5
+        ],
+        [
+          0.5,
+          0.2,
+          0.3
+        ],
+        [
+          0.4,
+          0.4,
+          0.2
+        ]
+      ]
+    },
+    "eos_ids": [],
+    "gammas": [
+      2,
+      4
+    ],
+    "length": 3,
+    "n_sequences": 100000,
+    "note_gamma4": "at length 3 a gamma-4 round proposes min(4, remaining) tokens (D16), so its first round proposes 3 and the bonus token is skipped at the cap",
+    "padding": "none (batch size 1, no padding exists)",
+    "sampler_id": "t3-sampler-v1",
+    "samplers": {
+      "correct": "positive residual norm(max(0, p - q))",
+      "incorrect": "residual replaced by p (negative control); otherwise the same code"
+    },
+    "seed_base": {
+      "2": 6306000000,
+      "4": 6308000000
+    },
+    "seed_rule": "sequence i at gamma g uses torch.Generator('cpu').manual_seed(seed_base[g] + i), the same seeds for both samplers",
+    "start_symbol": 3,
+    "symbols": 3,
+    "target": {
+      "initial": [
+        0.5,
+        0.3,
+        0.2
+      ],
+      "transition": [
+        [
+          0.6,
+          0.3,
+          0.1
+        ],
+        [
+          0.2,
+          0.5,
+          0.3
+        ],
+        [
+          0.25,
+          0.25,
+          0.5
+        ]
+      ]
+    },
+    "test": "Pearson chi-squared over the 27 length-3 sequences, df 26, scipy.stats.chisquare"
+  },
+  "elapsed_wall_s": 75.01306833399576,
+  "end_time": "2026-11-28T12:03:26.850288+00:00",
+  "exact_correct_law_max_abs_diff": 5.551115123125783e-17,
+  "expected_statistic_incorrect": {
+    "2": 22055.668333333335,
+    "4": 30629.35722222222
+  },
+  "meta": {
+    "cuda_available": false,
+    "device_count": 0,
+    "device_names": [],
+    "git_commit": "d4ae9d074cdb873797cb1945739738e7287213c7",
+    "git_dirty": false,
+    "hostname": "Khuzaimas-MacBook-Pro.local",
+    "mps_available": true,
+    "package_versions": {
+      "accelerate": "1.16.0",
+      "datasets": "4.8.5",
+      "huggingface_hub": "0.36.2",
+      "lm_eval": "0.4.13",
+      "matplotlib": "3.11.2",
+      "numpy": "2.4.6",
+      "peft": null,
+      "safetensors": "0.8.0",
+      "scipy": "1.17.1",
+      "tokenizers": "0.22.2",
+      "torch": "2.15.0",
+      "transformers": "4.57.1"
+    },
+    "platform": "macOS-27.2.1-arm64-arm-64bit",
+    "python_version": "3.11.18",
+    "torch_cuda_build": null,
+    "torch_cudnn_build": null,
+    "torch_version": "2.15.0"
+  },
+  "min_expected_count": 500.0000000000001,
+  "min_target_joint": 0.005000000000000001,
+  "passes": {
+    "correct_gamma2_not_rejected": true,
+    "correct_gamma4_not_rejected": true,
+    "exact_correct_law_equals_target": true,
+    "expected_statistic_incorrect_gamma2_gt_200": true,
+    "expected_statistic_incorrect_gamma4_gt_200": true,
+    "incorrect_gamma2_rejected": true,
+    "incorrect_gamma4_rejected": true,
+    "min_expected_count_ge_10": true,
+    "min_target_joint_ge_2e-4": true
+  },
+  "pooled_round_counts": {
+    "correct_gamma2": {
+      "accepted": 169475,
+      "bonus_skipped_cap": 34418,
+      "bonus_tokens": 46988,
+      "draft_forward_calls": 295100,
+      "examined": 253012,
+      "proposed": 295100,
+      "residual_fallbacks": 0,
+      "target_verification_passes": 164943
+    },
+    "correct_gamma4": {
+      "accepted": 200695,
+      "bonus_skipped_cap": 65817,
+      "bonus_tokens": 0,
+      "draft_forward_calls": 395112,
+      "examined": 300000,
+      "proposed": 395112,
+      "residual_fallbacks": 0,
+      "target_verification_passes": 165122
+    },
+    "incorrect_gamma2": {
+      "accepted": 171623,
+      "bonus_skipped_cap": 35215,
+      "bonus_tokens": 46988,
+      "draft_forward_calls": 293749,
+      "examined": 253012,
+      "proposed": 293749,
+      "residual_fallbacks": 0,
+      "target_verification_passes": 163592
+    },
+    "incorrect_gamma4": {
+      "accepted": 202948,
+      "bonus_skipped_cap": 66601,
+      "bonus_tokens": 0,
+      "draft_forward_calls": 393643,
+      "examined": 300000,
+      "proposed": 393643,
+      "residual_fallbacks": 0,
+      "target_verification_passes": 163653
+    }
+  },
+  "start_time": "2026-11-28T12:02:11.910603+00:00",
+  "statistics": {
+    "correct_gamma2": {
+      "df": 26,
+      "p_value": 0.4018898121533136,
+      "statistic": 27.142511111111133
+    },
+    "correct_gamma4": {
+      "df": 26,
+      "p_value": 0.9522637883629144,
+      "statistic": 15.266488888888858
+    },
+    "incorrect_gamma2": {
+      "df": 26,
+      "p_value": 0.0,
+      "statistic": 21804.21117777778
+    },
+    "incorrect_gamma4": {
+      "df": 26,
+      "p_value": 0.0,
+      "statistic": 30867.448622222222
+    }
+  },
+  "status": "ok",
+  "table": [
+    {
+      "exact_probability_correct_gamma2": 0.18000000000000005,
+      "exact_probability_correct_gamma4": 0.18000000000000005,
+      "exact_probability_incorrect_gamma2": 0.07416000000000002,
+      "exact_probability_incorrect_gamma4": 0.06776000000000003,
+      "expected_count": 18000.0,
+      "observed_correct_gamma2": 17985,
+      "observed_correct_gamma4": 18016,
+      "observed_incorrect_gamma2": 7343,
+      "observed_incorrect_gamma4": 6786,
+      "sequence": "AAA",
+      "symbols": [
+        0,
+        0,
+        0
+      ],
+      "target_probability": 0.18
+    },
+    {
+      "exact_probability_correct_gamma2": 0.09,
+      "exact_probability_correct_gamma4": 0.09,
+      "exact_probability_incorrect_gamma2": 0.05988000000000001,
+      "exact_probability_incorrect_gamma4": 0.06468000000000002,
+      "expected_count": 9000.0,
+      "observed_correct_gamma2": 8896,
+      "observed_correct_gamma4": 9008,
+      "observed_incorrect_gamma2": 5971,
+      "observed_incorrect_gamma4": 6409,
+      "sequence": "AAB",
+      "symbols": [
+        0,
+        0,
+        1
+      ],
+      "target_probability": 0.09
+    },
+    {
+      "exact_probability_correct_gamma2": 0.030000000000000006,
+      "exact_probability_correct_gamma4": 0.030000000000000006,
+      "exact_probability_incorrect_gamma2": 0.019960000000000006,
+      "exact_probability_incorrect_gamma4": 0.02156000000000001,
+      "expected_count": 3000.0,
+      "observed_correct_gamma2": 2911,
+      "observed_correct_gamma4": 2997,
+      "observed_incorrect_gamma2": 2005,
+      "observed_incorrect_gamma4": 2111,
+      "sequence": "AAC",
+      "symbols": [
+        0,
+        0,
+        2
+      ],
+      "target_probability": 0.03
+    },
+    {
+      "exact_probability_correct_gamma2": 0.03,
+      "exact_probability_correct_gamma4": 0.03,
+      "exact_probability_incorrect_gamma2": 0.034620000000000005,
+      "exact_probability_incorrect_gamma4": 0.038220000000000004,
+      "expected_count": 3000.0,
+      "observed_correct_gamma2": 2976,
+      "observed_correct_gamma4": 3018,
+      "observed_incorrect_gamma2": 3411,
+      "observed_incorrect_gamma4": 3865,
+      "sequence": "ABA",
+      "symbols": [
+        0,
+        1,
+        0
+      ],
+      "target_probability": 0.03
+    },
+    {
+      "exact_probability_correct_gamma2": 0.075,
+      "exact_probability_correct_gamma4": 0.075,
+      "exact_probability_incorrect_gamma2": 0.060450000000000004,
+      "exact_probability_incorrect_gamma4": 0.051449999999999996,
+      "expected_count": 7500.0,
+      "observed_correct_gamma2": 7639,
+      "observed_correct_gamma4": 7470,
+      "observed_incorrect_gamma2": 6100,
+      "observed_incorrect_gamma4": 5161,
+      "sequence": "ABB",
+      "symbols": [
+        0,
+        1,
+        1
+      ],
+      "target_probability": 0.075
+    },
+    {
+      "exact_probability_correct_gamma2": 0.045,
+      "exact_probability_correct_gamma4": 0.045,
+      "exact_probability_incorrect_gamma2": 0.051930000000000004,
+      "exact_probability_incorrect_gamma4": 0.05732999999999999,
+      "expected_count": 4500.0,
+      "observed_correct_gamma2": 4525,
+      "observed_correct_gamma4": 4480,
+      "observed_incorrect_gamma2": 5212,
+      "observed_incorrect_gamma4": 5773,
+      "sequence": "ABC",
+      "symbols": [
+        0,
+        1,
+        2
+      ],
+      "target_probability": 0.045
+    },
+    {
+      "exact_probability_correct_gamma2": 0.012500000000000002,
+      "exact_probability_correct_gamma4": 0.012500000000000002,
+      "exact_probability_incorrect_gamma2": 0.014425000000000004,
+      "exact_probability_incorrect_gamma4": 0.015925,
+      "expected_count": 1250.0,
+      "observed_correct_gamma2": 1309,
+      "observed_correct_gamma4": 1258,
+      "observed_incorrect_gamma2": 1493,
+      "observed_incorrect_gamma4": 1619,
+      "sequence": "ACA",
+      "symbols": [
+        0,
+        2,
+        0
+      ],
+      "target_probability": 0.0125
+    },
+    {
+      "exact_probability_correct_gamma2": 0.012500000000000002,
+      "exact_probability_correct_gamma4": 0.012500000000000002,
+      "exact_probability_incorrect_gamma2": 0.014425000000000004,
+      "exact_probability_incorrect_gamma4": 0.015925,
+      "expected_count": 1250.0,
+      "observed_correct_gamma2": 1256,
+      "observed_correct_gamma4": 1290,
+      "observed_incorrect_gamma2": 1471,
+      "observed_incorrect_gamma4": 1668,
+      "sequence": "ACB",
+      "symbols": [
+        0,
+        2,
+        1
+      ],
+      "target_probability": 0.0125
+    },
+    {
+      "exact_probability_correct_gamma2": 0.025000000000000005,
+      "exact_probability_correct_gamma4": 0.025000000000000005,
+      "exact_probability_incorrect_gamma2": 0.020150000000000005,
+      "exact_probability_incorrect_gamma4": 0.017150000000000006,
+      "expected_count": 2500.0,
+      "observed_correct_gamma2": 2497,
+      "observed_correct_gamma4": 2520,
+      "observed_incorrect_gamma2": 1997,
+      "observed_incorrect_gamma4": 1691,
+      "sequence": "ACC",
+      "symbols": [
+        0,
+        2,
+        2
+      ],
+      "target_probability": 0.025
+    },
+    {
+      "exact_probability_correct_gamma2": 0.036,
+      "exact_probability_correct_gamma4": 0.036000000000000004,
+      "exact_probability_incorrect_gamma2": 0.05421600000000001,
+      "exact_probability_incorrect_gamma4": 0.04461600000000001,
+      "expected_count": 3599.9999999999995,
+      "observed_correct_gamma2": 3673,
+      "observed_correct_gamma4": 3592,
+      "observed_incorrect_gamma2": 5457,
+      "observed_incorrect_gamma4": 4458,
+      "sequence": "BAA",
+      "symbols": [
+        1,
+        0,
+        0
+      ],
+      "target_probability": 0.036
+    },
+    {
+      "exact_probability_correct_gamma2": 0.018,
+      "exact_probability_correct_gamma4": 0.018,
+      "exact_probability_incorrect_gamma2": 0.035387999999999996,
+      "exact_probability_incorrect_gamma4": 0.042587999999999994,
+      "expected_count": 1799.9999999999998,
+      "observed_correct_gamma2": 1794,
+      "observed_correct_gamma4": 1716,
+      "observed_incorrect_gamma2": 3546,
+      "observed_incorrect_gamma4": 4231,
+      "sequence": "BAB",
+      "symbols": [
+        1,
+        0,
+        1
+      ],
+      "target_probability": 0.018
+    },
+    {
+      "exact_probability_correct_gamma2": 0.006,
+      "exact_probability_correct_gamma4": 0.006,
+      "exact_probability_incorrect_gamma2": 0.011796000000000001,
+      "exact_probability_incorrect_gamma4": 0.014196,
+      "expected_count": 600.0,
+      "observed_correct_gamma2": 571,
+      "observed_correct_gamma4": 571,
+      "observed_incorrect_gamma2": 1167,
+      "observed_incorrect_gamma4": 1391,
+      "sequence": "BAC",
+      "symbols": [
+        1,
+        0,
+        2
+      ],
+      "target_probability": 0.006
+    },
+    {
+      "exact_probability_correct_gamma2": 0.03,
+      "exact_probability_correct_gamma4": 0.03,
+      "exact_probability_incorrect_gamma2": 0.03189,
+      "exact_probability_incorrect_gamma4": 0.035489999999999994,
+      "expected_count": 3000.0,
+      "observed_correct_gamma2": 3014,
+      "observed_correct_gamma4": 3011,
+      "observed_incorrect_gamma2": 3219,
+      "observed_incorrect_gamma4": 3500,
+      "sequence": "BBA",
+      "symbols": [
+        1,
+        1,
+        0
+      ],
+      "target_probability": 0.03
+    },
+    {
+      "exact_probability_correct_gamma2": 0.075,
+      "exact_probability_correct_gamma4": 0.075,
+      "exact_probability_incorrect_gamma2": 0.056775,
+      "exact_probability_incorrect_gamma4": 0.047775,
+      "expected_count": 7500.0,
+      "observed_correct_gamma2": 7466,
+      "observed_correct_gamma4": 7571,
+      "observed_incorrect_gamma2": 5810,
+      "observed_incorrect_gamma4": 4774,
+      "sequence": "BBB",
+      "symbols": [
+        1,
+        1,
+        1
+      ],
+      "target_probability": 0.075
+    },
+    {
+      "exact_probability_correct_gamma2": 0.045,
+      "exact_probability_correct_gamma4": 0.045,
+      "exact_probability_incorrect_gamma2": 0.047834999999999996,
+      "exact_probability_incorrect_gamma4": 0.053235,
+      "expected_count": 4500.0,
+      "observed_correct_gamma2": 4507,
+      "observed_correct_gamma4": 4544,
+      "observed_incorrect_gamma2": 4794,
+      "observed_incorrect_gamma4": 5362,
+      "sequence": "BBC",
+      "symbols": [
+        1,
+        1,
+        2
+      ],
+      "target_probability": 0.045
+    },
+    {
+      "exact_probability_correct_gamma2": 0.0225,
+      "exact_probability_correct_gamma4": 0.0225,
+      "exact_probability_incorrect_gamma2": 0.0426825,
+      "exact_probability_incorrect_gamma4": 0.0494325,
+      "expected_count": 2250.0,
+      "observed_correct_gamma2": 2194,
+      "observed_correct_gamma4": 2265,
+      "observed_incorrect_gamma2": 4115,
+      "observed_incorrect_gamma4": 4982,
+      "sequence": "BCA",
+      "symbols": [
+        1,
+        2,
+        0
+      ],
+      "target_probability": 0.0225
+    },
+    {
+      "exact_probability_correct_gamma2": 0.0225,
+      "exact_probability_correct_gamma4": 0.0225,
+      "exact_probability_incorrect_gamma2": 0.0426825,
+      "exact_probability_incorrect_gamma4": 0.0494325,
+      "expected_count": 2250.0,
+      "observed_correct_gamma2": 2165,
+      "observed_correct_gamma4": 2242,
+      "observed_incorrect_gamma2": 4153,
+      "observed_incorrect_gamma4": 4967,
+      "sequence": "BCB",
+      "symbols": [
+        1,
+        2,
+        1
+      ],
+      "target_probability": 0.0225
+    },
+    {
+      "exact_probability_correct_gamma2": 0.045,
+      "exact_probability_correct_gamma4": 0.045,
+      "exact_probability_incorrect_gamma2": 0.066735,
+      "exact_probability_incorrect_gamma4": 0.053235,
+      "expected_count": 4500.0,
+      "observed_correct_gamma2": 4420,
+      "observed_correct_gamma4": 4499,
+      "observed_incorrect_gamma2": 6582,
+      "observed_incorrect_gamma4": 5410,
+      "sequence": "BCC",
+      "symbols": [
+        1,
+        2,
+        2
+      ],
+      "target_probability": 0.045
+    },
+    {
+      "exact_probability_correct_gamma2": 0.030000000000000006,
+      "exact_probability_correct_gamma4": 0.030000000000000006,
+      "exact_probability_incorrect_gamma2": 0.04518000000000001,
+      "exact_probability_incorrect_gamma4": 0.03718000000000001,
+      "expected_count": 3000.0,
+      "observed_correct_gamma2": 2970,
+      "observed_correct_gamma4": 2974,
+      "observed_incorrect_gamma2": 4467,
+      "observed_incorrect_gamma4": 3703,
+      "sequence": "CAA",
+      "symbols": [
+        2,
+        0,
+        0
+      ],
+      "target_probability": 0.03
+    },
+    {
+      "exact_probability_correct_gamma2": 0.015000000000000003,
+      "exact_probability_correct_gamma4": 0.015000000000000003,
+      "exact_probability_incorrect_gamma2": 0.029490000000000006,
+      "exact_probability_incorrect_gamma4": 0.03549000000000001,
+      "expected_count": 1500.0,
+      "observed_correct_gamma2": 1508,
+      "observed_correct_gamma4": 1513,
+      "observed_incorrect_gamma2": 3007,
+      "observed_incorrect_gamma4": 3573,
+      "sequence": "CAB",
+      "symbols": [
+        2,
+        0,
+        1
+      ],
+      "target_probability": 0.015
+    },
+    {
+      "exact_probability_correct_gamma2": 0.005000000000000001,
+      "exact_probability_correct_gamma4": 0.005000000000000001,
+      "exact_probability_incorrect_gamma2": 0.009830000000000004,
+      "exact_probability_incorrect_gamma4": 0.011830000000000002,
+      "expected_count": 500.0000000000001,
+      "observed_correct_gamma2": 477,
+      "observed_correct_gamma4": 521,
+      "observed_incorrect_gamma2": 999,
+      "observed_incorrect_gamma4": 1245,
+      "sequence": "CAC",
+      "symbols": [
+        2,
+        0,
+        2
+      ],
+      "target_probability": 0.005000000000000001
+    },
+    {
+      "exact_probability_correct_gamma2": 0.010000000000000002,
+      "exact_probability_correct_gamma4": 0.010000000000000002,
+      "exact_probability_incorrect_gamma2": 0.018970000000000004,
+      "exact_probability_incorrect_gamma4": 0.021970000000000007,
+      "expected_count": 1000.0000000000002,
+      "observed_correct_gamma2": 1000,
+      "observed_correct_gamma4": 996,
+      "observed_incorrect_gamma2": 1914,
+      "observed_incorrect_gamma4": 2169,
+      "sequence": "CBA",
+      "symbols": [
+        2,
+        1,
+        0
+      ],
+      "target_probability": 0.010000000000000002
+    },
+    {
+      "exact_probability_correct_gamma2": 0.025000000000000005,
+      "exact_probability_correct_gamma4": 0.025000000000000005,
+      "exact_probability_incorrect_gamma2": 0.037075000000000004,
+      "exact_probability_incorrect_gamma4": 0.029575000000000004,
+      "expected_count": 2500.0,
+      "observed_correct_gamma2": 2525,
+      "observed_correct_gamma4": 2406,
+      "observed_incorrect_gamma2": 3719,
+      "observed_incorrect_gamma4": 2892,
+      "sequence": "CBB",
+      "symbols": [
+        2,
+        1,
+        1
+      ],
+      "target_probability": 0.025
+    },
+    {
+      "exact_probability_correct_gamma2": 0.015000000000000003,
+      "exact_probability_correct_gamma4": 0.015000000000000003,
+      "exact_probability_incorrect_gamma2": 0.028455000000000005,
+      "exact_probability_incorrect_gamma4": 0.032955000000000005,
+      "expected_count": 1500.0,
+      "observed_correct_gamma2": 1509,
+      "observed_correct_gamma4": 1522,
+      "observed_incorrect_gamma2": 2894,
+      "observed_incorrect_gamma4": 3274,
+      "sequence": "CBC",
+      "symbols": [
+        2,
+        1,
+        2
+      ],
+      "target_probability": 0.015
+    },
+    {
+      "exact_probability_correct_gamma2": 0.025000000000000005,
+      "exact_probability_correct_gamma4": 0.025000000000000005,
+      "exact_probability_incorrect_gamma2": 0.026575000000000005,
+      "exact_probability_incorrect_gamma4": 0.029575000000000008,
+      "expected_count": 2500.0,
+      "observed_correct_gamma2": 2551,
+      "observed_correct_gamma4": 2453,
+      "observed_incorrect_gamma2": 2725,
+      "observed_incorrect_gamma4": 2882,
+      "sequence": "CCA",
+      "symbols": [
+        2,
+        2,
+        0
+      ],
+      "target_probability": 0.025
+    },
+    {
+      "exact_probability_correct_gamma2": 0.025000000000000005,
+      "exact_probability_correct_gamma4": 0.025000000000000005,
+      "exact_probability_incorrect_gamma2": 0.026575000000000005,
+      "exact_probability_incorrect_gamma4": 0.029575000000000008,
+      "expected_count": 2500.0,
+      "observed_correct_gamma2": 2614,
+      "observed_correct_gamma4": 2546,
+      "observed_incorrect_gamma2": 2687,
+      "observed_incorrect_gamma4": 2935,
+      "sequence": "CCB",
+      "symbols": [
+        2,
+        2,
+        1
+      ],
+      "target_probability": 0.025
+    },
+    {
+      "exact_probability_correct_gamma2": 0.05000000000000001,
+      "exact_probability_correct_gamma4": 0.05000000000000001,
+      "exact_probability_incorrect_gamma2": 0.03785000000000001,
+      "exact_probability_incorrect_gamma4": 0.03185000000000001,
+      "expected_count": 5000.0,
+      "observed_correct_gamma2": 5048,
+      "observed_correct_gamma4": 5001,
+      "observed_incorrect_gamma2": 3742,
+      "observed_incorrect_gamma4": 3169,
+      "sequence": "CCC",
+      "symbols": [
+        2,
+        2,
+        2
+      ],
+      "target_probability": 0.05
+    }
+  ],
+  "updated_time": "2026-11-28T12:03:26.850297+00:00"
+}
